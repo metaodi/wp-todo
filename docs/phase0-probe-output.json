@@ -8387,7 +8387,7 @@
               ]
             }
           },
-          "elapsed_s": 0.558,
+          "elapsed_s": 0.414,
           "note": "generator + prop=categories + prop=revisions in one request",
           "retry_after": null,
           "status": 200,
@@ -11403,7 +11403,7 @@
               ]
             }
           },
-          "elapsed_s": 0.309,
+          "elapsed_s": 0.999,
           "note": "documented non-bot max",
           "retry_after": null,
           "status": 200,
@@ -14422,7 +14422,7 @@
               }
             }
           },
-          "elapsed_s": 0.315,
+          "elapsed_s": 0.914,
           "note": "expect a warning or a clamp",
           "retry_after": null,
           "status": 200,
@@ -17439,7 +17439,7 @@
               ]
             }
           },
-          "elapsed_s": 0.312,
+          "elapsed_s": 0.869,
           "note": "what does 'max' resolve to",
           "retry_after": null,
           "status": 200,
@@ -17513,7 +17513,7 @@
               ]
             }
           },
-          "elapsed_s": 0.27,
+          "elapsed_s": 1.486,
           "note": "documented max radius",
           "retry_after": null,
           "status": 200,
@@ -17530,9 +17530,9 @@
               "max": 10000,
               "min": 10
             },
-            "servedby": "mw-api-ext.codfw.main-56c67cbc96-gcspw"
+            "servedby": "mw-api-ext.eqiad.main-7586d569fc-t5gt8"
           },
-          "elapsed_s": 0.115,
+          "elapsed_s": 0.112,
           "note": "expect an error naming the real max",
           "retry_after": null,
           "status": 200,
@@ -17653,7 +17653,7 @@
               ]
             }
           },
-          "elapsed_s": 0.124,
+          "elapsed_s": 0.093,
           "note": "which assumed category names are real, and how many members each has",
           "retry_after": null,
           "status": 200,
@@ -17939,9 +17939,9 @@
               "docref": "See https://de.wikipedia.org/w/api.php for API usage. Subscribe to the mediawiki-api-announce mailing list at &lt;https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/&gt; for notice of API deprecations and breaking changes.",
               "info": "\"titles\", \"pageids\" or a generator was used to supply multiple pages, but the \"rvlimit\", \"rvstartid\", \"rvendid\", \"rvdir=newer\", \"rvuser\", \"rvexcludeuser\", \"rvstart\", and \"rvend\" parameters may only be used on a single page."
             },
-            "servedby": "mw-api-ext.codfw.main-56c67cbc96-m7nn8"
+            "servedby": "mw-api-ext.eqiad.main-7586d569fc-sgdd9"
           },
-          "elapsed_s": 0.121,
+          "elapsed_s": 0.168,
           "note": "read the Veraltet invocation to see whether seit= is present and how",
           "retry_after": null,
           "status": 200,
@@ -17962,7 +17962,7 @@
               }
             }
           },
-          "elapsed_s": 0.17,
+          "elapsed_s": 0.159,
           "note": "deepcat:\"Bezirk Horgen\" hastemplate:\"Veraltet\"",
           "retry_after": null,
           "status": 200,
@@ -18063,7 +18063,7 @@
               }
             }
           },
-          "elapsed_s": 0.247,
+          "elapsed_s": 0.163,
           "note": "deepcat:\"Bezirk Horgen\"",
           "retry_after": null,
           "status": 200,
@@ -18164,7 +18164,7 @@
               }
             }
           },
-          "elapsed_s": 0.215,
+          "elapsed_s": 0.162,
           "note": "deepcategory:\"Bezirk Horgen\"",
           "retry_after": null,
           "status": 200,
@@ -18180,7 +18180,7 @@
               }
             }
           },
-          "elapsed_s": 0.138,
+          "elapsed_s": 0.135,
           "note": "hastemplate:\"Veraltet\" incategory:\"Kanton Zürich\"",
           "retry_after": null,
           "status": 200,
@@ -18196,7 +18196,7 @@
               }
             }
           },
-          "elapsed_s": 0.149,
+          "elapsed_s": 0.19,
           "note": "insource:\"Stand: 2019\" incategory:\"Kanton Zürich\"",
           "retry_after": null,
           "status": 200,
@@ -18297,7 +18297,7 @@
               }
             }
           },
-          "elapsed_s": 4.263,
+          "elapsed_s": 4.957,
           "note": "insource:/Stand: 201[0-9]/",
           "retry_after": null,
           "status": 200,
@@ -18313,7 +18313,7 @@
               }
             }
           },
-          "elapsed_s": 0.154,
+          "elapsed_s": 0.132,
           "note": "incategory:\"Kanton Zürich\" insource:\"Stand\" insource:/Stand: 20(1[0-9])/",
           "retry_after": null,
           "status": 200,
@@ -18330,16 +18330,16 @@
               "search": [
                 {
                   "ns": 0,
-                  "pageid": 106870,
-                  "size": 40868,
-                  "snippet": "wird per Auftrag, berechnet werden pro Seite 14 [[US-Dollar|US-Cent]] (<span class=\"searchmatch\">Stand 2023</span>).&lt;ref&gt;{{Internetquelle |url=https://archive.org/scanning |titel=Scanning",
-                  "timestamp": "2026-07-15T09:17:48Z",
-                  "title": "Internet Archive",
-                  "wordcount": 3828
+                  "pageid": 2773,
+                  "size": 100284,
+                  "snippet": "José]] ([[Silicon Valley]])]]\n\nMit 2,6&amp;nbsp;Billionen [[US-Dollar]] (<span class=\"searchmatch\">Stand 2016</span>) trägt Kalifornien 14 % des jährlich erwirtschafteten [[Bruttoinlandsprodukt]]s",
+                  "timestamp": "2026-08-15T16:59:55Z",
+                  "title": "Kalifornien",
+                  "wordcount": 9134
                 }
               ],
               "searchinfo": {
-                "totalhits": 24175
+                "totalhits": 20029
               }
             },
             "warnings": {
@@ -18348,7 +18348,7 @@
               }
             }
           },
-          "elapsed_s": 18.865,
+          "elapsed_s": 23.821,
           "note": "deliberately expensive: does a timeout error, or silently truncate? watch elapsed_s",
           "retry_after": null,
           "status": 200,
@@ -18627,7 +18627,7 @@
               ]
             }
           },
-          "elapsed_s": 0.129,
+          "elapsed_s": 0.137,
           "note": "full dewiki bot roster; is caching it viable?",
           "retry_after": null,
           "status": 200,
@@ -18638,244 +18638,20 @@
             "batchcomplete": true,
             "continue": {
               "continue": "-||",
-              "rccontinue": "20260828214629|383947719"
+              "rccontinue": "20260828220100|383948229"
             },
             "query": {
               "recentchanges": [
                 {
                   "bot": true,
-                  "comment": "[[:Deutsche Buddhistische Union]] zur Kategorie hinzugefügt",
+                  "comment": "[[:Deutsche Burschenschaft]] zur Kategorie hinzugefügt, [[Special:WhatLinksHere/Deutsche Burschenschaft|diese Seite ist in anderen Seiten eingebunden]]",
                   "minor": false,
                   "new": false,
                   "newlen": 0,
                   "ns": 14,
                   "oldlen": 0,
                   "tags": [],
-                  "timestamp": "2026-08-28T21:58:09Z",
-                  "title": "Kategorie:Wikipedia:Defekte Weblinks/Ungeprüfte Archivlinks 2026-08",
-                  "type": "categorize",
-                  "user": "InternetArchiveBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "[[:Benutzer:InternetArchiveBot|InternetArchiveBot]] hat 1 Archivlink(s) ergänzt und 0 Link(s) als defekt/tot markiert.) #IABot (v2.0.9.5",
-                  "minor": false,
-                  "new": false,
-                  "newlen": 16867,
-                  "ns": 0,
-                  "oldlen": 16718,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:58:09Z",
-                  "title": "Deutsche Buddhistische Union",
-                  "type": "edit",
-                  "user": "InternetArchiveBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "Bot: http → https",
-                  "minor": true,
-                  "new": false,
-                  "newlen": 54525,
-                  "ns": 0,
-                  "oldlen": 54524,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:57:44Z",
-                  "title": "Hochgeschwindigkeitszug",
-                  "type": "edit",
-                  "user": "SchlurcherBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "Bot: http → https",
-                  "minor": true,
-                  "new": false,
-                  "newlen": 1576,
-                  "ns": 0,
-                  "oldlen": 1574,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:57:06Z",
-                  "title": "Jüdisches Schulhaus (Thalmässing)",
-                  "type": "edit",
-                  "user": "SchlurcherBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "Bot: http → https",
-                  "minor": true,
-                  "new": false,
-                  "newlen": 22800,
-                  "ns": 0,
-                  "oldlen": 22788,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:57:02Z",
-                  "title": "Jakob Marell",
-                  "type": "edit",
-                  "user": "SchlurcherBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "[[:Deutsche Botschaft Vilnius]] zur Kategorie hinzugefügt",
-                  "minor": false,
-                  "new": false,
-                  "newlen": 0,
-                  "ns": 14,
-                  "oldlen": 0,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:56:27Z",
-                  "title": "Kategorie:Wikipedia:Defekte Weblinks/Ungeprüfte Archivlinks 2026-08",
-                  "type": "categorize",
-                  "user": "InternetArchiveBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "[[:Benutzer:InternetArchiveBot|InternetArchiveBot]] hat 1 Archivlink(s) ergänzt und 0 Link(s) als defekt/tot markiert.) #IABot (v2.0.9.5",
-                  "minor": false,
-                  "new": false,
-                  "newlen": 4531,
-                  "ns": 0,
-                  "oldlen": 4339,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:56:27Z",
-                  "title": "Deutsche Botschaft Vilnius",
-                  "type": "edit",
-                  "user": "InternetArchiveBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "Bot: http → https",
-                  "minor": true,
-                  "new": false,
-                  "newlen": 117872,
-                  "ns": 0,
-                  "oldlen": 117870,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:55:08Z",
-                  "title": "Behinderung",
-                  "type": "edit",
-                  "user": "SchlurcherBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "Bot: added: [[Claus Sprick]], category: Gestorben 2026; num items = 450",
-                  "minor": true,
-                  "new": false,
-                  "newlen": 26156,
-                  "ns": 2,
-                  "oldlen": 26104,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:55:08Z",
-                  "title": "Benutzer:CamelBot/maintenance list/categories of the dead",
-                  "type": "edit",
-                  "user": "CamelBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "Bot: Abbild der heutigen [[Wikipedia:Hauptseite|Hauptseite]]",
-                  "minor": false,
-                  "new": false,
-                  "newlen": 17028,
-                  "ns": 4,
-                  "oldlen": 17157,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:55:03Z",
-                  "title": "Wikipedia:Hauptseite/Archiv/28. August 2026",
-                  "type": "edit",
-                  "user": "TaxonBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "Bot: http → https",
-                  "minor": true,
-                  "new": false,
-                  "newlen": 6972,
-                  "ns": 0,
-                  "oldlen": 6971,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:54:54Z",
-                  "title": "Zeitschrift des Architekten- und Ingenieur-Vereins zu Hannover",
-                  "type": "edit",
-                  "user": "SchlurcherBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "Bot: http → https",
-                  "minor": true,
-                  "new": false,
-                  "newlen": 11519,
-                  "ns": 0,
-                  "oldlen": 11511,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:54:49Z",
-                  "title": "Jens Thomas (Pianist)",
-                  "type": "edit",
-                  "user": "SchlurcherBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "[[:Deutsche Botschaft Taschkent]] von der Kategorie entfernt",
-                  "minor": false,
-                  "new": false,
-                  "newlen": 0,
-                  "ns": 14,
-                  "oldlen": 0,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:53:58Z",
-                  "title": "Kategorie:Wikipedia:Weblink offline",
-                  "type": "categorize",
-                  "user": "InternetArchiveBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "[[:Deutsche Botschaft Taschkent]] zur Kategorie hinzugefügt",
-                  "minor": false,
-                  "new": false,
-                  "newlen": 0,
-                  "ns": 14,
-                  "oldlen": 0,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:53:58Z",
-                  "title": "Kategorie:Wikipedia:Defekte Weblinks/Ungeprüfte Archivlinks 2026-08",
-                  "type": "categorize",
-                  "user": "InternetArchiveBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "[[:Benutzer:InternetArchiveBot|InternetArchiveBot]] hat 3 Archivlink(s) ergänzt und 0 Link(s) als defekt/tot markiert.) #IABot (v2.0.9.5",
-                  "minor": false,
-                  "new": false,
-                  "newlen": 7040,
-                  "ns": 0,
-                  "oldlen": 6465,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:53:58Z",
-                  "title": "Deutsche Botschaft Taschkent",
-                  "type": "edit",
-                  "user": "InternetArchiveBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "Wikidata list updated [V2]",
-                  "minor": false,
-                  "new": false,
-                  "newlen": 27779,
-                  "ns": 100,
-                  "oldlen": 27618,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:51:49Z",
-                  "title": "Portal:Tennis/Nekrolog",
-                  "type": "edit",
-                  "user": "ListeriaBot"
-                },
-                {
-                  "bot": true,
-                  "comment": "[[:Deutsche Botschaft Riad]] zur Kategorie hinzugefügt",
-                  "minor": false,
-                  "new": false,
-                  "newlen": 0,
-                  "ns": 14,
-                  "oldlen": 0,
-                  "tags": [],
-                  "timestamp": "2026-08-28T21:51:34Z",
+                  "timestamp": "2026-08-28T22:02:18Z",
                   "title": "Kategorie:Wikipedia:Defekte Weblinks/Ungeprüfte Archivlinks 2026-08",
                   "type": "categorize",
                   "user": "InternetArchiveBot"
@@ -18885,51 +18661,287 @@
                   "comment": "[[:Benutzer:InternetArchiveBot|InternetArchiveBot]] hat 2 Archivlink(s) ergänzt und 0 Link(s) als defekt/tot markiert.) #IABot (v2.0.9.5",
                   "minor": false,
                   "new": false,
-                  "newlen": 7964,
+                  "newlen": 110459,
                   "ns": 0,
-                  "oldlen": 7557,
+                  "oldlen": 110263,
                   "tags": [],
-                  "timestamp": "2026-08-28T21:51:34Z",
-                  "title": "Deutsche Botschaft Riad",
+                  "timestamp": "2026-08-28T22:02:18Z",
+                  "title": "Deutsche Burschenschaft",
                   "type": "edit",
                   "user": "InternetArchiveBot"
                 },
                 {
                   "bot": true,
-                  "comment": "In Datenbank übertragen:  Bestätigungen: [[:User:Perrak|Perrak]] → [[:User:Symposiarch|Symposiarch]]",
-                  "minor": false,
+                  "comment": "Bot: http → https",
+                  "minor": true,
                   "new": false,
-                  "newlen": 28,
-                  "ns": 4,
-                  "oldlen": 194,
-                  "tags": [
-                    "mw-manual-revert"
-                  ],
-                  "timestamp": "2026-08-28T21:50:17Z",
-                  "title": "Wikipedia:Persönliche Bekanntschaften/neue Einträge",
+                  "newlen": 7570,
+                  "ns": 0,
+                  "oldlen": 7569,
+                  "tags": [],
+                  "timestamp": "2026-08-28T22:02:02Z",
+                  "title": "Sarvastivada",
                   "type": "edit",
-                  "user": "SpBot"
+                  "user": "SchlurcherBot"
                 },
                 {
                   "bot": true,
-                  "comment": "Bot: Benachrichtigung über Löschdiskussion zum Artikel [[Österreichischer Petanque Verband]]",
+                  "comment": "Bot: http → https",
+                  "minor": true,
+                  "new": false,
+                  "newlen": 6480,
+                  "ns": 0,
+                  "oldlen": 6479,
+                  "tags": [],
+                  "timestamp": "2026-08-28T22:01:47Z",
+                  "title": "Lucius Sempronius Atratinus (Suffektkonsul 34 v. Chr.)",
+                  "type": "edit",
+                  "user": "SchlurcherBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: http → https",
+                  "minor": true,
+                  "new": false,
+                  "newlen": 3661,
+                  "ns": 0,
+                  "oldlen": 3660,
+                  "tags": [],
+                  "timestamp": "2026-08-28T22:01:36Z",
+                  "title": "Internationale Reporter",
+                  "type": "edit",
+                  "user": "SchlurcherBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: http → https",
+                  "minor": true,
+                  "new": false,
+                  "newlen": 5905,
+                  "ns": 0,
+                  "oldlen": 5903,
+                  "tags": [],
+                  "timestamp": "2026-08-28T22:01:32Z",
+                  "title": "Johannes Manderscheid",
+                  "type": "edit",
+                  "user": "SchlurcherBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: Übertragung neuer Vorschläge nach [[Wikipedia Diskussion:Hauptseite/Artikel des Tages/Vorschläge]]",
                   "minor": false,
                   "new": false,
-                  "newlen": 9284,
-                  "ns": 3,
-                  "oldlen": 7304,
+                  "newlen": 136910,
+                  "ns": 5,
+                  "oldlen": 139241,
+                  "tags": [],
+                  "timestamp": "2026-08-28T22:01:28Z",
+                  "title": "Wikipedia Diskussion:Hauptseite/Artikel des Tages/2026",
+                  "type": "edit",
+                  "user": "TaxonBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: http → https",
+                  "minor": true,
+                  "new": false,
+                  "newlen": 6625,
+                  "ns": 0,
+                  "oldlen": 6624,
+                  "tags": [],
+                  "timestamp": "2026-08-28T22:01:26Z",
+                  "title": "Kosjatyn",
+                  "type": "edit",
+                  "user": "SchlurcherBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: Archivierung von 1 Abschnitt + Übertragung 1 neuen Vorschlags",
+                  "minor": false,
+                  "new": false,
+                  "newlen": 147264,
+                  "ns": 5,
+                  "oldlen": 146923,
                   "tags": [
                     "discussiontools-added-comment"
                   ],
-                  "timestamp": "2026-08-28T21:49:07Z",
-                  "title": "Benutzer Diskussion:Scuelly",
+                  "timestamp": "2026-08-28T22:01:20Z",
+                  "title": "Wikipedia Diskussion:Hauptseite/Artikel des Tages/Vorschläge",
                   "type": "edit",
-                  "user": "Xqbot"
+                  "user": "TaxonBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: neuer Tagesabschnitt",
+                  "minor": true,
+                  "new": false,
+                  "newlen": 120404,
+                  "ns": 4,
+                  "oldlen": 120388,
+                  "tags": [],
+                  "timestamp": "2026-08-28T22:01:13Z",
+                  "title": "Wikipedia:Relevanzcheck",
+                  "type": "edit",
+                  "user": "WosretBot2"
+                },
+                {
+                  "bot": true,
+                  "comment": "[[:Deutsche Bunsen-Gesellschaft für Physikalische Chemie]] zur Kategorie hinzugefügt",
+                  "minor": false,
+                  "new": false,
+                  "newlen": 0,
+                  "ns": 14,
+                  "oldlen": 0,
+                  "tags": [],
+                  "timestamp": "2026-08-28T22:01:12Z",
+                  "title": "Kategorie:Wikipedia:Defekte Weblinks/Ungeprüfte Archivlinks 2026-08",
+                  "type": "categorize",
+                  "user": "InternetArchiveBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "[[:Benutzer:InternetArchiveBot|InternetArchiveBot]] hat 1 Archivlink(s) ergänzt und 0 Link(s) als defekt/tot markiert.) #IABot (v2.0.9.5",
+                  "minor": false,
+                  "new": false,
+                  "newlen": 21222,
+                  "ns": 0,
+                  "oldlen": 20981,
+                  "tags": [],
+                  "timestamp": "2026-08-28T22:01:12Z",
+                  "title": "Deutsche Bunsen-Gesellschaft für Physikalische Chemie",
+                  "type": "edit",
+                  "user": "InternetArchiveBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: Archivierung von 1 Abschnitt",
+                  "minor": false,
+                  "new": false,
+                  "newlen": 153381,
+                  "ns": 5,
+                  "oldlen": 151391,
+                  "tags": [
+                    "discussiontools-added-comment"
+                  ],
+                  "timestamp": "2026-08-28T22:01:11Z",
+                  "title": "Wikipedia Diskussion:Hauptseite/Artikel des Tages/Archiv/Vorschläge/2026/Q3",
+                  "type": "edit",
+                  "user": "TaxonBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: neuer Tagesabschnitt",
+                  "minor": true,
+                  "new": false,
+                  "newlen": 329945,
+                  "ns": 4,
+                  "oldlen": 329929,
+                  "tags": [],
+                  "timestamp": "2026-08-28T22:01:03Z",
+                  "title": "Wikipedia:Löschprüfung",
+                  "type": "edit",
+                  "user": "WosretBot2"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: Aktualisierung",
+                  "minor": false,
+                  "new": false,
+                  "newlen": 143,
+                  "ns": 4,
+                  "oldlen": 143,
+                  "tags": [
+                    "mw-changed-redirect-target"
+                  ],
+                  "timestamp": "2026-08-28T22:01:02Z",
+                  "title": "Wikipedia:Qualitätssicherung/heute",
+                  "type": "edit",
+                  "user": "LkhBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: Aktualisierung",
+                  "minor": false,
+                  "new": false,
+                  "newlen": 163,
+                  "ns": 4,
+                  "oldlen": 163,
+                  "tags": [
+                    "mw-changed-redirect-target"
+                  ],
+                  "timestamp": "2026-08-28T22:01:01Z",
+                  "title": "Wikipedia:QSH",
+                  "type": "edit",
+                  "user": "LkhBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: Aktualisierung",
+                  "minor": false,
+                  "new": false,
+                  "newlen": 173,
+                  "ns": 4,
+                  "oldlen": 173,
+                  "tags": [
+                    "mw-changed-redirect-target"
+                  ],
+                  "timestamp": "2026-08-28T22:01:01Z",
+                  "title": "Wikipedia:LK7",
+                  "type": "edit",
+                  "user": "LkhBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: Aktualisierung",
+                  "minor": false,
+                  "new": false,
+                  "newlen": 139,
+                  "ns": 4,
+                  "oldlen": 139,
+                  "tags": [
+                    "mw-changed-redirect-target"
+                  ],
+                  "timestamp": "2026-08-28T22:01:01Z",
+                  "title": "Wikipedia:Löschkandidaten/gestern",
+                  "type": "edit",
+                  "user": "LkhBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: Aktualisierung",
+                  "minor": false,
+                  "new": false,
+                  "newlen": 173,
+                  "ns": 4,
+                  "oldlen": 173,
+                  "tags": [
+                    "mw-changed-redirect-target"
+                  ],
+                  "timestamp": "2026-08-28T22:01:00Z",
+                  "title": "Wikipedia:LKG",
+                  "type": "edit",
+                  "user": "LkhBot"
+                },
+                {
+                  "bot": true,
+                  "comment": "Bot: Aktualisierung",
+                  "minor": false,
+                  "new": false,
+                  "newlen": 137,
+                  "ns": 4,
+                  "oldlen": 137,
+                  "tags": [
+                    "mw-changed-redirect-target"
+                  ],
+                  "timestamp": "2026-08-28T22:01:00Z",
+                  "title": "Wikipedia:Löschkandidaten/heute",
+                  "type": "edit",
+                  "user": "LkhBot"
                 }
               ]
             }
           },
-          "elapsed_s": 0.14,
+          "elapsed_s": 0.114,
           "note": "rc does carry a real bot flag",
           "retry_after": null,
           "status": 200,
@@ -18940,18 +18952,18 @@
             "batchcomplete": true,
             "continue": {
               "continue": "-||",
-              "rccontinue": "20260729215819|382864973"
+              "rccontinue": "20260729220245|382865130"
             },
             "query": {
               "recentchanges": [
                 {
-                  "timestamp": "2026-07-29T21:58:14Z",
+                  "timestamp": "2026-07-29T22:02:40Z",
                   "type": "edit"
                 }
               ]
             }
           },
-          "elapsed_s": 0.127,
+          "elapsed_s": 0.106,
           "note": "oldest rc entry = the retention window we would be relying on",
           "retry_after": null,
           "status": 200,
@@ -18964,9 +18976,9 @@
               "docref": "See https://de.wikipedia.org/w/api.php for API usage. Subscribe to the mediawiki-api-announce mailing list at &lt;https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/&gt; for notice of API deprecations and breaking changes.",
               "info": "\"titles\", \"pageids\" or a generator was used to supply multiple pages, but the \"rvlimit\", \"rvstartid\", \"rvendid\", \"rvdir=newer\", \"rvuser\", \"rvexcludeuser\", \"rvstart\", and \"rvend\" parameters may only be used on a single page."
             },
-            "servedby": "mw-api-ext.codfw.main-56c67cbc96-p2x7c"
+            "servedby": "mw-api-ext.eqiad.main-7586d569fc-6gxbb"
           },
-          "elapsed_s": 0.137,
+          "elapsed_s": 0.105,
           "note": "rvlimit>1 with multiple titles: expect an error, confirming the per-page fetch shape",
           "retry_after": null,
           "status": 200,
@@ -19668,7 +19680,7 @@
               ]
             }
           },
-          "elapsed_s": 0.149,
+          "elapsed_s": 0.14,
           "note": "does ANY revision object carry a 'bot' key, or only 'minor'?",
           "retry_after": null,
           "status": 200,
@@ -19705,7 +19717,7 @@
                   "userid": 568
                 },
                 {
-                  "editcount": 773390,
+                  "editcount": 773392,
                   "groups": [
                     "autoreview",
                     "bot",
@@ -19719,7 +19731,7 @@
               ]
             }
           },
-          "elapsed_s": 0.141,
+          "elapsed_s": 0.116,
           "note": "fallback bot detection: current group membership",
           "retry_after": null,
           "status": 200,
@@ -19843,7 +19855,7 @@
               }
             ]
           },
-          "elapsed_s": 0.111,
+          "elapsed_s": 0.096,
           "note": "title='Rüschlikon' encoded=R%C3%BCschlikon",
           "retry_after": null,
           "status": 200,
@@ -19962,7 +19974,7 @@
               }
             ]
           },
-          "elapsed_s": 0.102,
+          "elapsed_s": 0.092,
           "note": "agent=user excludes spiders; compare the numbers against all-agents",
           "retry_after": null,
           "status": 200,
@@ -19970,9 +19982,9 @@
         },
         "aqs2_host": {
           "body": {
-            "_non_json_body": "<!DOCTYPE html>\n<html class=\"client-nojs vector-feature-language-in-header-disabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-thumbsize-clientpref-standard\" lang=\"en\" dir=\"ltr\">\n<head>\n<meta charset=\"UTF-8\">\n<title>Wikimedia APIs - MediaWiki</title>\n<script>(function(){var className=\"client-js vector-feature-language-in-header-disabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-thumbsize-clientpref-standard\";var cookie=document.cookie.match(/(?:^|; )mediawikiwikimwclientpreferences=([^;]+)/);if(cookie){cookie[1].split('%2C').forEach(function(pref){className=className.replace(new RegExp('(^| )'+pref.replace(/-clientpref-\\w+$|[^\\w-]+/g,'')+'-clientpref-\\\\w+( |$)'),'$1'+pref+'$2');});}document.documentElement.className=className;}());RLCONF={\"wgBreakFrames\":false,\"wgSeparatorTransformTable\":[\"\",\"\"],\"wgDigitTransformTable\":[\"\",\"\"],\"wgDefaultDateFormat\":\"dmy\",\"wgMonthNames\":[\"\",\"January\",\"February\",\"March\",\"April\",\"May\",\"June\",\"July\",\"August\",\"September\",\"October\",\"November\",\"December\"],\"wgRequestId\":\"af4af7c4-874e-4a8e-99a4-667832b58a69\",\"wgCanonicalNamespace\":\"\",\"wgCanonicalSpecialPageName\":false,\"wgNamespaceNu"
+            "_non_json_body": "<!DOCTYPE html>\n<html class=\"client-nojs vector-feature-language-in-header-disabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-thumbsize-clientpref-standard\" lang=\"en\" dir=\"ltr\">\n<head>\n<meta charset=\"UTF-8\">\n<title>Wikimedia APIs - MediaWiki</title>\n<script>(function(){var className=\"client-js vector-feature-language-in-header-disabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-thumbsize-clientpref-standard\";var cookie=document.cookie.match(/(?:^|; )mediawikiwikimwclientpreferences=([^;]+)/);if(cookie){cookie[1].split('%2C').forEach(function(pref){className=className.replace(new RegExp('(^| )'+pref.replace(/-clientpref-\\w+$|[^\\w-]+/g,'')+'-clientpref-\\\\w+( |$)'),'$1'+pref+'$2');});}document.documentElement.className=className;}());RLCONF={\"wgBreakFrames\":false,\"wgSeparatorTransformTable\":[\"\",\"\"],\"wgDigitTransformTable\":[\"\",\"\"],\"wgDefaultDateFormat\":\"dmy\",\"wgMonthNames\":[\"\",\"January\",\"February\",\"March\",\"April\",\"May\",\"June\",\"July\",\"August\",\"September\",\"October\",\"November\",\"December\"],\"wgRequestId\":\"ad1c113f-a3de-4308-9fa6-f86b89dbb4d5\",\"wgCanonicalNamespace\":\"\",\"wgCanonicalSpecialPageName\":false,\"wgNamespaceNu"
           },
-          "elapsed_s": 0.641,
+          "elapsed_s": 0.245,
           "note": "is the newer AQS host reachable without auth, or is rest_v1 still the path",
           "retry_after": null,
           "status": 200,
@@ -20091,7 +20103,7 @@
               }
             ]
           },
-          "elapsed_s": 0.153,
+          "elapsed_s": 0.126,
           "note": "title='Thalwil' encoded=Thalwil",
           "retry_after": null,
           "status": 200,
@@ -20210,7 +20222,7 @@
               }
             ]
           },
-          "elapsed_s": 0.108,
+          "elapsed_s": 0.082,
           "note": "does the monthly endpoint accept YYYYMMDDHH as well as YYYYMMDD",
           "retry_after": null,
           "status": 200,
@@ -20225,7 +20237,7 @@
             "type": "about:blank",
             "uri": "/metrics/pageviews/per-article/de.wikipedia.org/all-access/all-agents/Wp_Todo_Nonexistent_Article_Xyzzy/monthly/20250101/20251201"
           },
-          "elapsed_s": 0.073,
+          "elapsed_s": 0.072,
           "note": "title='Wp Todo Nonexistent Article Xyzzy' encoded=Wp_Todo_Nonexistent_Article_Xyzzy",
           "retry_after": null,
           "status": 404,
@@ -20344,7 +20356,7 @@
               }
             ]
           },
-          "elapsed_s": 0.101,
+          "elapsed_s": 0.1,
           "note": "title='Bezirk Horgen' encoded=Bezirk_Horgen",
           "retry_after": null,
           "status": 200,
@@ -20463,7 +20475,7 @@
               }
             ]
           },
-          "elapsed_s": 0.099,
+          "elapsed_s": 0.102,
           "note": "title='Wädenswil' encoded=W%C3%A4denswil",
           "retry_after": null,
           "status": 200,
@@ -20491,7 +20503,7 @@
                 "centralidlookupprovider": "CentralAuth",
                 "citeresponsivereferences": false,
                 "dbtype": "mysql",
-                "dbversion": "10.11.16-MariaDB-log",
+                "dbversion": "10.11.18-MariaDB-log",
                 "externallinktarget": false,
                 "fallback": [
                   {
@@ -20588,7 +20600,7 @@
                 },
                 "mainpage": "Wikipedia:Hauptseite",
                 "mainpageisdomainroot": false,
-                "max-page-id": 13964122,
+                "max-page-id": 13964126,
                 "maxarticlesize": 2097152,
                 "maxuploadsize": 5368709120,
                 "minuploadchunksize": 1024,
@@ -20647,7 +20659,7 @@
                   "1": 250,
                   "2": 400
                 },
-                "time": "2026-08-28T21:59:44Z",
+                "time": "2026-08-28T22:03:25Z",
                 "timeoffset": 120,
                 "timezone": "Europe/Berlin",
                 "titleconversion": true,
@@ -20655,14 +20667,14 @@
                 "variantarticlepath": false,
                 "wikiid": "dewiki",
                 "wmf-config": {
-                  "wmfEtcdLastModifiedIndex": 6477533,
+                  "wmfEtcdLastModifiedIndex": 3905545,
                   "wmfMasterDatacenter": "eqiad"
                 },
                 "writeapi": true
               }
             }
           },
-          "elapsed_s": 0.142,
+          "elapsed_s": 0.106,
           "note": "maxlag on a read",
           "retry_after": null,
           "status": 200,
@@ -20673,14 +20685,14 @@
             "error": {
               "code": "maxlag",
               "docref": "See https://de.wikipedia.org/w/api.php for API usage. Subscribe to the mediawiki-api-announce mailing list at &lt;https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/&gt; for notice of API deprecations and breaking changes.",
-              "host": "10.192.0.223",
-              "info": "Waiting for 10.192.0.223: 1.013212 seconds lagged.",
-              "lag": 1.013212,
+              "host": "10.64.0.50",
+              "info": "Waiting for 10.64.0.50: 0.608739 seconds lagged.",
+              "lag": 0.608739,
               "type": "db"
             },
-            "servedby": "mw-api-ext.codfw.main-56c67cbc96-5sr6v"
+            "servedby": "mw-api-ext.eqiad.main-7586d569fc-68swc"
           },
-          "elapsed_s": 0.15,
+          "elapsed_s": 0.1,
           "note": "force the lag error to see the 503 + Retry-After shape",
           "retry_after": null,
           "status": 200,
@@ -21397,7 +21409,7 @@
               ]
             }
           },
-          "elapsed_s": 0.154,
+          "elapsed_s": 0.211,
           "note": "AUTHORITATIVE limits: read min/max/highmax out of this, not out of the wiki docs",
           "retry_after": null,
           "status": 200,
@@ -21420,7 +21432,7 @@
                 "centralidlookupprovider": "CentralAuth",
                 "citeresponsivereferences": false,
                 "dbtype": "mysql",
-                "dbversion": "10.11.16-MariaDB-log",
+                "dbversion": "10.11.18-MariaDB-log",
                 "externallinktarget": false,
                 "fallback": [
                   {
@@ -21517,7 +21529,7 @@
                 },
                 "mainpage": "Wikipedia:Hauptseite",
                 "mainpageisdomainroot": false,
-                "max-page-id": 13964122,
+                "max-page-id": 13964126,
                 "maxarticlesize": 2097152,
                 "maxuploadsize": 5368709120,
                 "minuploadchunksize": 1024,
@@ -21576,7 +21588,7 @@
                   "1": 250,
                   "2": 400
                 },
-                "time": "2026-08-28T21:59:46Z",
+                "time": "2026-08-28T22:03:28Z",
                 "timeoffset": 120,
                 "timezone": "Europe/Berlin",
                 "titleconversion": true,
@@ -21584,7 +21596,7 @@
                 "variantarticlepath": false,
                 "wikiid": "dewiki",
                 "wmf-config": {
-                  "wmfEtcdLastModifiedIndex": 6477533,
+                  "wmfEtcdLastModifiedIndex": 3905545,
                   "wmfMasterDatacenter": "eqiad"
                 },
                 "writeapi": true
@@ -21592,22 +21604,536 @@
               "statistics": {
                 "activeusers": 33380,
                 "admins": 159,
-                "articles": 3147317,
-                "cirrussearch-article-words": 1758285861,
-                "edits": 267649522,
+                "articles": 3147318,
+                "cirrussearch-article-words": 1758258376,
+                "edits": 267649615,
                 "images": 129755,
                 "jobs": 0,
-                "pages": 8612322,
+                "pages": 8612325,
                 "queued-massmessages": 0,
-                "users": 5316526
+                "users": 5316538
               }
             }
           },
-          "elapsed_s": 0.121,
+          "elapsed_s": 0.096,
           "note": "server time, wiki id, article count",
           "retry_after": null,
           "status": 200,
           "url": "https://de.wikipedia.org/w/api.php?action=query&meta=siteinfo&siprop=general%7Cstatistics&format=json&formatversion=2"
+        }
+      }
+    },
+    "P7": {
+      "label": "follow-ups: Veraltet seit=, hastemplate, continuation keys, maxlag status",
+      "result": {
+        "aqs2_correct_base": {
+          "body": {
+            "_non_json_body": "<!DOCTYPE html>\n<html class=\"client-nojs vector-feature-language-in-header-disabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-thumbsize-clientpref-standard\" lang=\"en\" dir=\"ltr\">\n<head>\n<meta charset=\"UTF-8\">\n<title>Wikimedia APIs - MediaWiki</title>\n<script>(function(){var className=\"client-js vector-feature-language-in-header-disabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-thumbsize-clientpref-standard\";var cookie=document.cookie.match(/(?:^|; )mediawikiwikimwclientpreferences=([^;]+)/);if(cookie){cookie[1].split('%2C').forEach(function(pref){className=className.replace(new RegExp('(^| )'+pref.replace(/-clientpref-\\w+$|[^\\w-]+/g,'')+'-clientpref-\\\\w+( |$)'),'$1'+pref+'$2');});}document.documentElement.className=className;}());RLCONF={\"wgBreakFrames\":false,\"wgSeparatorTransformTable\":[\"\",\"\"],\"wgDigitTransformTable\":[\"\",\"\"],\"wgDefaultDateFormat\":\"dmy\",\"wgMonthNames\":[\"\",\"January\",\"February\",\"March\",\"April\",\"May\",\"June\",\"July\",\"August\",\"September\",\"October\",\"November\",\"December\"],\"wgRequestId\":\"ad1c113f-a3de-4308-9fa6-f86b89dbb4d5\",\"wgCanonicalNamespace\":\"\",\"wgCanonicalSpecialPageName\":false,\"wgNamespaceNu"
+          },
+          "elapsed_s": 0.143,
+          "note": "the actual AQS 2.0 base path",
+          "retry_after": null,
+          "status": 200,
+          "url": "https://api.wikimedia.org/metrics/pageviews/per-article/de.wikipedia.org/all-access/user/Thalwil/monthly/20250101/20251201"
+        },
+        "cats_1001 Movies You Must See Before You Die": [
+          "Kategorie:Wikipedia:Veraltet"
+        ],
+        "cats_3×3 German Championship": [],
+        "cats_600-Meter-Lauf": [
+          "Kategorie:Wikipedia:Veraltet"
+        ],
+        "cats_8hours": [
+          "Kategorie:Wikipedia:Veraltet"
+        ],
+        "cats_Abgeordnetenkammer (Uruguay)": [],
+        "cats_Altablagerung": [],
+        "forced_continuation_first": {
+          "batchcomplete": false,
+          "continue": {
+            "clcontinue": "370065|Wikipedia:Defekte_Weblinks/Ungeprüfte_Archivlinks_2023-02",
+            "continue": "||"
+          },
+          "limits": null,
+          "pages": 500,
+          "status": 200
+        },
+        "forced_continuation_second": {
+          "batchcomplete": false,
+          "continue": {
+            "clcontinue": "445845|MediaWiki:Gadget/annotationPair",
+            "continue": "||"
+          },
+          "pages": 500,
+          "status": 200
+        },
+        "hastemplate_bare": {
+          "body": {
+            "batchcomplete": true,
+            "continue": {
+              "continue": "-||",
+              "sroffset": 3
+            },
+            "query": {
+              "search": [
+                {
+                  "ns": 0,
+                  "pageid": 1588,
+                  "size": 237563,
+                  "snippet": "Vorlage:Infobox Staat/Wartung/NAME-DEUTSCH Frankreich ([], französisch []), amtlich la République française ([], deutsch Französische Republik), ist ein",
+                  "timestamp": "2026-08-21T21:41:06Z",
+                  "title": "Frankreich",
+                  "wordcount": 19762
+                },
+                {
+                  "ns": 0,
+                  "pageid": 1188788,
+                  "size": 300768,
+                  "snippet": "Vorlage:Infobox Staat/Wartung/NAME-DEUTSCH Österreich (amtlich Republik Österreich) ist ein mitteleuropäischer Binnenstaat mit über 9,2 Millionen Einwohnern",
+                  "timestamp": "2026-08-18T21:56:12Z",
+                  "title": "Österreich",
+                  "wordcount": 26838
+                },
+                {
+                  "ns": 0,
+                  "pageid": 705421,
+                  "size": 235633,
+                  "snippet": "Vorlage:Infobox Staat/Wartung/NAME-DEUTSCH Italien (italienisch []), amtlich Italienische Republik (italienisch Repubblica Italiana []), ist ein Staat",
+                  "timestamp": "2026-08-16T16:26:59Z",
+                  "title": "Italien",
+                  "wordcount": 20112
+                }
+              ],
+              "searchinfo": {
+                "totalhits": 7804
+              }
+            }
+          },
+          "elapsed_s": 0.153,
+          "note": "hastemplate:Veraltet",
+          "retry_after": null,
+          "status": 200,
+          "url": "https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=hastemplate%3AVeraltet&srlimit=3&srinfo=totalhits&format=json&formatversion=2"
+        },
+        "hastemplate_plus_deepcat": {
+          "body": {
+            "batchcomplete": true,
+            "query": {
+              "search": [],
+              "searchinfo": {
+                "totalhits": 0
+              }
+            }
+          },
+          "elapsed_s": 0.118,
+          "note": "hastemplate:Veraltet deepcat:\"Bezirk Horgen\"",
+          "retry_after": null,
+          "status": 200,
+          "url": "https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=hastemplate%3AVeraltet+deepcat%3A%22Bezirk+Horgen%22&srlimit=3&srinfo=totalhits&format=json&formatversion=2"
+        },
+        "hastemplate_prefixed": {
+          "body": {
+            "batchcomplete": true,
+            "continue": {
+              "continue": "-||",
+              "sroffset": 3
+            },
+            "query": {
+              "search": [
+                {
+                  "ns": 0,
+                  "pageid": 1588,
+                  "size": 237563,
+                  "snippet": "Vorlage:Infobox Staat/Wartung/NAME-DEUTSCH Frankreich ([], französisch []), amtlich la République française ([], deutsch Französische Republik), ist ein",
+                  "timestamp": "2026-08-21T21:41:06Z",
+                  "title": "Frankreich",
+                  "wordcount": 19762
+                },
+                {
+                  "ns": 0,
+                  "pageid": 1188788,
+                  "size": 300768,
+                  "snippet": "Vorlage:Infobox Staat/Wartung/NAME-DEUTSCH Österreich (amtlich Republik Österreich) ist ein mitteleuropäischer Binnenstaat mit über 9,2 Millionen Einwohnern",
+                  "timestamp": "2026-08-18T21:56:12Z",
+                  "title": "Österreich",
+                  "wordcount": 26838
+                },
+                {
+                  "ns": 0,
+                  "pageid": 705421,
+                  "size": 235633,
+                  "snippet": "Vorlage:Infobox Staat/Wartung/NAME-DEUTSCH Italien (italienisch []), amtlich Italienische Republik (italienisch Repubblica Italiana []), ist ein Staat",
+                  "timestamp": "2026-08-16T16:26:59Z",
+                  "title": "Italien",
+                  "wordcount": 20112
+                }
+              ],
+              "searchinfo": {
+                "totalhits": 7804
+              }
+            }
+          },
+          "elapsed_s": 0.156,
+          "note": "hastemplate:\"Vorlage:Veraltet\"",
+          "retry_after": null,
+          "status": 200,
+          "url": "https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=hastemplate%3A%22Vorlage%3AVeraltet%22&srlimit=3&srinfo=totalhits&format=json&formatversion=2"
+        },
+        "hastemplate_quoted": {
+          "body": {
+            "batchcomplete": true,
+            "continue": {
+              "continue": "-||",
+              "sroffset": 3
+            },
+            "query": {
+              "search": [
+                {
+                  "ns": 0,
+                  "pageid": 1588,
+                  "size": 237563,
+                  "snippet": "Vorlage:Infobox Staat/Wartung/NAME-DEUTSCH Frankreich ([], französisch []), amtlich la République française ([], deutsch Französische Republik), ist ein",
+                  "timestamp": "2026-08-21T21:41:06Z",
+                  "title": "Frankreich",
+                  "wordcount": 19762
+                },
+                {
+                  "ns": 0,
+                  "pageid": 1188788,
+                  "size": 300768,
+                  "snippet": "Vorlage:Infobox Staat/Wartung/NAME-DEUTSCH Österreich (amtlich Republik Österreich) ist ein mitteleuropäischer Binnenstaat mit über 9,2 Millionen Einwohnern",
+                  "timestamp": "2026-08-18T21:56:12Z",
+                  "title": "Österreich",
+                  "wordcount": 26838
+                },
+                {
+                  "ns": 0,
+                  "pageid": 705421,
+                  "size": 235633,
+                  "snippet": "Vorlage:Infobox Staat/Wartung/NAME-DEUTSCH Italien (italienisch []), amtlich Italienische Republik (italienisch Repubblica Italiana []), ist ein Staat",
+                  "timestamp": "2026-08-16T16:26:59Z",
+                  "title": "Italien",
+                  "wordcount": 20112
+                }
+              ],
+              "searchinfo": {
+                "totalhits": 7804
+              }
+            }
+          },
+          "elapsed_s": 0.146,
+          "note": "hastemplate:\"Veraltet\"",
+          "retry_after": null,
+          "status": 200,
+          "url": "https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=hastemplate%3A%22Veraltet%22&srlimit=3&srinfo=totalhits&format=json&formatversion=2"
+        },
+        "incategory_only": {
+          "body": {
+            "batchcomplete": true,
+            "continue": {
+              "continue": "-||",
+              "sroffset": 3
+            },
+            "query": {
+              "search": [
+                {
+                  "ns": 0,
+                  "pageid": 13927,
+                  "size": 62867,
+                  "snippet": "47.48.6Koordinaten: 47° 24′ N, 8° 36′ O; CH1903: 687669 / 250557 Zürich (Kürzel ZH; zürichdeutsch Züri, französisch Zurich, italienisch Zurigo, rätoromanisch",
+                  "timestamp": "2026-07-13T20:34:44Z",
+                  "title": "Kanton Zürich",
+                  "wordcount": 4426
+                },
+                {
+                  "ns": 0,
+                  "pageid": 9354346,
+                  "size": 61502,
+                  "snippet": "Die im Kanton Zürich verwendeten Gemeindewappen gehen auf die Einführung von Vogtei-, Amts-, Orts- und Dorfwappen im 16. Jahrhundert zurück, meist bereits",
+                  "timestamp": "2026-07-26T19:20:35Z",
+                  "title": "Zürcher Gemeindewappen und Gemeindefahnen",
+                  "wordcount": 3583
+                },
+                {
+                  "ns": 0,
+                  "pageid": 11192410,
+                  "size": 6277,
+                  "snippet": "Die Tüfels Chilen ist eine landschaftliche Besonderheit auf dem Gemeindegebiet von Zell / Kollbrunn im zürcherischen Tösstal. Es ist das Quellgebiet des",
+                  "timestamp": "2022-09-26T12:10:28Z",
+                  "title": "Tüfels Chilen",
+                  "wordcount": 572
+                }
+              ],
+              "searchinfo": {
+                "totalhits": 4
+              }
+            }
+          },
+          "elapsed_s": 0.137,
+          "note": "incategory:\"Kanton Zürich\"",
+          "retry_after": null,
+          "status": 200,
+          "url": "https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=incategory%3A%22Kanton+Z%C3%BCrich%22&srlimit=3&srinfo=totalhits&format=json&formatversion=2"
+        },
+        "incategory_underscore": {
+          "body": {
+            "batchcomplete": true,
+            "continue": {
+              "continue": "-||",
+              "sroffset": 3
+            },
+            "query": {
+              "search": [
+                {
+                  "ns": 0,
+                  "pageid": 13927,
+                  "size": 62867,
+                  "snippet": "47.48.6Koordinaten: 47° 24′ N, 8° 36′ O; CH1903: 687669 / 250557 Zürich (Kürzel ZH; zürichdeutsch Züri, französisch Zurich, italienisch Zurigo, rätoromanisch",
+                  "timestamp": "2026-07-13T20:34:44Z",
+                  "title": "Kanton Zürich",
+                  "wordcount": 4426
+                },
+                {
+                  "ns": 0,
+                  "pageid": 9354346,
+                  "size": 61502,
+                  "snippet": "Die im Kanton Zürich verwendeten Gemeindewappen gehen auf die Einführung von Vogtei-, Amts-, Orts- und Dorfwappen im 16. Jahrhundert zurück, meist bereits",
+                  "timestamp": "2026-07-26T19:20:35Z",
+                  "title": "Zürcher Gemeindewappen und Gemeindefahnen",
+                  "wordcount": 3583
+                },
+                {
+                  "ns": 0,
+                  "pageid": 11192410,
+                  "size": 6277,
+                  "snippet": "Die Tüfels Chilen ist eine landschaftliche Besonderheit auf dem Gemeindegebiet von Zell / Kollbrunn im zürcherischen Tösstal. Es ist das Quellgebiet des",
+                  "timestamp": "2022-09-26T12:10:28Z",
+                  "title": "Tüfels Chilen",
+                  "wordcount": 572
+                }
+              ],
+              "searchinfo": {
+                "totalhits": 4
+              }
+            }
+          },
+          "elapsed_s": 0.122,
+          "note": "incategory:Kanton_Zürich",
+          "retry_after": null,
+          "status": 200,
+          "url": "https://de.wikipedia.org/w/api.php?action=query&list=search&srsearch=incategory%3AKanton_Z%C3%BCrich&srlimit=3&srinfo=totalhits&format=json&formatversion=2"
+        },
+        "maxlag_0": {
+          "body": {
+            "error": {
+              "code": "maxlag",
+              "docref": "See https://de.wikipedia.org/w/api.php for API usage. Subscribe to the mediawiki-api-announce mailing list at &lt;https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/&gt; for notice of API deprecations and breaking changes.",
+              "host": "10.64.0.50",
+              "info": "Waiting for 10.64.0.50: 0.538996 seconds lagged.",
+              "lag": 0.538996,
+              "type": "db"
+            },
+            "servedby": "mw-api-ext.eqiad.main-7586d569fc-s8cbn"
+          },
+          "elapsed_s": 0.118,
+          "note": "realistic-ish trigger",
+          "retry_after": null,
+          "status": 200,
+          "url": "https://de.wikipedia.org/w/api.php?action=query&meta=siteinfo&siprop=general&maxlag=0&format=json&formatversion=2"
+        },
+        "members_Kategorie:Wikipedia:Veraltet": {
+          "body": {
+            "batchcomplete": true,
+            "continue": {
+              "cmcontinue": "page|4131504c55532046494c4d50524f44554b54494f4e|2067810",
+              "continue": "-||"
+            },
+            "query": {
+              "categorymembers": [
+                {
+                  "ns": 0,
+                  "pageid": 6496013,
+                  "title": "8hours"
+                },
+                {
+                  "ns": 0,
+                  "pageid": 11681457,
+                  "title": "1001 Movies You Must See Before You Die"
+                },
+                {
+                  "ns": 0,
+                  "pageid": 12154146,
+                  "title": "600-Meter-Lauf"
+                }
+              ]
+            }
+          },
+          "elapsed_s": 0.097,
+          "note": "sample members of Kategorie:Wikipedia:Veraltet",
+          "retry_after": null,
+          "status": 200,
+          "url": "https://de.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Kategorie%3AWikipedia%3AVeraltet&cmlimit=3&cmnamespace=0&format=json&formatversion=2"
+        },
+        "members_Kategorie:Wikipedia:Veraltet in zwei bis drei Jahren": {
+          "body": {
+            "batchcomplete": true,
+            "continue": {
+              "cmcontinue": "page|32303233303532320a42554e4445534155544f4241484e2031|89503",
+              "continue": "-||"
+            },
+            "query": {
+              "categorymembers": [
+                {
+                  "ns": 0,
+                  "pageid": 9769128,
+                  "title": "(15094) Polymele"
+                },
+                {
+                  "ns": 0,
+                  "pageid": 10514427,
+                  "title": "Windows Server 2019"
+                },
+                {
+                  "ns": 0,
+                  "pageid": 333084,
+                  "title": "Buggingen"
+                }
+              ]
+            }
+          },
+          "elapsed_s": 0.135,
+          "note": "sample members of Kategorie:Wikipedia:Veraltet in zwei bis drei Jahren",
+          "retry_after": null,
+          "status": 200,
+          "url": "https://de.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Kategorie%3AWikipedia%3AVeraltet+in+zwei+bis+drei+Jahren&cmlimit=3&cmnamespace=0&format=json&formatversion=2"
+        },
+        "members_Kategorie:Wikipedia:Veraltet nach Mai 2025": {
+          "body": {
+            "batchcomplete": true,
+            "continue": {
+              "cmcontinue": "page|2032303235303631393135313931330a4752454154204d414e434845535445522052554e|4523344",
+              "continue": "-||"
+            },
+            "query": {
+              "categorymembers": [
+                {
+                  "ns": 0,
+                  "pageid": 736198,
+                  "title": "SPOT (Satellit)"
+                },
+                {
+                  "ns": 0,
+                  "pageid": 5002042,
+                  "title": "World 10K Bangalore"
+                },
+                {
+                  "ns": 0,
+                  "pageid": 5407509,
+                  "title": "Bay to Breakers"
+                }
+              ]
+            }
+          },
+          "elapsed_s": 0.113,
+          "note": "sample members of Kategorie:Wikipedia:Veraltet nach Mai 2025",
+          "retry_after": null,
+          "status": 200,
+          "url": "https://de.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Kategorie%3AWikipedia%3AVeraltet+nach+Mai+2025&cmlimit=3&cmnamespace=0&format=json&formatversion=2"
+        },
+        "members_Kategorie:Wikipedia:Veraltet seit 2024": {
+          "body": {
+            "batchcomplete": true,
+            "continue": {
+              "cmcontinue": "page|414c544c415354|155581",
+              "continue": "-||"
+            },
+            "query": {
+              "categorymembers": [
+                {
+                  "ns": 0,
+                  "pageid": 13080322,
+                  "title": "3×3 German Championship"
+                },
+                {
+                  "ns": 0,
+                  "pageid": 5545124,
+                  "title": "Abgeordnetenkammer (Uruguay)"
+                },
+                {
+                  "ns": 0,
+                  "pageid": 1768976,
+                  "title": "Altablagerung"
+                }
+              ]
+            }
+          },
+          "elapsed_s": 0.099,
+          "note": "sample members of Kategorie:Wikipedia:Veraltet seit 2024",
+          "retry_after": null,
+          "status": 200,
+          "url": "https://de.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Kategorie%3AWikipedia%3AVeraltet+seit+2024&cmlimit=3&cmnamespace=0&format=json&formatversion=2"
+        },
+        "veraltet_findings": [
+          {
+            "has_seit": true,
+            "invocation": "{{veraltet|seit=2012-12}}",
+            "page": "8hours",
+            "seit_value": "2012-12"
+          },
+          {
+            "has_seit": true,
+            "invocation": "{{Veraltet|seit=}}",
+            "page": "1001 Movies You Must See Before You Die",
+            "seit_value": null
+          },
+          {
+            "has_seit": true,
+            "invocation": "{{veraltet|seit=einiger Zeit|des folgenden Abschnitts}}",
+            "page": "600-Meter-Lauf",
+            "seit_value": "einiger Zeit"
+          },
+          {
+            "has_seit": true,
+            "invocation": "{{Veraltet|seit=2024}}",
+            "page": "3×3 German Championship",
+            "seit_value": "2024"
+          },
+          {
+            "has_seit": true,
+            "invocation": "{{Veraltet|seit=2024}}",
+            "page": "Abgeordnetenkammer (Uruguay)",
+            "seit_value": "2024"
+          },
+          {
+            "has_seit": true,
+            "invocation": "{{veraltet|seit=2024}}",
+            "page": "Altablagerung",
+            "seit_value": "2024"
+          }
+        ],
+        "wikitext_1001 Movies You Must See Before You Die": {
+          "error": "",
+          "status": 200
+        },
+        "wikitext_3×3 German Championship": {
+          "error": "",
+          "status": 200
+        },
+        "wikitext_600-Meter-Lauf": {
+          "error": "",
+          "status": 200
+        },
+        "wikitext_8hours": {
+          "error": "",
+          "status": 200
+        },
+        "wikitext_Abgeordnetenkammer (Uruguay)": {
+          "error": "",
+          "status": 200
+        },
+        "wikitext_Altablagerung": {
+          "error": "",
+          "status": 200
         }
       }
     }
