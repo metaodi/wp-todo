@@ -525,6 +525,55 @@ def p7_followups() -> Any:
     return out
 
 
+# ------------------------------- P8 are the dated Veraltet categories hidden?
+def p8_hidden_flag() -> Any:
+    """P7 raised a design-critical question.
+
+    Pages sampled *from* Kategorie:Wikipedia:Veraltet seit 2024 came back with
+    no Veraltet category at all under clshow=hidden. If the dated categories
+    are not hidden categories, then harvesting with clshow=hidden silently
+    misses the most precise staleness signal we have.
+    """
+    out: dict[str, Any] = {}
+
+    interesting = [
+        "Kategorie:Wikipedia:Veraltet",
+        "Kategorie:Wikipedia:Veraltet seit 2024",
+        "Kategorie:Wikipedia:Veraltet nach Mai 2025",
+        "Kategorie:Wikipedia:Veraltet in zwei bis drei Jahren",
+        "Kategorie:Wikipedia:Weblink offline",
+        "Kategorie:Wikipedia:Lückenhaft",
+        "Kategorie:Wikipedia:Belege fehlen",
+    ]
+    out["categoryinfo"] = get(
+        q(action="query", titles="|".join(interesting), prop="categoryinfo"),
+        note="categoryinfo reports a 'hidden' flag per category",
+    )
+
+    # And the empirical check: same page, hidden-only vs all categories.
+    samples: list[str] = []
+    for cat in ("Kategorie:Wikipedia:Veraltet seit 2024", "Kategorie:Wikipedia:Veraltet nach Mai 2025"):
+        members = get(q(action="query", list="categorymembers", cmtitle=cat, cmlimit=2, cmnamespace=0), note=cat)
+        samples.extend(m["title"] for m in dig(members, "body", "query", "categorymembers", default=[]) or [])
+
+    comparison: dict[str, Any] = {}
+    for title in samples[:4]:
+        hidden = get(
+            q(action="query", titles=title, prop="categories", clshow="hidden", cllimit="max"), note=f"hidden {title}"
+        )
+        every = get(q(action="query", titles=title, prop="categories", cllimit="max"), note=f"all {title}")
+        h = {c["title"] for p in pages_of(hidden) for c in (p.get("categories") or [])}
+        a = {c["title"] for p in pages_of(every) for c in (p.get("categories") or [])}
+        comparison[title] = {
+            "veraltet_when_hidden_only": sorted(x for x in h if "Veraltet" in x),
+            "veraltet_in_all_categories": sorted(x for x in a if "Veraltet" in x),
+            "hidden_count": len(h),
+            "all_count": len(a),
+        }
+    out["per_page_comparison"] = comparison
+    return out
+
+
 PROBES = {
     "P1": ("geosearch generator limits, prop combination, continuation", p1_geosearch),
     "P2": ("hidden maintenance categories in the Bezirk Horgen area", p2_hidden_categories),
@@ -533,6 +582,7 @@ PROBES = {
     "P5": ("pageviews REST endpoint shape and title encoding", p5_pageviews),
     "P6": ("User-Agent policy, maxlag on reads, paraminfo limits", p6_etiquette),
     "P7": ("follow-ups: Veraltet seit=, hastemplate, continuation keys, maxlag status", p7_followups),
+    "P8": ("are the dated Veraltet categories hidden categories?", p8_hidden_flag),
 }
 
 
@@ -730,6 +780,29 @@ def summarize(raw: dict[str, Any]) -> str:
         add("")
         add(f"- `maxlag=0`: {_row(p7.get('maxlag_0'))} · `Retry-After: {dig(p7, 'maxlag_0', 'retry_after')}`")
         add(f"- AQS 2.0 correct base: {_row(p7.get('aqs2_correct_base'))}")
+        add("")
+
+    # -- P8
+    p8 = dig(probes, "P8", "result", default={})
+    if p8:
+        add("## P8 — are the dated Veraltet categories hidden?")
+        add("")
+        add("| category | exists | hidden | members |")
+        add("| --- | --- | --- | --- |")
+        for page in pages_of(p8.get("categoryinfo", {})):
+            info = page.get("categoryinfo") or {}
+            add(
+                f"| `{page.get('title')}` | {'no' if page.get('missing') else 'yes'} "
+                f"| {'**yes**' if info.get('hidden') else '**NO**'} | {info.get('pages', '-')} |"
+            )
+        add("")
+        add("| sample page | Veraltet cats under clshow=hidden | Veraltet cats in all categories |")
+        add("| --- | --- | --- |")
+        for title, cmp in (p8.get("per_page_comparison") or {}).items():
+            add(
+                f"| {title} | `{cmp['veraltet_when_hidden_only']}` "
+                f"| `{cmp['veraltet_in_all_categories']}` |"
+            )
         add("")
 
     add("---")
