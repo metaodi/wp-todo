@@ -412,6 +412,119 @@ def p6_etiquette() -> Any:
     return out
 
 
+# --------------------------------------------- P7 follow-ups from run 1
+def p7_followups() -> Any:
+    """Closes the gaps left by the first run.
+
+    Run 1 left four things open: two probes were malformed (rvlimit cannot be
+    combined with multiple titles), hastemplate returned an inconclusive zero,
+    and the combined generator query never needed continuation, so the continue
+    keys were never observed.
+    """
+    out: dict[str, Any] = {}
+
+    # (a) Does {{Veraltet}} carry seit=, and how do the dated categories arise?
+    # One title per request this time: rvlimit is single-page only.
+    samples: list[str] = []
+    for cat in (
+        "Kategorie:Wikipedia:Veraltet",
+        "Kategorie:Wikipedia:Veraltet seit 2024",
+        "Kategorie:Wikipedia:Veraltet nach Mai 2025",
+        "Kategorie:Wikipedia:Veraltet in zwei bis drei Jahren",
+    ):
+        members = get(
+            q(action="query", list="categorymembers", cmtitle=cat, cmlimit=3, cmnamespace=0),
+            note=f"sample members of {cat}",
+        )
+        out[f"members_{cat}"] = members
+        for m in dig(members, "body", "query", "categorymembers", default=[]) or []:
+            if m["title"] not in samples:
+                samples.append(m["title"])
+
+    findings: list[dict[str, Any]] = []
+    for title in samples[:6]:
+        resp = get(
+            q(action="query", prop="revisions", titles=title, rvprop="content", rvslots="main", rvlimit=1),
+            note=f"wikitext of {title}",
+        )
+        out[f"wikitext_{title}"] = {"status": resp.get("status"), "error": api_error(resp)}
+        for page in pages_of(resp):
+            text = dig(page, "revisions", 0, "slots", "main", "content", default="") or ""
+            for match in re.finditer(r"\{\{\s*[Vv]eraltet[^{}]{0,400}\}\}", text, re.S):
+                snippet = " ".join(match.group(0).split())
+                findings.append(
+                    {
+                        "page": page.get("title"),
+                        "invocation": snippet[:300],
+                        "has_seit": bool(re.search(r"seit\s*=", snippet)),
+                        "seit_value": (re.search(r"seit\s*=\s*([^|}]+)", snippet) or [None, None])[1],
+                    }
+                )
+        # And the hidden categories that same page ended up in.
+        cats = get(
+            q(action="query", titles=title, prop="categories", clshow="hidden", cllimit="max"),
+            note=f"hidden categories of {title}",
+        )
+        out[f"cats_{title}"] = [
+            c["title"] for p in pages_of(cats) for c in (p.get("categories") or []) if "Veraltet" in c["title"]
+        ]
+    out["veraltet_findings"] = findings
+
+    # (b) hastemplate returned 0 in run 1 - which half of the query was empty?
+    for name, srsearch in {
+        "hastemplate_bare": "hastemplate:Veraltet",
+        "hastemplate_quoted": 'hastemplate:"Veraltet"',
+        "hastemplate_prefixed": 'hastemplate:"Vorlage:Veraltet"',
+        "incategory_only": 'incategory:"Kanton Zürich"',
+        "incategory_underscore": "incategory:Kanton_Zürich",
+        "hastemplate_plus_deepcat": 'hastemplate:Veraltet deepcat:"Bezirk Horgen"',
+    }.items():
+        out[name] = get(
+            q(action="query", list="search", srsearch=srsearch, srlimit=3, srinfo="totalhits"), note=srsearch
+        )
+
+    # (c) Force the categories prop past its limit to observe the continue keys.
+    forced = dict(
+        action="query",
+        generator="geosearch",
+        ggscoord="47.2906|8.5661",
+        ggsradius=10000,
+        ggslimit=500,
+        prop="categories",
+        clshow="hidden",
+        cllimit=10,
+    )
+    first = get(q(**forced), note="cllimit=10 forces continuation; record the key names")
+    out["forced_continuation_first"] = {
+        "status": first.get("status"),
+        "continue": dig(first, "body", "continue"),
+        "limits": dig(first, "body", "limits"),
+        "batchcomplete": "batchcomplete" in (first.get("body") or {}),
+        "pages": len(pages_of(first)),
+    }
+    cont = dig(first, "body", "continue", default={})
+    if isinstance(cont, dict) and cont:
+        second = get(q(**forced) + "&" + urllib.parse.urlencode(cont), note="second page")
+        out["forced_continuation_second"] = {
+            "status": second.get("status"),
+            "continue": dig(second, "body", "continue"),
+            "batchcomplete": "batchcomplete" in (second.get("body") or {}),
+            "pages": len(pages_of(second)),
+        }
+
+    # (d) maxlag: run 1 saw HTTP 200 for an artificial maxlag=-1. Check a
+    # realistic threshold and record the status code and headers precisely.
+    out["maxlag_0"] = get(q(action="query", meta="siteinfo", siprop="general", maxlag=0), note="realistic-ish trigger")
+
+    # (e) The AQS 2.0 probe in run 1 hit a wiki portal page, not an API.
+    out["aqs2_correct_base"] = get(
+        "https://api.wikimedia.org/metrics/pageviews/per-article"
+        "/de.wikipedia.org/all-access/user/Thalwil/monthly/20250101/20251201",
+        note="the actual AQS 2.0 base path",
+    )
+    return out
+
+
 PROBES = {
     "P1": ("geosearch generator limits, prop combination, continuation", p1_geosearch),
     "P2": ("hidden maintenance categories in the Bezirk Horgen area", p2_hidden_categories),
@@ -419,6 +532,7 @@ PROBES = {
     "P4": ("revision flags: bot and minor edit detection", p4_revisions),
     "P5": ("pageviews REST endpoint shape and title encoding", p5_pageviews),
     "P6": ("User-Agent policy, maxlag on reads, paraminfo limits", p6_etiquette),
+    "P7": ("follow-ups: Veraltet seit=, hastemplate, continuation keys, maxlag status", p7_followups),
 }
 
 
@@ -578,6 +692,44 @@ def summarize(raw: dict[str, Any]) -> str:
                         f"| `{module.get('name')}` | `{param.get('name')}` | {param.get('min', '-')} "
                         f"| {param.get('max', '-')} | {param.get('highmax', '-')} |"
                     )
+        add("")
+
+    # -- P7
+    p7 = dig(probes, "P7", "result", default={})
+    if p7:
+        add("## P7 — follow-ups")
+        add("")
+        add("### `{{Veraltet}}` invocations and the categories they produce")
+        add("")
+        for f in (p7.get("veraltet_findings") or [])[:12]:
+            seit = f"`seit={f['seit_value']}`" if f.get("has_seit") else "**no `seit=`**"
+            add(f"- **{f['page']}** — {seit}")
+            add(f"  - `{f['invocation']}`")
+            add(f"  - lands in: `{p7.get('cats_' + f['page'], [])}`")
+        add("")
+        add("### hastemplate / incategory")
+        add("")
+        add("| query | result | totalhits |")
+        add("| --- | --- | --- |")
+        for key in (
+            "hastemplate_bare",
+            "hastemplate_quoted",
+            "hastemplate_prefixed",
+            "incategory_only",
+            "incategory_underscore",
+            "hastemplate_plus_deepcat",
+        ):
+            resp = p7.get(key)
+            hits = dig(resp, "body", "query", "searchinfo", "totalhits", default="-")
+            add(f"| `{key}` | {_row(resp)} | {hits} |")
+        add("")
+        add("### Continuation keys (forced with cllimit=10)")
+        add("")
+        add(f"- first page: `{json.dumps(p7.get('forced_continuation_first'), ensure_ascii=False)}`")
+        add(f"- second page: `{json.dumps(p7.get('forced_continuation_second'), ensure_ascii=False)}`")
+        add("")
+        add(f"- `maxlag=0`: {_row(p7.get('maxlag_0'))} · `Retry-After: {dig(p7, 'maxlag_0', 'retry_after')}`")
+        add(f"- AQS 2.0 correct base: {_row(p7.get('aqs2_correct_base'))}")
         add("")
 
     add("---")
