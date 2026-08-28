@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 """Phase 0 discovery probe for wp-todo.
 
-Runs every open question from the Phase 0 gate against the live de.wikipedia
-API and writes the raw evidence to docs/phase0-probe-output.json.
+Answers the six Phase 0 questions against the live de.wikipedia API and writes:
 
-Read-only: every request is a GET against action=query / list=search /
-prop=revisions / the pageviews REST endpoint. Nothing here can write.
+  docs/phase0-probe-output.json   raw evidence, every request and response
+  docs/phase0-probe-summary.md    the compact answer sheet
+
+READ-ONLY BY CONSTRUCTION. Every request is a GET against action=query,
+action=paraminfo, or the pageviews REST endpoint. There is no code path here
+that can write to any wiki, and there must never be one.
 
 Usage:
-    export WP_TODO_CONTACT="you@example.com"      # goes into the User-Agent
-    python3 scripts/phase0_probe.py               # stdlib only, no deps
-    python3 scripts/phase0_probe.py --only P3     # single probe
+    export WP_TODO_CONTACT="https://github.com/metaodi/wp-todo"
+    python3 scripts/phase0_probe.py            # stdlib only, no dependencies
+    python3 scripts/phase0_probe.py --only P3
+    python3 scripts/phase0_probe.py --summarize docs/phase0-probe-output.json
 
-Requests are serialised with a delay between them (API:Etiquette).
+Requests are serialised with a delay between them, per API:Etiquette.
 """
 
 from __future__ import annotations
@@ -20,6 +24,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -30,12 +35,15 @@ from typing import Any
 API = "https://de.wikipedia.org/w/api.php"
 PAGEVIEWS = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article"
 
-CONTACT = os.environ.get("WP_TODO_CONTACT", "UNSET-CONTACT")
-UA = f"wp-todo-phase0-probe/0.1 ({CONTACT}) python-urllib/{sys.version_info.major}.{sys.version_info.minor}"
+CONTACT = os.environ.get("WP_TODO_CONTACT", "").strip()
+UA = (
+    f"wp-todo-phase0-probe/0.1 ({CONTACT or 'UNSET-CONTACT'}) "
+    f"python-urllib/{sys.version_info.major}.{sys.version_info.minor}"
+)
 
-DELAY_S = 1.0
+DELAY_S = float(os.environ.get("WP_TODO_DELAY_S", "1.0"))
 
-# Tiles covering the Bezirk Horgen / left Zürichsee shore. Approximate; the
+# Tiles over the Bezirk Horgen / Zuerichsee shore. Approximate on purpose: the
 # point of P2 is to see what comes back, not to be exhaustive yet.
 HORGEN_TILES = [
     (47.2588, 8.5900, "Horgen"),
@@ -44,30 +52,41 @@ HORGEN_TILES = [
     (47.2200, 8.6300, "Waedenswil/Richterswil"),
 ]
 
-results: dict[str, Any] = {}
+# Names the brief assumes exist. The probe checks each rather than trusting it.
+CANDIDATE_CATEGORIES = [
+    "Kategorie:Wikipedia:Veraltet",
+    "Kategorie:Wikipedia:Lückenhaft",
+    "Kategorie:Wikipedia:Überarbeiten",
+    "Kategorie:Wikipedia:Belege fehlen",
+    "Kategorie:Wikipedia:Weblink offline",
+    "Kategorie:Wikipedia:Defekter Weblink",
+    "Kategorie:Wikipedia:Zukunft",
+    "Kategorie:Wikipedia:Veraltet seit 2024",
+    "Kategorie:Wikipedia:Veraltet seit 2025",
+]
 
 
 def get(url: str, *, note: str = "") -> dict[str, Any]:
     """One GET. Records status, elapsed time and body (or the error body)."""
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Encoding": "gzip"})
-    req.add_header("Accept-Encoding", "identity")  # keep the probe dependency-free
+    req = urllib.request.Request(
+        url, headers={"User-Agent": UA, "Accept-Encoding": "identity", "Accept": "application/json"}
+    )
     started = time.monotonic()
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with urllib.request.urlopen(req, timeout=90) as resp:
             raw = resp.read().decode("utf-8", "replace")
-            status = resp.status
-            headers = dict(resp.headers)
+            status, headers = resp.status, dict(resp.headers)
     except urllib.error.HTTPError as exc:
         raw = exc.read().decode("utf-8", "replace")
         status, headers = exc.code, dict(exc.headers)
-    except Exception as exc:  # noqa: BLE001 - probe reports, never raises
+    except Exception as exc:  # noqa: BLE001 - a probe reports failures, never raises
         return {"url": url, "note": note, "error": f"{type(exc).__name__}: {exc}"}
     elapsed = round(time.monotonic() - started, 3)
     time.sleep(DELAY_S)
     try:
         body: Any = json.loads(raw)
     except json.JSONDecodeError:
-        body = raw[:2000]
+        body = {"_non_json_body": raw[:2000]}
     return {
         "url": url,
         "note": note,
@@ -84,19 +103,58 @@ def q(**params: Any) -> str:
     return f"{API}?{urllib.parse.urlencode(params)}"
 
 
+def dig(obj: Any, *path: Any, default: Any = None) -> Any:
+    """Walk dicts/lists defensively; probe output is untrusted shape."""
+    cur = obj
+    for key in path:
+        if isinstance(cur, dict) and key in cur:
+            cur = cur[key]
+        elif isinstance(cur, list) and isinstance(key, int) and -len(cur) <= key < len(cur):
+            cur = cur[key]
+        else:
+            return default
+    return cur
+
+
+def api_error(resp: dict[str, Any]) -> str:
+    """One-line rendering of whatever went wrong, or ''."""
+    if "error" in resp and isinstance(resp["error"], str):
+        return resp["error"]
+    code = dig(resp, "body", "error", "code")
+    if code:
+        return f"{code}: {dig(resp, 'body', 'error', 'info', default='')}"
+    return ""
+
+
+def warnings_of(resp: dict[str, Any]) -> str:
+    warn = dig(resp, "body", "warnings", default={})
+    if isinstance(warn, dict):
+        parts = []
+        for mod, val in warn.items():
+            text = val.get("warnings") if isinstance(val, dict) else val
+            parts.append(f"{mod}: {text}")
+        return " | ".join(parts)[:500]
+    return str(warn)[:500]
+
+
+def pages_of(resp: dict[str, Any]) -> list[dict[str, Any]]:
+    pages = dig(resp, "body", "query", "pages", default=[])
+    return pages if isinstance(pages, list) else list(pages.values())
+
+
 # ---------------------------------------------------------------- P1 geosearch
 def p1_geosearch() -> Any:
-    out = {}
+    out: dict[str, Any] = {}
     base = dict(action="query", generator="geosearch", ggscoord="47.2906|8.5661")
 
     out["radius_10000"] = get(q(**base, ggsradius=10000, ggslimit=10), note="documented max radius")
     out["radius_10001"] = get(q(**base, ggsradius=10001, ggslimit=10), note="expect an error naming the real max")
     out["limit_500"] = get(q(**base, ggsradius=10000, ggslimit=500), note="documented non-bot max")
-    out["limit_501"] = get(q(**base, ggsradius=10000, ggslimit=501), note="expect a warning or clamp")
+    out["limit_501"] = get(q(**base, ggsradius=10000, ggslimit=501), note="expect a warning or a clamp")
     out["limit_max"] = get(q(**base, ggsradius=10000, ggslimit="max"), note="what does 'max' resolve to")
 
-    # The real question: generator + prop=categories in ONE request.
-    combined = q(
+    # The question that shapes the fetch layer: generator + props in ONE request.
+    combined_params = dict(
         **base,
         ggsradius=10000,
         ggslimit=500,
@@ -105,14 +163,15 @@ def p1_geosearch() -> Any:
         cllimit="max",
         rvprop="timestamp|user|flags|comment|size",
     )
-    out["combined_first_page"] = get(combined, note="generator+prop=categories+prop=revisions in one request")
+    combined = q(**combined_params)
+    out["combined_first_page"] = get(combined, note="generator + prop=categories + prop=revisions in one request")
 
-    # Continuation: follow the continue blob once and record its shape.
     body = out["combined_first_page"].get("body")
-    if isinstance(body, dict) and "continue" in body:
-        cont = {k: v for k, v in body["continue"].items()}
-        nxt = combined + "&" + urllib.parse.urlencode(cont)
-        out["combined_second_page"] = get(nxt, note=f"continued with {sorted(cont)}")
+    if isinstance(body, dict) and isinstance(body.get("continue"), dict):
+        cont = dict(body["continue"])
+        out["combined_second_page"] = get(
+            combined + "&" + urllib.parse.urlencode(cont), note=f"continued with {sorted(cont)}"
+        )
         out["continue_keys_observed"] = sorted(cont)
     else:
         out["combined_second_page"] = None
@@ -124,7 +183,10 @@ def p1_geosearch() -> Any:
 def p2_hidden_categories() -> Any:
     counts: dict[str, int] = {}
     pages_seen: set[str] = set()
-    per_tile = {}
+    per_tile: dict[str, Any] = {}
+    veraltet_candidates: list[str] = []
+    requests_made = 0
+
     for lat, lon, label in HORGEN_TILES:
         tile_counts: dict[str, int] = {}
         params = dict(
@@ -139,37 +201,91 @@ def p2_hidden_categories() -> Any:
         )
         url = q(**params)
         guard = 0
-        while url and guard < 25:
+        while url and guard < 30:
             guard += 1
-            r = get(url, note=f"tile {label}")
-            body = r.get("body")
-            if not isinstance(body, dict):
-                per_tile[label] = {"error": r}
+            requests_made += 1
+            resp = get(url, note=f"tile {label}")
+            body = resp.get("body")
+            if not isinstance(body, dict) or "query" not in body:
+                per_tile[label] = {"_error": api_error(resp) or resp.get("error") or "no query in response"}
                 break
-            for page in body.get("query", {}).get("pages", []):
+            for page in pages_of(resp):
                 if page.get("ns") != 0:
                     continue
                 pages_seen.add(page["title"])
-                for cat in page.get("categories", []) or []:
-                    name = cat["title"]
+                for cat in page.get("categories") or []:
+                    name = cat.get("title", "?")
                     tile_counts[name] = tile_counts.get(name, 0) + 1
                     counts[name] = counts.get(name, 0) + 1
-            if "continue" in body:
-                url = q(**params) + "&" + urllib.parse.urlencode(body["continue"])
-            else:
-                url = ""
-        per_tile[label] = dict(sorted(tile_counts.items(), key=lambda kv: -kv[1]))
+                    if "Veraltet" in name and page["title"] not in veraltet_candidates:
+                        veraltet_candidates.append(page["title"])
+            cont = body.get("continue")
+            url = q(**params) + "&" + urllib.parse.urlencode(cont) if isinstance(cont, dict) else ""
+        else:
+            per_tile.setdefault(label, {})
+        if label not in per_tile or "_error" not in per_tile[label]:
+            per_tile[label] = dict(sorted(tile_counts.items(), key=lambda kv: (-kv[1], kv[0])))
+
+    # Do the candidate category names in the brief actually exist?
+    existence = get(
+        q(action="query", titles="|".join(CANDIDATE_CATEGORIES), prop="categoryinfo"),
+        note="which assumed category names are real, and how many members each has",
+    )
+
+    # Does {{Veraltet|seit=}} surface as a category, or only in the wikitext?
+    if not veraltet_candidates:
+        members = get(
+            q(action="query", list="categorymembers", cmtitle="Kategorie:Wikipedia:Veraltet", cmlimit=5, cmnamespace=0),
+            note="fallback sample: any dewiki article carrying the Veraltet template",
+        )
+        veraltet_candidates = [m["title"] for m in dig(members, "body", "query", "categorymembers", default=[])][:3]
+    else:
+        members = None
+
+    wikitext = None
+    seit_findings: list[dict[str, Any]] = []
+    if veraltet_candidates:
+        sample = veraltet_candidates[:3]
+        wikitext = get(
+            q(
+                action="query",
+                prop="revisions",
+                titles="|".join(sample),
+                rvprop="content",
+                rvslots="main",
+                rvlimit=1,
+            ),
+            note="read the Veraltet invocation to see whether seit= is present and how",
+        )
+        for page in pages_of(wikitext):
+            text = dig(page, "revisions", 0, "slots", "main", "content", default="") or ""
+            for match in re.finditer(r"\{\{\s*[Vv]eraltet[^}]{0,400}\}\}", text, re.S):
+                snippet = " ".join(match.group(0).split())
+                seit_findings.append(
+                    {
+                        "page": page.get("title"),
+                        "invocation": snippet[:300],
+                        "has_seit": bool(re.search(r"seit\s*=", snippet)),
+                    }
+                )
+
     return {
         "articles_seen": len(pages_seen),
-        "note": "counts are page-occurrences, deduped per (page,category) only within a tile",
-        "totals_sorted": dict(sorted(counts.items(), key=lambda kv: -kv[1])),
+        "requests_made": requests_made,
+        "note": "counts are page-occurrences; a page is counted once per category per tile",
+        "totals_sorted": dict(sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))),
         "per_tile": per_tile,
+        "candidate_category_existence": existence,
+        "veraltet_sample_pages": veraltet_candidates[:3],
+        "veraltet_categorymembers_fallback": members,
+        "veraltet_wikitext_probe": wikitext,
+        "veraltet_seit_findings": seit_findings,
     }
 
 
 # ------------------------------------------------------- P3 CirrusSearch verbs
 def p3_search_keywords() -> Any:
-    out = {}
+    out: dict[str, Any] = {}
     probes = {
         "deepcat": 'deepcat:"Bezirk Horgen"',
         "deepcategory": 'deepcategory:"Bezirk Horgen"',
@@ -181,32 +297,35 @@ def p3_search_keywords() -> Any:
     }
     for name, srsearch in probes.items():
         out[name] = get(
-            q(action="query", list="search", srsearch=srsearch, srlimit=10, srprop="snippet|timestamp|size"),
+            q(
+                action="query",
+                list="search",
+                srsearch=srsearch,
+                srlimit=10,
+                srprop="snippet|timestamp|size",
+                srinfo="totalhits|suggestion",
+            ),
             note=srsearch,
         )
-    # srinfo=totalhits|suggestion plus a deliberately expensive regex, to see
-    # what a timeout actually looks like on the wire.
     out["regex_timeout_shape"] = get(
         q(action="query", list="search", srsearch="insource:/[Ss]tand:? *20[0-2][0-9]/", srlimit=1),
-        note="expect timeout or partial-result warning; record elapsed_s",
+        note="deliberately expensive: does a timeout error, or silently truncate? watch elapsed_s",
     )
     return out
 
 
 # --------------------------------------------------------- P4 revision flags
 def p4_revisions() -> Any:
-    out = {}
-    titles = "Thalwil|Horgen|Wädenswil"
-    out["revisions"] = get(
+    out: dict[str, Any] = {}
+    out["revisions_multi_title"] = get(
         q(
             action="query",
             prop="revisions",
-            titles=titles,
-            rvprop="ids|timestamp|user|userid|flags|comment|size|tags",
+            titles="Thalwil|Horgen|Wädenswil",
+            rvprop="ids|timestamp|user|flags|comment|size|tags",
             rvlimit=50,
-            rvslots="main",
         ),
-        note="single-page rvlimit>1 only works for one title; check the error",
+        note="rvlimit>1 with multiple titles: expect an error, confirming the per-page fetch shape",
     )
     out["revisions_single"] = get(
         q(
@@ -216,112 +335,311 @@ def p4_revisions() -> Any:
             rvprop="ids|timestamp|user|userid|flags|comment|size|tags",
             rvlimit=50,
         ),
-        note="does any revision carry a 'bot' key, or only 'minor'?",
+        note="does ANY revision object carry a 'bot' key, or only 'minor'?",
     )
-    out["recentchanges_bot_flag"] = get(
+    out["recentchanges_bot"] = get(
         q(
             action="query",
             list="recentchanges",
             rcprop="title|timestamp|user|flags|comment|sizes|tags",
-            rclimit=50,
+            rclimit=20,
             rcshow="bot",
         ),
-        note="rc has a real bot flag - but limited retention; check how far rcstart can go",
+        note="rc does carry a real bot flag",
+    )
+    out["recentchanges_oldest"] = get(
+        q(action="query", list="recentchanges", rcprop="timestamp", rclimit=1, rcdir="newer"),
+        note="oldest rc entry = the retention window we would be relying on",
     )
     out["user_groups"] = get(
         q(action="query", list="users", ususers="Xqbot|Aka|InternetArchiveBot", usprop="groups|editcount"),
-        note="fallback bot detection: is the editor currently in the bot group?",
+        note="fallback bot detection: current group membership",
     )
     out["botlist"] = get(
         q(action="query", list="allusers", augroup="bot", aulimit=500),
-        note="full dewiki bot list, cacheable; count them",
+        note="full dewiki bot roster; is caching it viable?",
     )
     return out
 
 
 # ------------------------------------------------------------- P5 pageviews
 def p5_pageviews() -> Any:
-    out = {}
+    out: dict[str, Any] = {}
     cases = {
         "ascii": "Thalwil",
         "umlaut": "Wädenswil",
         "space": "Bezirk Horgen",
-        "slash_like": "Rüschlikon",
+        "accent": "Rüschlikon",
         "definitely_missing": "Wp Todo Nonexistent Article Xyzzy",
     }
     for name, title in cases.items():
         enc = urllib.parse.quote(title.replace(" ", "_"), safe="")
-        url = f"{PAGEVIEWS}/de.wikipedia.org/all-access/all-agents/{enc}/monthly/20250101/20251201"
-        out[name] = get(url, note=f"title={title!r} encoded={enc}")
-    # Date-format tolerance: YYYYMMDD vs YYYYMMDDHH.
+        out[name] = get(
+            f"{PAGEVIEWS}/de.wikipedia.org/all-access/all-agents/{enc}/monthly/20250101/20251201",
+            note=f"title={title!r} encoded={enc}",
+        )
     out["date_format_hh"] = get(
         f"{PAGEVIEWS}/de.wikipedia.org/all-access/all-agents/Thalwil/monthly/2025010100/2025120100",
-        note="does the monthly endpoint accept YYYYMMDDHH",
-    )
-    out["user_agent_only"] = get(
-        f"{PAGEVIEWS}/de.wikipedia.org/user/all-agents/Thalwil/monthly/20250101/20251201",
-        note="access=user, agent=user is the human-traffic filter we probably want",
+        note="does the monthly endpoint accept YYYYMMDDHH as well as YYYYMMDD",
     )
     out["agent_user"] = get(
         f"{PAGEVIEWS}/de.wikipedia.org/all-access/user/Thalwil/monthly/20250101/20251201",
-        note="agent=user excludes spiders/automated",
+        note="agent=user excludes spiders; compare the numbers against all-agents",
+    )
+    out["aqs2_host"] = get(
+        "https://api.wikimedia.org/wiki/rest_v1/metrics/pageviews/per-article"
+        "/de.wikipedia.org/all-access/user/Thalwil/monthly/20250101/20251201",
+        note="is the newer AQS host reachable without auth, or is rest_v1 still the path",
     )
     return out
 
 
 # ------------------------------------------------------- P6 etiquette/maxlag
 def p6_etiquette() -> Any:
-    out = {}
+    out: dict[str, Any] = {}
     out["maxlag_5"] = get(q(action="query", meta="siteinfo", siprop="general", maxlag=5), note="maxlag on a read")
     out["maxlag_neg1"] = get(
         q(action="query", meta="siteinfo", siprop="general", maxlag=-1),
-        note="force a lag error to see the 503 + Retry-After shape",
+        note="force the lag error to see the 503 + Retry-After shape",
     )
-    out["siteinfo_limits"] = get(
-        q(action="query", meta="siteinfo", siprop="general|namespaces|statistics"),
-        note="server time, wiki id, article count",
+    out["siteinfo"] = get(
+        q(action="query", meta="siteinfo", siprop="general|statistics"), note="server time, wiki id, article count"
     )
-    out["paraminfo_geosearch"] = get(
+    out["paraminfo"] = get(
         q(action="paraminfo", modules="query+geosearch|query+search|query+revisions|query+categories"),
-        note="AUTHORITATIVE limits: read 'max'/'highmax'/'limit' out of this",
+        note="AUTHORITATIVE limits: read min/max/highmax out of this, not out of the wiki docs",
     )
     return out
 
 
 PROBES = {
-    "P1": ("geosearch generator limits + prop combination + continuation", p1_geosearch),
+    "P1": ("geosearch generator limits, prop combination, continuation", p1_geosearch),
     "P2": ("hidden maintenance categories in the Bezirk Horgen area", p2_hidden_categories),
     "P3": ("CirrusSearch deepcat / hastemplate / insource regex", p3_search_keywords),
-    "P4": ("revision flags, bot and minor edit detection", p4_revisions),
+    "P4": ("revision flags: bot and minor edit detection", p4_revisions),
     "P5": ("pageviews REST endpoint shape and title encoding", p5_pageviews),
     "P6": ("User-Agent policy, maxlag on reads, paraminfo limits", p6_etiquette),
 }
 
 
+# ------------------------------------------------------------------ summary
+def _row(resp: Any) -> str:
+    if not isinstance(resp, dict):
+        return "not run"
+    err = api_error(resp)
+    bits = [f"HTTP {resp.get('status', '-')}", f"{resp.get('elapsed_s', '-')}s"]
+    if err:
+        bits.append(f"**error** `{err}`")
+    warn = warnings_of(resp)
+    if warn:
+        bits.append(f"warn `{warn[:200]}`")
+    return " · ".join(bits)
+
+
+def summarize(raw: dict[str, Any]) -> str:
+    probes = raw.get("probes", {})
+    L: list[str] = []
+    add = L.append
+
+    add("# Phase 0 probe — answer sheet")
+    add("")
+    add(f"User-Agent sent: `{raw.get('user_agent', '?')}`")
+    add("")
+    add("Generated by `scripts/phase0_probe.py`. Raw evidence for every line is in")
+    add("`docs/phase0-probe-output.json` (workflow artifact `phase0-probe-raw`).")
+    add("")
+
+    # -- P1
+    p1 = dig(probes, "P1", "result", default={})
+    if p1:
+        add("## P1 — geosearch as a generator")
+        add("")
+        add("| probe | result | pages returned | categories present |")
+        add("| --- | --- | --- | --- |")
+        for key in ("radius_10000", "radius_10001", "limit_500", "limit_501", "limit_max", "combined_first_page"):
+            resp = p1.get(key)
+            pages = pages_of(resp) if isinstance(resp, dict) else []
+            has_cats = any("categories" in p for p in pages)
+            add(f"| `{key}` | {_row(resp)} | {len(pages)} | {'yes' if has_cats else 'no'} |")
+        add("")
+        add(f"- continuation keys observed on the combined query: `{p1.get('continue_keys_observed')}`")
+        second = p1.get("combined_second_page")
+        add(f"- second page: {_row(second) if second else 'no continuation returned'}")
+        add("")
+
+    # -- P2
+    p2 = dig(probes, "P2", "result", default={})
+    if p2:
+        add("## P2 — hidden maintenance categories, Bezirk Horgen area")
+        add("")
+        add(f"Articles seen: **{p2.get('articles_seen')}** over {p2.get('requests_made')} requests.")
+        add("")
+        totals = p2.get("totals_sorted") or {}
+        if totals:
+            add("| hidden category | articles |")
+            add("| --- | --- |")
+            for name, count in list(totals.items())[:60]:
+                add(f"| `{name}` | {count} |")
+            if len(totals) > 60:
+                add(f"| _… {len(totals) - 60} more, see raw JSON_ | |")
+        else:
+            add("_No hidden categories returned — check the raw output for errors._")
+        add("")
+        add("### Do the assumed category names exist?")
+        add("")
+        add("| candidate | exists | members |")
+        add("| --- | --- | --- |")
+        for page in pages_of(p2.get("candidate_category_existence", {})):
+            missing = page.get("missing", False)
+            pages_n = dig(page, "categoryinfo", "pages", default="-")
+            add(f"| `{page.get('title')}` | {'no' if missing else 'yes'} | {pages_n} |")
+        add("")
+        add("### Does `{{Veraltet}}` carry `seit=`?")
+        add("")
+        findings = p2.get("veraltet_seit_findings") or []
+        if findings:
+            for f in findings[:10]:
+                add(f"- **{f['page']}** — `seit=` {'present' if f['has_seit'] else 'ABSENT'} — `{f['invocation']}`")
+        else:
+            add("_No `{{Veraltet}}` invocation captured; see raw output._")
+        add("")
+
+    # -- P3
+    p3 = dig(probes, "P3", "result", default={})
+    if p3:
+        add("## P3 — CirrusSearch keywords on dewiki")
+        add("")
+        add("| keyword probe | result | totalhits | results |")
+        add("| --- | --- | --- | --- |")
+        for key, resp in p3.items():
+            hits = dig(resp, "body", "query", "searchinfo", "totalhits", default="-")
+            n = len(dig(resp, "body", "query", "search", default=[]) or [])
+            add(f"| `{key}` | {_row(resp)} | {hits} | {n} |")
+        add("")
+
+    # -- P4
+    p4 = dig(probes, "P4", "result", default={})
+    if p4:
+        add("## P4 — bot and minor edit detection")
+        add("")
+        single = p4.get("revisions_single", {})
+        revs = dig(pages_of(single), 0, "revisions", default=[]) or []
+        keys: set[str] = set()
+        for rev in revs:
+            keys.update(rev.keys())
+        add(f"- `revisions_single`: {_row(single)}, {len(revs)} revisions")
+        add(f"- union of keys on revision objects: `{sorted(keys)}`")
+        add(f"- **is there a `bot` key on revisions? {'YES' if 'bot' in keys else 'NO'}**")
+        add(f"- revisions flagged `minor`: {sum(1 for r in revs if r.get('minor'))}/{len(revs)}")
+        add(f"- multi-title `rvlimit=50`: {_row(p4.get('revisions_multi_title'))}")
+        rc_old = dig(p4.get("recentchanges_oldest", {}), "body", "query", "recentchanges", 0, "timestamp", default="?")
+        add(f"- oldest recentchanges entry (retention window): `{rc_old}`")
+        bots = dig(p4.get("botlist", {}), "body", "query", "allusers", default=[]) or []
+        add(f"- dewiki accounts in the `bot` group: **{len(bots)}**")
+        groups = dig(p4.get("user_groups", {}), "body", "query", "users", default=[]) or []
+        for u in groups:
+            add(f"  - `{u.get('name')}` groups={u.get('groups', [])} edits={u.get('editcount', '?')}")
+        add("")
+
+    # -- P5
+    p5 = dig(probes, "P5", "result", default={})
+    if p5:
+        add("## P5 — pageviews REST endpoint")
+        add("")
+        add("| case | result | months returned | first → last |")
+        add("| --- | --- | --- | --- |")
+        for key, resp in p5.items():
+            items = dig(resp, "body", "items", default=[]) or []
+            span = f"{items[0].get('timestamp')} → {items[-1].get('timestamp')}" if items else "-"
+            add(f"| `{key}` | {_row(resp)} | {len(items)} | {span} |")
+        add("")
+        missing = p5.get("definitely_missing", {})
+        add(f"- missing-title response body: `{json.dumps(missing.get('body'), ensure_ascii=False)[:400]}`")
+        add(f"- AQS 2.0 host probe: {_row(p5.get('aqs2_host'))}")
+        add("")
+
+    # -- P6
+    p6 = dig(probes, "P6", "result", default={})
+    if p6:
+        add("## P6 — etiquette, maxlag, authoritative limits")
+        add("")
+        add(f"- `maxlag=5` on a read: {_row(p6.get('maxlag_5'))}")
+        neg = p6.get("maxlag_neg1", {})
+        add(f"- `maxlag=-1` (forced lag error): {_row(neg)} · `Retry-After: {neg.get('retry_after')}`")
+        add("")
+        add("### paraminfo — the limits that actually apply")
+        add("")
+        add("| module | param | min | max | highmax |")
+        add("| --- | --- | --- | --- | --- |")
+        for module in dig(p6.get("paraminfo", {}), "body", "paraminfo", "modules", default=[]) or []:
+            for param in module.get("parameters", []):
+                if param.get("name") in {"radius", "limit"} or "max" in param:
+                    add(
+                        f"| `{module.get('name')}` | `{param.get('name')}` | {param.get('min', '-')} "
+                        f"| {param.get('max', '-')} | {param.get('highmax', '-')} |"
+                    )
+        add("")
+
+    add("---")
+    add("")
+    add("Probes that failed outright (transport errors):")
+    add("")
+    failures = []
+
+    def walk(node: Any, path: str) -> None:
+        if isinstance(node, dict):
+            if "url" in node and "error" in node and "status" not in node:
+                failures.append(f"- `{path}` — {node['error']}")
+                return
+            for k, v in node.items():
+                walk(v, f"{path}.{k}" if path else str(k))
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                walk(v, f"{path}[{i}]")
+
+    walk(probes, "")
+    L.extend(failures or ["- none"])
+    add("")
+    return "\n".join(L) + "\n"
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--only", action="append", choices=sorted(PROBES), help="run a subset")
+    ap.add_argument("--only", action="append", choices=sorted(PROBES), help="run a subset of probes")
     ap.add_argument("--out", default="docs/phase0-probe-output.json")
+    ap.add_argument("--summary-out", default="docs/phase0-probe-summary.md")
+    ap.add_argument("--summarize", metavar="RAW_JSON", help="skip probing; re-render the summary from raw output")
     args = ap.parse_args()
 
-    if CONTACT == "UNSET-CONTACT":
-        print("WARNING: set WP_TODO_CONTACT so the User-Agent carries real contact info", file=sys.stderr)
+    if args.summarize:
+        with open(args.summarize, encoding="utf-8") as fh:
+            raw = json.load(fh)
+    else:
+        if not CONTACT:
+            print(
+                "ERROR: set WP_TODO_CONTACT (email or project URL). The Wikimedia User-Agent\n"
+                "policy requires contact information, and a default UA may be blocked outright.",
+                file=sys.stderr,
+            )
+            return 2
+        results: dict[str, Any] = {}
+        for key in args.only or sorted(PROBES):
+            label, fn = PROBES[key]
+            print(f"[{key}] {label} ...", file=sys.stderr, flush=True)
+            try:
+                results[key] = {"label": label, "result": fn()}
+            except Exception as exc:  # noqa: BLE001
+                results[key] = {"label": label, "error": f"{type(exc).__name__}: {exc}"}
+            print(f"[{key}] done", file=sys.stderr, flush=True)
+        raw = {"user_agent": UA, "probes": results}
+        with open(args.out, "w", encoding="utf-8") as fh:
+            json.dump(raw, fh, ensure_ascii=False, indent=2, sort_keys=True)
+            fh.write("\n")
+        print(f"wrote {args.out}", file=sys.stderr)
 
-    selected = args.only or sorted(PROBES)
-    for key in selected:
-        label, fn = PROBES[key]
-        print(f"[{key}] {label} ...", file=sys.stderr, flush=True)
-        try:
-            results[key] = {"label": label, "result": fn()}
-        except Exception as exc:  # noqa: BLE001
-            results[key] = {"label": label, "error": f"{type(exc).__name__}: {exc}"}
-        print(f"[{key}] done", file=sys.stderr, flush=True)
-
-    payload = {"user_agent": UA, "probes": results}
-    with open(args.out, "w", encoding="utf-8") as fh:
-        json.dump(payload, fh, ensure_ascii=False, indent=2, sort_keys=True)
-        fh.write("\n")
-    print(f"wrote {args.out}", file=sys.stderr)
+    with open(args.summary_out, "w", encoding="utf-8") as fh:
+        fh.write(summarize(raw))
+    print(f"wrote {args.summary_out}", file=sys.stderr)
     return 0
 
 
