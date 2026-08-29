@@ -65,6 +65,15 @@ CANDIDATE_CATEGORIES = [
     "Kategorie:Wikipedia:Veraltet seit 2025",
 ]
 
+# P10: the research stage's endpoints. Municipalities, because they carry the
+# population and head-of-government statements enrich.py actually compares.
+RESEARCH_TITLES = ["Thalwil", "Adliswil"]
+WIKIDATA_REST_V1 = "https://www.wikidata.org/w/rest.php/wikibase/v1"
+WIKIDATA_REST_V0 = "https://www.wikidata.org/w/rest.php/wikibase/v0"
+# Thalwil. Used only if pageprops does not hand us an item id, so that a
+# failure in one half of P10 does not take the other half down with it.
+FALLBACK_ITEM = "Q68166"
+
 
 def get(url: str, *, note: str = "") -> dict[str, Any]:
     """One GET. Records status, elapsed time and body (or the error body)."""
@@ -659,6 +668,71 @@ def p9_open_items() -> Any:
     return out
 
 
+def p10_research_endpoints() -> Any:
+    """The three endpoints the research stage was written against blind.
+
+    `src/wp_todo/enrich.py` reads all of these, but the development sandbox has
+    no egress, so their response shapes were taken from documentation rather
+    than observed. This probe is what turns them from OPEN into LIVE - or tells
+    us the code is wrong.
+    """
+    out: dict[str, Any] = {}
+
+    # (1) prop=pageprops: how do we get an article's Wikidata item id?
+    out["pageprops"] = get(
+        q(
+            action="query",
+            titles="|".join(RESEARCH_TITLES),
+            prop="pageprops",
+            ppprop="wikibase_item",
+        ),
+        note="does pageprops.wikibase_item come back, and under what key",
+    )
+
+    # (2) prop=langlinks: does lllang accept a pipe-separated list, or must it
+    # be repeated? If it silently accepts and returns nothing, the interwiki
+    # comparison would report "no other-language version" for every article.
+    out["langlinks_piped"] = get(
+        q(action="query", titles="Thalwil", prop="langlinks", lllimit="max", lllang="en|fr|it"),
+        note="the form enrich.py sends",
+    )
+    out["langlinks_single"] = get(
+        q(action="query", titles="Thalwil", prop="langlinks", lllimit="max", lllang="en"),
+        note="control: one language, known to be supported",
+    )
+    out["langlinks_unfiltered"] = get(
+        q(action="query", titles="Thalwil", prop="langlinks", lllimit="max"),
+        note="control: every language, to see what a full answer looks like",
+    )
+    out["langlinks_paraminfo"] = get(
+        q(action="paraminfo", modules="query+langlinks"),
+        note="is lllang declared multi-valued?",
+    )
+
+    # (3) The Wikibase REST statements payload. Both path versions are tried:
+    # v0 was the beta path, and a 404 on v1 would mean enrich.py points at
+    # nothing at all.
+    item = dig(out["pageprops"], "body", "query", "pages", 0, "pageprops", "wikibase_item")
+    if not isinstance(item, str) or not item.startswith("Q"):
+        item = FALLBACK_ITEM
+    out["_item_used"] = item
+
+    for label, base in (("v1", WIKIDATA_REST_V1), ("v0", WIKIDATA_REST_V0)):
+        out[f"statements_{label}"] = get(
+            f"{base}/entities/items/{item}/statements",
+            note=f"all statements for {item} via rest.php/wikibase/{label}",
+        )
+    out["statements_filtered"] = get(
+        f"{WIKIDATA_REST_V1}/entities/items/{item}/statements?property=P1082",
+        note="can we ask for one property and skip the rest of the payload?",
+    )
+    out["item_v1"] = get(
+        f"{WIKIDATA_REST_V1}/entities/items/{item}",
+        note="the whole item, for comparison with the statements endpoint",
+    )
+    return out
+
+
 PROBES = {
     "P1": ("geosearch generator limits, prop combination, continuation", p1_geosearch),
     "P2": ("hidden maintenance categories in the Bezirk Horgen area", p2_hidden_categories),
@@ -669,6 +743,7 @@ PROBES = {
     "P7": ("follow-ups: Veraltet seit=, hastemplate, continuation keys, maxlag status", p7_followups),
     "P8": ("are the dated Veraltet categories hidden categories?", p8_hidden_flag),
     "P9": ("the OPEN items still listed in docs/api-notes.md", p9_open_items),
+    "P10": ("the endpoints the research stage was written against blind", p10_research_endpoints),
 }
 
 
@@ -945,6 +1020,102 @@ def summarize(raw: dict[str, Any]) -> str:
             items = dig(p9.get(key, {}), "body", "items", default=[]) or []
             last = items[-1].get("timestamp") if items else "-"
             add(f"- `{key}`: {len(items)} points, most recent `{last}`")
+        add("")
+
+    # -- P10
+    p10 = dig(probes, "P10", "result", default={})
+    if p10:
+        add("## P10 — the research stage's endpoints")
+        add("")
+        add("Everything here was written from documentation without egress. These rows")
+        add("say whether `src/wp_todo/enrich.py` is right.")
+        add("")
+
+        add("### `prop=pageprops&ppprop=wikibase_item`")
+        add("")
+        add("| title | item id |")
+        add("| --- | --- |")
+        for page in pages_of(p10.get("pageprops", {})):
+            item = dig(page, "pageprops", "wikibase_item", default="**absent**")
+            add(f"| `{page.get('title')}` | `{item}` |")
+        add("")
+
+        add("### `prop=langlinks` — is `lllang` multi-valued?")
+        add("")
+        add("| variant | result | langs returned |")
+        add("| --- | --- | --- |")
+        for key in ("langlinks_piped", "langlinks_single", "langlinks_unfiltered"):
+            resp = p10.get(key, {})
+            links = dig(resp, "body", "query", "pages", 0, "langlinks", default=[]) or []
+            langs = ", ".join(sorted({str(link.get("lang")) for link in links})[:12]) or "—"
+            add(f"| `{key}` | {_row(resp)} | {len(links)}: {langs} |")
+        multi = dig(
+            p10.get("langlinks_paraminfo", {}),
+            "body",
+            "paraminfo",
+            "modules",
+            0,
+            "parameters",
+            default=[],
+        )
+        lllang = next((p for p in (multi or []) if p.get("name") == "lang"), {})
+        add("")
+        add(f"- `lllang` declared multi-valued: **{bool(lllang.get('multi'))}**")
+        piped = dig(p10.get("langlinks_piped", {}), "body", "query", "pages", 0, "langlinks", default=[])
+        single = dig(p10.get("langlinks_single", {}), "body", "query", "pages", 0, "langlinks", default=[])
+        verdict = (
+            "the piped form works" if len(piped or []) > len(single or []) else "**the piped form is wrong**"
+        )
+        add(f"- verdict: {verdict} (piped {len(piped or [])} vs single {len(single or [])})")
+        add("")
+
+        add(f"### Wikibase REST statements (`{p10.get('_item_used', '?')}`)")
+        add("")
+        add("| endpoint | result | top-level keys |")
+        add("| --- | --- | --- |")
+        for key in ("statements_v1", "statements_v0", "statements_filtered", "item_v1"):
+            resp = p10.get(key, {})
+            body = dig(resp, "body", default={})
+            keys = ", ".join(f"`{k}`" for k in list(body)[:8]) if isinstance(body, dict) else "not a dict"
+            add(f"| `{key}` | {_row(resp)} | {keys or '—'} |")
+        add("")
+
+        statements = dig(p10.get("statements_v1", {}), "body", "P1082", default=[])
+        first = statements[0] if isinstance(statements, list) and statements else None
+        add('`enrich.py` expects each statement to carry `rank`, `value.type == "value"`,')
+        add("`value.content`, and a `qualifiers` list of `{property: {id}, value: {...}}`.")
+        add("")
+        if isinstance(first, dict):
+            quals = first.get("qualifiers")
+            qual_props = (
+                [dig(qual, "property", "id") for qual in quals if isinstance(qual, dict)]
+                if isinstance(quals, list)
+                else []
+            )
+            content = dig(first, "value", "content")
+            add(f"- P1082 statement keys: {', '.join(f'`{k}`' for k in first)}")
+            add(f"- `rank` present: **{'rank' in first}** (`{first.get('rank', '-')}`)")
+            add(f"- `value.type`: `{dig(first, 'value', 'type', default='**absent**')}`")
+            add(
+                "- `value.content` keys: "
+                + (", ".join(f"`{k}`" for k in content) if isinstance(content, dict) else f"`{content}`")
+            )
+            add(f"- qualifier property ids: {', '.join(f'`{p}`' for p in qual_props) or '—'}")
+            add(f"- P585 (point in time) among them: **{'P585' in qual_props}**")
+            matches = (
+                "rank" in first
+                and dig(first, "value", "type") == "value"
+                and dig(first, "value", "content") is not None
+            )
+            add("")
+            add(f"**Shape matches what enrich.py parses: {'YES' if matches else 'NO'}**")
+        else:
+            add("- no `P1082` statement came back; see the raw output for what did")
+            body = dig(p10.get("statements_v1", {}), "body", default={})
+            if isinstance(body, dict) and body:
+                sample_key = next(iter(body))
+                add(f"- first property key present: `{sample_key}`")
+                add(f"- its value type: `{type(body[sample_key]).__name__}`")
         add("")
 
     add("---")
