@@ -1,0 +1,114 @@
+{
+  "claims": {
+    "claims": [
+      {
+        "as_of_year": 2016,
+        "asserted_value": null,
+        "field": null,
+        "id": "marker_derzeit-634359b4",
+        "kind": "marker:derzeit",
+        "line_no": 23,
+        "section": "Entstehungs- und Baugeschichte",
+        "text": "An der Kirchgemeindeversammlung vom 9.&nbsp;Juni 2005 wurde ein Planungskredit für einen Neubau des Pfarreizentrums genehmigt, wobei die ''Stiftung St.&nbsp;Josef'' die Hälfte übernahm. Nach eingehend"
+      },
+      {
+        "as_of_year": 2021,
+        "asserted_value": null,
+        "field": null,
+        "id": "marker_stand_year-a733d72b",
+        "kind": "marker:stand_year",
+        "line_no": 25,
+        "section": "Entstehungs- und Baugeschichte",
+        "text": "Seit dem 1. Januar 2020 ist die Kirchgemeinde Horgen auch für die Kirche [[St. Antonius (Hirzel)]] zuständig, nach dem Anschluss von Hirzel an die politische Gemeinde Horgen auch die Auflösung der Kir"
+      }
+    ],
+    "infobox": null,
+    "pageid": 8418392,
+    "references": {
+      "external_urls": [
+        "http://www.kath-horgen.ch/aktuell/einzelansicht/news/altar-und-kirchweihe-st-josef.html",
+        "https://orgelverzeichnis.ch/ZHProfile3/zh_horgen_kath1950.htm",
+        "https://orgelverzeichnis.ch/ZHProfile3/zh_horgen_kath1979.htm",
+        "https://www.kath-horgen.ch/",
+        "https://www.metzler-orgelbau.ch/htm/organs/horgen-j.htm",
+        "https://www.zsz.ch/horgen/die-katholische-kirche-wird-fuer-34-millionen-franken-aufgefrischt/story/29928486",
+        "https://www.zsz.ch/horgen/katholische-kirche-erstrahlt-in-neuem-glanz/story/15085013"
+      ],
+      "newest_year": 2022,
+      "oldest_year": 1950,
+      "total": 28,
+      "with_year": 15
+    },
+    "sections": [
+      "Geschichte",
+      "Vorgeschichte und Namensgebung",
+      "Entstehungs- und Baugeschichte",
+      "Baubeschreibung",
+      "Kirchturm und Äusseres",
+      "Innenraum und künstlerische Ausstattung",
+      "Ursprüngliche Gestaltung",
+      "Gestaltung zwischen 1978 und 2016",
+      "Gestaltung seit 2017",
+      "Orgeln",
+      "Späth-Orgel (1934–1979)",
+      "Kuhn-Orgel (1979–2016)",
+      "Metzler-Orgel (seit 2018)",
+      "Raum der Stille",
+      "Literatur",
+      "Weblinks",
+      "Einzelnachweise"
+    ],
+    "title": "St. Josef (Horgen)"
+  },
+  "compared_languages": [],
+  "deltas": [],
+  "edit_url": "https://de.wikipedia.org/w/index.php?title=St._Josef_(Horgen)&action=edit",
+  "interwiki_checked": true,
+  "pageid": 8418392,
+  "reference_date": "2026-08-29",
+  "reference_standing": [
+    {
+      "decided": null,
+      "host": "www.zsz.ch",
+      "label": "Presse/Wissenschaft",
+      "reason": "",
+      "references": 2,
+      "signals": [],
+      "tier": "press_academic",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "orgelverzeichnis.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 2,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.kath-horgen.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 2,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.metzler-orgelbau.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    }
+  ],
+  "scope_label": "Recherche",
+  "title": "St. Josef (Horgen)",
+  "wikidata_item": "Q19309373"
+}
