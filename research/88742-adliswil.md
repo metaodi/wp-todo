@@ -14,19 +14,24 @@ _Keine Abweichungen gefunden._
 
 ## Übereinstimmend mit Wikidata
 
-_Nichts abgeglichen._
+Diese Angaben stimmen mit Wikidata überein - vermutlich aktuell.
+
+| Angabe | Im Artikel | Laut Wikidata | Beleg |
+| --- | --- | --- | --- |
+| Fläche | 7.79 | 7.77 (Stand 2007) | [P2046](https://www.wikidata.org/wiki/Q68210#P2046) |
+| offizielle Website | www.adliswil.ch | https://www.adliswil.ch | [P856](https://www.wikidata.org/wiki/Q68210#P856) |
 
 ## Möglicherweise fehlend
 
 Abschnitte, die andere Sprachversionen haben und diese nicht. Ein Titel allein
 sagt wenig - derselbe Inhalt steht hier oft unter anderem Namen.
 
-- **[enwiki](https://en.wikipedia.org/wiki/Adliswil)** — 10 Abschnitt(e) ohne Entsprechung hier
-  - History; Geography; Demographics; Religion; Education; Public schools; Private, publicly subsidised schools; Other private schools; Transportation; Notable people
-- **[frwiki](https://fr.wikipedia.org/wiki/Adliswil)** — 9 Abschnitt(e) ohne Entsprechung hier
-  - Géographie; Situation; Transports; Démographie; Histoire; Économie; Culture et patrimoine; Personnalités; Héraldique
-- **[itwiki](https://it.wikipedia.org/wiki/Adliswil)** — 8 Abschnitt(e) ohne Entsprechung hier
-  - Geografia fisica; Storia; Monumenti e luoghi d'interesse; Società; Evoluzione demografica; Economia; Infrastrutture e trasporti; Amministrazione
+- **[enwiki](https://en.wikipedia.org/wiki/Adliswil)** — 4 Abschnitt(e) ohne Entsprechung hier
+  - Education; Public schools; Private, publicly subsidised schools; Other private schools
+- **[frwiki](https://fr.wikipedia.org/wiki/Adliswil)** — 1 Abschnitt(e) ohne Entsprechung hier
+  - Culture et patrimoine
+- **[itwiki](https://it.wikipedia.org/wiki/Adliswil)** — 1 Abschnitt(e) ohne Entsprechung hier
+  - Società
 
 ## Angaben zum Prüfen
 
