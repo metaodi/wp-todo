@@ -1,0 +1,90 @@
+{
+  "claims": {
+    "claims": [
+      {
+        "as_of_year": 2008,
+        "asserted_value": null,
+        "field": null,
+        "id": "marker_stand_year-3b887da0",
+        "kind": "marker:stand_year",
+        "line_no": 89,
+        "section": "Kabinen",
+        "text": "* Geschwindigkeit: 6 m/s oder 21,6 km/h<ref>Technische Daten, sofern nicht in Infobox respektive im Fliesstext erwähnt. Quelle: Website der Luftseilbahn Adliswil-Felsenegg, Stand Mai 2008.</ref>"
+      }
+    ],
+    "infobox": null,
+    "pageid": 1663737,
+    "references": {
+      "external_urls": [
+        "http://www.gemeinderat-zuerich.ch/Geschaeft_Details.aspx?ID=2347be8f-460a-47e4-b1ea-003022b493b9",
+        "http://www.laf.ch/freizeit/nordic-walking-albis.html",
+        "http://www.laf.ch/ueber-uns/geschichte/erneuerung-2008.html"
+      ],
+      "newest_year": 2016,
+      "oldest_year": 2004,
+      "total": 6,
+      "with_year": 5
+    },
+    "sections": [
+      "Geschichte",
+      "Generalüberholung anlässlich des 50-Jahr-Jubiläums",
+      "Hintergründe",
+      "Sanierungsarbeiten",
+      "Massnahmen zur Steigerung der Attraktivität",
+      "Technische Daten",
+      "Bahnprofil",
+      "Kabinen",
+      "Literatur",
+      "Weblinks",
+      "Einzelnachweise"
+    ],
+    "title": "Luftseilbahn Adliswil–Felsenegg"
+  },
+  "compared_languages": [
+    "en"
+  ],
+  "deltas": [
+    {
+      "agrees": false,
+      "article_as_of": null,
+      "article_value": null,
+      "claim_id": null,
+      "detail": "4 Abschnitt(e) ohne Entsprechung hier",
+      "external_as_of": null,
+      "external_value": "History; Operation; Connections; Gallery",
+      "field": null,
+      "kind": "interwiki_section",
+      "label": "enwiki",
+      "source": "https://en.wikipedia.org/wiki/Adliswil-Felsenegg_cable_car"
+    }
+  ],
+  "edit_url": "https://de.wikipedia.org/w/index.php?title=Luftseilbahn_Adliswil–Felsenegg&action=edit",
+  "interwiki_checked": true,
+  "pageid": 1663737,
+  "reference_date": "2026-08-29",
+  "reference_standing": [
+    {
+      "decided": null,
+      "host": "www.laf.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 2,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.gemeinderat-zuerich.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    }
+  ],
+  "scope_label": "Recherche",
+  "title": "Luftseilbahn Adliswil–Felsenegg",
+  "wikidata_item": "Q1273422"
+}
