@@ -35,6 +35,10 @@ src = ["src", "tests"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
 
+[tool.ruff.lint.per-file-ignores]
+# The multiplication sign is deliberate in the rendered German output.
+"src/wp_todo/render.py" = ["RUF001"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true
