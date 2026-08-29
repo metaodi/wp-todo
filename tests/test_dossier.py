@@ -7,6 +7,7 @@ Wikibase REST API yet - see the note in `test_enrich.py`.
 
 from __future__ import annotations
 
+import datetime as dt
 import json
 import re
 from pathlib import Path
@@ -22,6 +23,7 @@ from wp_todo.dossier import HEADER_NOTICE, render_json, render_markdown, slug
 from wp_todo.fetch import fetch
 from wp_todo.models import Dossier, FetchResult
 from wp_todo.research import research_article
+from wp_todo.sources import SourceLedger, make_verdict
 from wp_todo.webclient import WebClient
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -46,6 +48,7 @@ def build(
     *,
     statements: dict[str, Any] | None = None,
     compare_wikidata: bool = False,
+    ledger: SourceLedger | None = None,
 ) -> Dossier:
     """A dossier for the acceptance article, with Wikimedia offline."""
     article = next(a for a in corpus.articles if a.title == ARTICLE)
@@ -71,7 +74,7 @@ def build(
             reference_date=corpus.reference_date,
         ) as web,
     ):
-        return research_article(article, corpus, config, wiki, web, foreign=None)
+        return research_article(article, corpus, config, wiki, web, None, ledger)
 
 
 def test_the_dossier_leads_with_what_it_is_not(
@@ -231,3 +234,90 @@ class TestSlug:
 
     def test_a_title_of_only_punctuation_still_yields_a_name(self) -> None:
         assert slug("!!!") == "artikel"
+
+
+# ------------------------------------------------------------ source standing
+def _ledger(domain: str, verdict: str, reason: str) -> SourceLedger:
+    return SourceLedger(verdicts=(make_verdict(domain, verdict, reason, dt.date(2026, 3, 14)),))
+
+
+def test_the_articles_own_sources_are_classified(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """Free to compute, and it answers what the reference count cannot: an
+    article resting entirely on unrated hosts is a different problem from one
+    resting on the federal statistics office."""
+    dossier = build(corpus, scope, tmp_path)
+    assert dossier.reference_standing, "the acceptance article cites external sources"
+
+    markdown = render_markdown(dossier)
+    assert "## Einstufung der zitierten Quellen" in markdown
+    assert dossier.reference_standing[0].host in markdown
+
+
+def test_unrated_is_not_presented_as_a_criticism(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """Most of the web is unrated. Saying so must not read as an accusation."""
+    markdown = render_markdown(build(corpus, scope, tmp_path))
+    assert "kein Urteil" in markdown
+    assert "nicht, dass mit ihr etwas nicht stimmt" in markdown
+
+
+def test_official_sources_sort_above_unrated_ones(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    tiers = [s.tier for s in build(corpus, scope, tmp_path).reference_standing]
+    assert tiers == sorted(tiers, key=["official", "press_academic", "unrated"].index)
+
+
+def test_a_blocked_host_moves_to_the_exclusions_with_its_reason(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """The rule the whole design rests on: something missing because of a
+    decision must say which decision, or the dossier is lying by omission."""
+    plain = build(corpus, scope, tmp_path)
+    host = next(s.host for s in plain.reference_standing if s.tier == "unrated")
+
+    blocked = build(corpus, scope, tmp_path, ledger=_ledger(host, "block", "Datendump von 2015"))
+    markdown = render_markdown(blocked)
+
+    assert "## Ausgeschlossene Quellen" in markdown
+    assert "Datendump von 2015" in markdown
+    assert "2026-03-14" in markdown
+
+    table = markdown[markdown.index("## Einstufung") : markdown.index("## Ausgeschlossene")]
+    assert f"`{host}`" not in table, "a blocked host belongs in the exclusions, not the table"
+
+
+def test_the_exclusions_section_is_absent_when_nothing_was_dropped(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """An empty heading would imply something was considered and kept."""
+    assert "## Ausgeschlossene Quellen" not in render_markdown(build(corpus, scope, tmp_path))
+
+
+def test_a_note_travels_with_the_source(corpus: FetchResult, scope: ScopeConfig, tmp_path: Path) -> None:
+    """This is the verdict that makes the checking compound: a source can be
+    fine for one thing and useless for another."""
+    plain = build(corpus, scope, tmp_path)
+    host = next(s.host for s in plain.reference_standing if s.tier == "unrated")
+
+    noted = build(corpus, scope, tmp_path, ledger=_ledger(host, "note", "gut für Öffnungszeiten"))
+    markdown = render_markdown(noted)
+
+    assert "gut für Öffnungszeiten" in markdown
+    assert "## Ausgeschlossene Quellen" not in markdown, "a note is not an exclusion"
+
+
+def test_standing_survives_the_json_round_trip(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    plain = build(corpus, scope, tmp_path)
+    host = next(s.host for s in plain.reference_standing if s.tier == "unrated")
+    payload = json.loads(render_json(build(corpus, scope, tmp_path, ledger=_ledger(host, "block", "x"))))
+
+    entry = next(s for s in payload["reference_standing"] if s["host"] == host)
+    assert entry["verdict"] == "block"
+    assert entry["reason"] == "x"
+    assert entry["decided"] == "2026-03-14"

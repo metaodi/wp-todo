@@ -17,8 +17,9 @@ from .claims import extract_claims
 from .client import WikiClient
 from .config import ScopeConfig
 from .enrich import interwiki_deltas, langlinks, wikibase_items, wikidata_deltas
-from .models import Article, Delta, Dossier, FetchResult
+from .models import Article, ArticleClaims, Delta, Dossier, FetchResult, SourceStanding
 from .score import EDIT_URL
+from .sources import TIERS, SourceLedger, Standing, host_of, standing
 from .webclient import WebClient
 
 log = logging.getLogger(__name__)
@@ -34,6 +35,7 @@ def research_article(
     wiki: WikiClient,
     web: WebClient,
     foreign: dict[str, WikiClient] | None = None,
+    ledger: SourceLedger | None = None,
 ) -> Dossier:
     """Build the dossier for one article.
 
@@ -72,8 +74,70 @@ def research_article(
         deltas=tuple(deltas),
         interwiki_checked=bool(foreign),
         compared_languages=compared,
+        reference_standing=reference_standing(claims, ledger or SourceLedger()),
         edit_url=EDIT_URL.format(title=article.title.replace(" ", "_")),
     )
+
+
+def reference_standing(claims: ArticleClaims, ledger: SourceLedger) -> tuple[SourceStanding, ...]:
+    """Standing for the hosts the article already cites.
+
+    Costs nothing - no request, no model - and answers a question worth asking
+    before any research happens: what is this article actually resting on? An
+    article sourced entirely to `unrated` hosts is a different problem from one
+    sourced to the federal statistics office, and neither is visible from the
+    reference count alone.
+
+    It is also how the standing machinery gets exercised against real data
+    before the open-web stage exists to feed it.
+    """
+    urls = claims.references.external_urls
+    if not urls:
+        return ()
+
+    official = _official_website(claims)
+    counts: dict[str, int] = {}
+    for url in urls:
+        host = host_of(url)
+        if host:
+            counts[host] = counts.get(host, 0) + 1
+
+    # `cited_hosts` is deliberately not passed here. Within this section
+    # "already cited" is the premise, not a finding - every row would carry it,
+    # which is noise. The signal earns its keep in M2, where it distinguishes a
+    # newly discovered domain that the article already trusts from one it does
+    # not.
+    found = [
+        _as_model(standing(host, ledger=ledger, article_official=official), references=count)
+        for host, count in counts.items()
+    ]
+    return tuple(sorted(found, key=lambda s: (_rank(s), -s.references, s.host)))
+
+
+def _official_website(claims: ArticleClaims) -> str:
+    for claim in claims.claims:
+        if claim.field == "WEBSITE" and claim.asserted_value:
+            return claim.asserted_value
+    return ""
+
+
+def _as_model(found: Standing, *, references: int) -> SourceStanding:
+    return SourceStanding(
+        host=found.host,
+        tier=found.tier,
+        signals=found.signals,
+        verdict=found.verdict.verdict if found.verdict else None,
+        reason=found.verdict.reason if found.verdict else "",
+        decided=found.verdict.decided if found.verdict else None,
+        references=references,
+        label=found.describe(),
+    )
+
+
+def _rank(found: SourceStanding) -> tuple[int, int]:
+    trusted = found.verdict == "trust"
+    tier = TIERS.index(found.tier) if found.tier in TIERS else len(TIERS)
+    return (tier, -((2 if trusted else 0) + len(found.signals)))
 
 
 def foreign_clients(config: ScopeConfig, template: WikiClient) -> dict[str, WikiClient]:

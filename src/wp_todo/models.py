@@ -193,6 +193,26 @@ class ScoredArticle(Strict):
     edit_url: str = ""
 
 
+class SourceStanding(Strict):
+    """What is known about one host before anybody reads what it says.
+
+    Reported, not enforced: only an explicit `block` removes anything, and a
+    block is always listed with its reason. Everything else is ordering and
+    annotation, which costs no recall.
+    """
+
+    host: str
+    tier: str = "unrated"
+    signals: tuple[str, ...] = ()
+    verdict: str | None = None
+    reason: str = ""
+    decided: dt.date | None = None
+    #: How many of the article's references point at this host.
+    references: int = 0
+    #: The rendered German summary, so the JSON says the same as the markdown.
+    label: str = ""
+
+
 class Dossier(Strict):
     """A briefing on one article, for a human to read before editing it.
 
@@ -219,6 +239,10 @@ class Dossier(Strict):
     #: Languages that were actually compared, so an empty result can be told
     #: apart from a language that has no article.
     compared_languages: tuple[str, ...] = ()
+    #: Standing for the hosts this article already cites, best first. Free to
+    #: compute - it needs no request - and it answers "how well sourced is this
+    #: article" before any research happens.
+    reference_standing: tuple[SourceStanding, ...] = ()
     edit_url: str = ""
 
 

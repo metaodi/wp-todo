@@ -1,0 +1,39 @@
+# Aufgezeichnete Urteile über einzelne Quellen.
+#
+# Dieses Werkzeug filtert Suchergebnisse absichtlich NICHT vorab. Wer jede
+# Quelle ohnehin selbst prüft, verliert durch eine Positivliste nur Funde, die
+# er nie zu Gesicht bekommt - und merkt es nicht. Umgekehrt fällt Unbrauchbares
+# im Dossier sofort auf und ist mit einer Zeile hier für immer erledigt.
+#
+# Drei Urteile:
+#
+#   block  Wird nicht mehr abgerufen. Erscheint im Dossier unter
+#          "Ausgeschlossene Quellen" - mit Begründung, damit niemand
+#          rekonstruieren muss, warum etwas fehlt.
+#   note   Wird ganz normal abgerufen und angezeigt, aber die Notiz steht
+#          dabei. Für Quellen, die für das eine taugen und für das andere
+#          nicht.
+#   trust  Wird beim Sortieren bevorzugt. Hebt weder die Zitatprüfung noch
+#          die Spiegel-Erkennung auf: einem Wikipedia-Spiegel zu vertrauen
+#          ist immer ein Fehler, egal wer es einträgt.
+#
+# Eintragen geht am schnellsten über die Kommandozeile - direkt nachdem man
+# eine Quelle geprüft hat, solange die Begründung noch präsent ist:
+#
+#   uv run wp-todo sources block beispiel.example --reason "Datenstand 2015"
+#   uv run wp-todo sources note  beispiel.example --reason "gut für Öffnungszeiten"
+#   uv run wp-todo sources list
+#
+# Die Begründung ist Pflicht, nicht Zierde. Eine Sperrliste bildet das Urteil
+# ihres Autors ab, und "unzuverlässig" und "sehe ich anders" sind schnell
+# verwechselt. Wer den Grund aufschreibt, kann später prüfen, welches von
+# beidem es war - und andere können es auch.
+#
+# Domains treffen auf Label-Grenzen: `beispiel.ch` erfasst `www.beispiel.ch`,
+# aber nicht `nichtbeispiel.ch`. Der speziellste Treffer gewinnt, nicht der
+# erste - `daten.beispiel.ch` kann also anders beurteilt sein als
+# `beispiel.ch`.
+#
+# Neue Einträge hängt die Kommandozeile unten an; diese Kommentare bleiben
+# stehen. Einen Eintrag zu entfernen ist Handarbeit - Entsperren verdient
+# denselben Gedanken wie Sperren.

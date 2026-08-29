@@ -35,6 +35,31 @@ source.
 - **It does not decide who is right.** A Wikidata delta is a pair of values and
   two links. Wikidata is frequently the one that is out of date or wrong.
 
+## On the source list
+
+There is no allowlist. The tool classifies sources and sorts them, but it does
+not decide which ones you are allowed to see — you check every source anyway, so
+an allowlist would only cost you findings you never learn about.
+
+What it does have is a blocklist you build yourself, one line at a time, from
+sources you have already looked at and rejected. Three rules govern it:
+
+1. **Every entry carries a reason, and the reason is mandatory.** This is not
+   bureaucracy. A blocklist encodes its author's judgement, and *"this source is
+   unreliable"* and *"I disagree with this source"* are easy to conflate —
+   especially on a topic you care about. Writing down which one it was is what
+   makes the difference checkable afterwards.
+2. **Every exclusion is printed in the dossier**, with its reason and the date
+   you decided. Nothing disappears silently. If a dossier is thinner than it
+   should be, the file says why.
+3. **`trust` is not a bypass.** A domain you trust is sorted higher and nothing
+   else. It does not skip the citation check, and it does not skip
+   Wikipedia-mirror detection, because a trusted mirror is still a mirror.
+
+If you find yourself blocking a source because of what it says rather than
+because of what it is, that is worth noticing. The reason field is where you
+will notice it.
+
 ## Rules for using it
 
 1. **Check every finding at its source before acting on it.** The dossier is a
