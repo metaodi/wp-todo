@@ -175,10 +175,55 @@ def test_an_empty_comparison_says_so_rather_than_going_quiet(
     corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
 ) -> None:
     """A section that ran and found nothing must be distinguishable from a
-    section that never ran."""
+    section that never ran.
+
+    This test used to assert "_Keine Abweichungen gefunden._" here, which was
+    the bug: the build helper never runs the comparison, so the honest answer
+    is that it was not checked.
+    """
     markdown = render_markdown(build(corpus, scope, tmp_path))
 
-    assert "_Keine Abweichungen gefunden._" in markdown
+    assert "Nicht abgeglichen" in markdown
+    assert "_Keine Abweichungen gefunden._" not in markdown
+
+
+class TestWikidataEmptyStates:
+    """Three different empty sections, three different sentences.
+
+    For five live runs all three rendered as "keine Abweichungen gefunden" -
+    "no differences found" - while our own robots gate was refusing the
+    request. The dossier was asserting something false about the article.
+    """
+
+    def test_no_wikidata_item_says_so(self, corpus: FetchResult, scope: ScopeConfig, tmp_path: Path) -> None:
+        dossier = build(corpus, scope, tmp_path).model_copy(
+            update={"wikidata_item": None, "wikidata_checked": False}
+        )
+        assert "kein Wikidata-Objekt" in render_markdown(dossier)
+
+    def test_a_failed_lookup_says_so_and_warns_against_reading_it_as_agreement(
+        self, corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+    ) -> None:
+        dossier = build(corpus, scope, tmp_path).model_copy(
+            update={"wikidata_item": "Q42", "wikidata_checked": False}
+        )
+        markdown = render_markdown(dossier)
+
+        assert "konnten nicht" in markdown
+        assert "Q42" in markdown
+        assert "kein** Hinweis darauf, dass alles stimmt" in markdown
+        assert "_Keine Abweichungen gefunden._" not in markdown
+
+    def test_a_real_comparison_with_no_differences_says_that_instead(
+        self, corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+    ) -> None:
+        dossier = build(corpus, scope, tmp_path).model_copy(
+            update={"wikidata_item": "Q42", "wikidata_checked": True}
+        )
+        markdown = render_markdown(dossier)
+
+        assert "_Keine Abweichungen gefunden._" in markdown
+        assert "Nicht abgeglichen" not in markdown
 
 
 def test_not_looked_reads_differently_from_looked_and_found_nothing(

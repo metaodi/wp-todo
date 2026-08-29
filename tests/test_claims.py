@@ -187,3 +187,69 @@ def test_an_article_with_no_references_reports_nothing_rather_than_zero_years(
     result = extract_claims(article("Ganz ohne Belege.\n"), config, REFERENCE)
     assert result.references.total == 0
     assert result.references.newest_year is None
+
+
+class TestMaintenanceTemplates:
+    """The strongest signal the worklist has, and it was missing entirely.
+
+    `Küsnachter Dorfbach` ranked first at 67.22, two thirds of it from
+    `maintenance (Veraltet nach Mai 2025) +45` - an editor flagging that the
+    page needs updating by that date. Its dossier never mentioned it, because
+    only the regex marker rules were walked.
+    """
+
+    def test_an_overdue_zukunft_template_becomes_a_claim(self, config: ScopeConfig) -> None:
+        result = extract_claims(article("Text {{Zukunft|2025|5}} mehr Text.\n"), config, REFERENCE)
+
+        claim = next(c for c in result.claims if c.kind == "zukunft_template")
+        assert claim.as_of_year == 2025
+        assert "2025-05-01" in claim.text
+
+    def test_a_future_zukunft_template_is_reported_without_a_year(self, config: ScopeConfig) -> None:
+        """Not yet due is worth knowing, but it is not staleness."""
+        result = extract_claims(article("Text {{Zukunft|2030|1}}.\n"), config, REFERENCE)
+
+        claim = next(c for c in result.claims if c.kind == "zukunft_template")
+        assert claim.as_of_year is None
+        assert "ab 2030-01-01" in claim.text
+
+    def test_a_dated_veraltet_template_becomes_a_claim(self, config: ScopeConfig) -> None:
+        result = extract_claims(article("{{Veraltet|seit=2019}}\nText.\n"), config, REFERENCE)
+
+        claim = next(c for c in result.claims if c.kind == "veraltet_template")
+        assert claim.as_of_year == 2019
+
+    def test_an_unreadable_seit_is_reported_rather_than_dropped(self, config: ScopeConfig) -> None:
+        """A broken date is itself worth seeing - somebody meant to put one."""
+        result = extract_claims(article("{{Veraltet|seit=einiger Zeit}}\nText.\n"), config, REFERENCE)
+
+        claim = next(c for c in result.claims if c.kind == "veraltet_template")
+        assert claim.as_of_year is None
+        assert "nicht lesbar" in claim.text
+
+    def test_the_category_is_used_only_when_the_templates_say_nothing(self, config: ScopeConfig) -> None:
+        """Category and template are the same signal seen from two sides.
+        Reporting both would report it twice."""
+        with_template = Article(
+            pageid=1,
+            title="X",
+            scope_label="t",
+            wikitext="{{Veraltet|seit=2019}}\n",
+            categories=("Kategorie:Wikipedia:Veraltet seit 2019",),
+        )
+        kinds = [c.kind for c in extract_claims(with_template, config, REFERENCE).claims]
+        assert "veraltet_template" in kinds
+        assert "veraltet_kategorie" not in kinds
+
+    def test_the_category_stands_in_when_there_is_no_template(self, config: ScopeConfig) -> None:
+        without = Article(
+            pageid=1,
+            title="X",
+            scope_label="t",
+            wikitext="Nur Prosa.\n",
+            categories=("Kategorie:Wikipedia:Veraltet seit 2019",),
+        )
+        claim = next(
+            c for c in extract_claims(without, config, REFERENCE).claims if c.kind == "veraltet_kategorie"
+        )
+        assert claim.as_of_year == 2019

@@ -61,10 +61,14 @@ def render_markdown(dossier: Dossier) -> str:
         "",
     ]
 
+    # "Not retrieved" must not read as "nothing to report". For five live runs
+    # it did, while our own robots gate was refusing the request.
+    unchecked = _wikidata_unchecked(dossier)
+
     lines += _delta_section(
         "Abweichungen gegenüber Wikidata",
         [d for d in dossier.deltas if d.kind == "wikidata" and not d.agrees],
-        empty="_Keine Abweichungen gefunden._",
+        empty=unchecked or "_Keine Abweichungen gefunden._",
         note=(
             "Wikidata ist nicht automatisch im Recht - oft ist es die Seite, die falsch\n"
             "liegt. Beide Angaben an der jeweiligen Quelle prüfen."
@@ -74,7 +78,7 @@ def render_markdown(dossier: Dossier) -> str:
     lines += _delta_section(
         "Übereinstimmend mit Wikidata",
         [d for d in dossier.deltas if d.kind == "wikidata" and d.agrees],
-        empty="_Nichts abgeglichen._",
+        empty=unchecked or "_Nichts abgeglichen._",
         note="Diese Angaben stimmen mit Wikidata überein - vermutlich aktuell.",
     )
 
@@ -93,6 +97,19 @@ def render_json(dossier: Dossier) -> str:
 
 
 # ------------------------------------------------------------------ sections
+def _wikidata_unchecked(dossier: Dossier) -> str:
+    """The honest empty-state, or "" when the comparison really did run."""
+    if dossier.wikidata_checked:
+        return ""
+    if dossier.wikidata_item is None:
+        return "_Nicht abgeglichen: der Artikel hat kein Wikidata-Objekt._"
+    return (
+        f"_Nicht abgeglichen: die Angaben zu [{dossier.wikidata_item}]"
+        f"(https://www.wikidata.org/wiki/{dossier.wikidata_item}) konnten nicht "
+        "geladen werden. Das ist **kein** Hinweis darauf, dass alles stimmt._"
+    )
+
+
 def _delta_section(heading: str, deltas: list[Delta], *, empty: str, note: str) -> list[str]:
     lines = [f"## {heading}", ""]
     if not deltas:

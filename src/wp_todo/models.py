@@ -230,6 +230,13 @@ class Dossier(Strict):
     scope_label: str = ""
     reference_date: dt.date
     wikidata_item: str | None = None
+    #: Whether the Wikidata statements were actually retrieved. "We compared and
+    #: found nothing" and "we never got the data" are different answers, and a
+    #: dossier that renders them the same way is asserting something false.
+    #:
+    #: This is not hypothetical: for five live runs it said "keine Abweichungen
+    #: gefunden" while our own robots gate was refusing the request.
+    wikidata_checked: bool = False
     claims: ArticleClaims
     deltas: tuple[Delta, ...] = ()
     #: Whether the interwiki comparison ran at all. "We looked and found

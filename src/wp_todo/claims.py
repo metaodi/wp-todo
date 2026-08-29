@@ -15,10 +15,11 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import re
+from collections.abc import Callable
 
 from .config import ScopeConfig
 from .models import Article, ArticleClaims, Claim, ReferenceSummary
-from .score import all_marker_hits
+from .score import CATEGORY_YEAR, SEIT_PARAM, VERALTET_TEMPLATE, YEAR, ZUKUNFT_TEMPLATE, all_marker_hits
 
 #: Infobox parameters worth treating as dated claims, by the article kind they
 #: appear in. Values are the canonical parameter name and the parameter holding
@@ -52,7 +53,11 @@ def extract_claims(article: Article, config: ScopeConfig, reference: dt.date) ->
     wikitext = article.wikitext or ""
     infobox_name, infobox = _first_infobox(wikitext)
 
-    claims = _infobox_claims(infobox) + _marker_claims(wikitext, config, reference)
+    claims = (
+        _maintenance_claims(article, wikitext, reference)
+        + _infobox_claims(infobox)
+        + _marker_claims(wikitext, config, reference)
+    )
 
     # Content-addressed ids collide only when two claims really are the same
     # claim, so de-duplicate on them rather than emitting both.
@@ -68,6 +73,83 @@ def extract_claims(article: Article, config: ScopeConfig, reference: dt.date) ->
         claims=tuple(sorted(unique.values(), key=lambda c: (c.line_no, c.kind, c.id))),
         references=_references(wikitext),
     )
+
+
+# ------------------------------------------------------------- dated templates
+def _maintenance_claims(article: Article, wikitext: str, reference: dt.date) -> list[Claim]:
+    """`{{Veraltet|seit=}}` and `{{Zukunft|YYYY|MM}}` as claims.
+
+    These are the strongest signal the worklist has - an editor looked at the
+    page and said *this needs updating*, sometimes with a date attached - and
+    for the first live runs they were missing from the dossier entirely,
+    because only the regex marker rules were walked. `Küsnachter Dorfbach`
+    ranked first on `maintenance (Veraltet nach Mai 2025) +45` and its briefing
+    never mentioned it.
+
+    The parsing mirrors `score._dated_staleness` deliberately: the same three
+    sources in the same order of precision. A malformed `seit=` is reported
+    rather than dropped, because a broken date is itself worth seeing.
+    """
+    claims: list[Claim] = []
+    line_of = _line_of(wikitext)
+
+    template = VERALTET_TEMPLATE.search(wikitext)
+    if template:
+        param = SEIT_PARAM.search(template.group(0))
+        raw = param.group(1).strip() if param else ""
+        found = YEAR.search(raw) if raw else None
+        detail = f"seit {found.group(0)}" if found else (f"seit={raw!r} (nicht lesbar)" if param else "")
+        claims.append(
+            _claim(
+                kind="veraltet_template",
+                text=f"{{{{Veraltet}}}}: als veraltet markiert{f' - {detail}' if detail else ''}",
+                line_no=line_of(template.start()),
+                as_of_year=int(found.group(0)) if found else None,
+            )
+        )
+
+    zukunft = ZUKUNFT_TEMPLATE.search(wikitext)
+    if zukunft:
+        year, month = int(zukunft.group(1)), int(zukunft.group(2) or 1)
+        due = dt.date(year, min(max(month, 1), 12), 1)
+        overdue = due <= reference
+        claims.append(
+            _claim(
+                kind="zukunft_template",
+                text=(
+                    f"{{{{Zukunft}}}}: dieser Abschnitt sollte "
+                    f"{'seit' if overdue else 'ab'} {due.isoformat()} überprüft werden"
+                ),
+                line_no=line_of(zukunft.start()),
+                as_of_year=year if overdue else None,
+            )
+        )
+
+    # Only when the templates said nothing: the categories are the same signal
+    # observed from outside, and reporting both would be reporting it twice.
+    if not claims:
+        for category in article.categories:
+            found_cat = CATEGORY_YEAR.search(category)
+            if found_cat:
+                claims.append(
+                    _claim(
+                        kind="veraltet_kategorie",
+                        text=f"Kategorie: {category.removeprefix('Kategorie:Wikipedia:')}",
+                        line_no=1,
+                        as_of_year=int(found_cat.group(1)),
+                    )
+                )
+                break
+    return claims
+
+
+def _line_of(wikitext: str) -> Callable[[int], int]:
+    """Character offset -> 1-based line number."""
+
+    def line_no(offset: int) -> int:
+        return wikitext.count("\n", 0, offset) + 1
+
+    return line_no
 
 
 # --------------------------------------------------------------------- infobox
