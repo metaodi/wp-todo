@@ -173,6 +173,60 @@ asked to be read by anybody's tool:
 The stage is opt-in per article and is **not** wired into `refresh.yml`. The
 weekly job stays Wikimedia-only.
 
+### Quellen einstufen und aussortieren
+
+The dossier classifies every host the article cites — and, once the open-web
+stage lands, every host it finds. Two separate axes: a **tier** from the host
+(`amtlich`, `Presse/Wissenschaft`, `nicht eingestuft`) and any number of
+**signals**, including two that cost nothing because the article supplies them
+itself: the official website named in its own infobox, and the domains it
+already cites.
+
+```
+| Domain                    | Einstufung                                    | Belege |
+| `www.web.statistik.zh.ch` | amtlich                                       |      2 |
+| `www.zsz.ch`              | Presse/Wissenschaft                           |      1 |
+| `www.adliswil.ch`         | nicht eingestuft · offizielle Website         |      3 |
+```
+
+`nicht eingestuft` is the default and is not a criticism — most of the web is
+on no list at all.
+
+**There is no allowlist, deliberately.** If you check every source yourself,
+an allowlist only costs you findings you never see: its failures are invisible,
+and it cannot bootstrap, because the only way to discover what belongs on it is
+to run without one. A blocklist fails the other way round — junk in a dossier is
+obvious, and one line removes it for good. So: sort by default, and remove only
+what is worth nothing.
+
+Record what you concluded, right after you concluded it:
+
+```sh
+uv run wp-todo sources block beispiel.example --reason "Datendump von 2015"
+uv run wp-todo sources note  gemeinde.example --reason "gut für Öffnungszeiten, nicht für Statistik"
+uv run wp-todo sources trust bfs.admin.ch     --reason "amtlich, mehrfach geprüft"
+uv run wp-todo sources list
+```
+
+- **`block`** — never fetched again, and listed under `Ausgeschlossene Quellen`
+  with your reason. Something missing because of a decision says which decision.
+- **`note`** — still fetched and shown, with your note attached. The one that
+  earns its keep: a source can be excellent for opening hours and useless for
+  population figures.
+- **`trust`** — sorted higher. It does **not** bypass the citation check or the
+  Wikipedia-mirror detection; trusting a mirror is always an error.
+
+`--reason` is required. A blocklist encodes its author's judgement, and
+"unreliable" and "I disagree with it" are easy to conflate — writing down which
+one it was keeps the excluded set auditable later, by you and by anyone you show
+the work to. Entries live in `config/sources.toml`, which the CLI **appends** to
+and never rewrites, so your own comments and ordering survive. Domains match on
+label boundaries: `beispiel.ch` covers `www.beispiel.ch` and not
+`nichtbeispiel.ch`, and the most specific entry wins rather than the first.
+
+After enough articles the `trust` set becomes an allowlist you actually earned,
+rather than one you guessed at up front.
+
 ### Not deterministic — reproducible
 
 `out/` keeps its byte-identical guarantee unchanged. Dossiers get the weaker but

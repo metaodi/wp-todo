@@ -187,6 +187,28 @@ class ResearchConfig(Frozen):
     compare_wikidata: bool = True
     compare_languages: tuple[str, ...] = ("en", "fr", "it")
 
+    #: Where recorded source verdicts live. Kept out of scope.toml because the
+    #: CLI appends to it, and a file a program writes should not also be the
+    #: file holding every hand-tuned scoring weight.
+    sources: Path = Path("config/sources.toml")
+    #: Fast path for circularity only. The verbatim-span check below is what
+    #: actually decides, because new Wikipedia mirrors appear faster than any
+    #: hand-kept list is updated.
+    mirror_domains: tuple[str, ...] = (
+        "wikiwand.com",
+        "dbpedia.org",
+        "alchetron.com",
+        "everipedia.org",
+        "wikizero.com",
+        "wiki2.org",
+        "cleverpedia.net",
+        "deacademic.com",
+        "wikibrief.org",
+    )
+    #: Characters of verbatim overlap with the article above which a document is
+    #: treated as a copy of it rather than as a source for it.
+    circularity_span: int = Field(default=200, ge=40)
+
 
 class MetaConfig(Frozen):
     """Identity sent to Wikimedia on every request.

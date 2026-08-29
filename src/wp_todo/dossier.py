@@ -81,6 +81,8 @@ def render_markdown(dossier: Dossier) -> str:
     lines += _interwiki_section(dossier)
     lines += _claims_section(dossier)
     lines += _references_section(dossier)
+    lines += _standing_section(dossier)
+    lines += _excluded_section(dossier)
 
     return "\n".join(lines).rstrip() + "\n"
 
@@ -180,6 +182,63 @@ def _references_section(dossier: Dossier) -> list[str]:
         parts.append(f"ältester: {refs.oldest_year}")
     parts.append(f"{len(refs.external_urls)} externe(r) Link(s)")
     lines += [" · ".join(parts), ""]
+    return lines
+
+
+def _standing_section(dossier: Dossier) -> list[str]:
+    """What the article's existing sourcing rests on.
+
+    Free to compute, and it answers a question the reference count alone
+    cannot: an article sourced entirely to unrated hosts is a different problem
+    from one sourced to the federal statistics office.
+    """
+    lines = ["## Einstufung der zitierten Quellen", ""]
+    shown = [s for s in dossier.reference_standing if s.verdict != "block"]
+    if not dossier.reference_standing:
+        lines += ["_Der Artikel zitiert keine externen Quellen._", ""]
+        return lines
+    if not shown:
+        lines += ["_Alle zitierten Quellen sind ausgeschlossen - siehe unten._", ""]
+        return lines
+
+    lines += [
+        "Nur eine Einstufung, kein Urteil: „nicht eingestuft“ heisst, dass diese",
+        "Domain auf keiner Liste steht - nicht, dass mit ihr etwas nicht stimmt.",
+        "",
+        "| Domain | Einstufung | Belege |",
+        "| --- | --- | ---: |",
+    ]
+    for item in shown:
+        note = f" — {_escape(item.reason)}" if item.verdict == "note" and item.reason else ""
+        lines.append(f"| `{_escape(item.host)}` | {_escape(item.label)}{note} | {item.references} |")
+    lines.append("")
+    return lines
+
+
+def _excluded_section(dossier: Dossier) -> list[str]:
+    """Every drop, with the reason it was dropped.
+
+    A silently shortened source list is the same lie as a silently empty
+    section. If something is missing from this dossier because of a decision
+    somebody made, the decision is printed here.
+    """
+    blocked = [s for s in dossier.reference_standing if s.verdict == "block"]
+    if not blocked:
+        return []
+
+    lines = ["## Ausgeschlossene Quellen", ""]
+    lines += [
+        "Von dir früher ausgeschlossen. Die Begründung steht dabei, damit niemand",
+        "rekonstruieren muss, warum etwas fehlt - auch du nicht.",
+        "",
+    ]
+    for item in blocked:
+        decided = f" ({item.decided.isoformat()})" if item.decided else ""
+        lines.append(
+            f"- `{_escape(item.host)}` — {_escape(item.reason)}{decided}"
+            f" · {item.references} Beleg(e) im Artikel"
+        )
+    lines.append("")
     return lines
 
 

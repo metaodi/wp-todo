@@ -22,6 +22,7 @@ from .models import FetchResult, ScoreResult
 from .render import render_json, render_markdown
 from .research import foreign_clients, research_article
 from .score import score_corpus
+from .sources import SourceVerdictError, format_entry, load_ledger, make_verdict
 from .webclient import WebClient
 
 app = typer.Typer(add_completion=False, help="Build a prioritised de.wikipedia worklist. Read-only.")
@@ -70,6 +71,17 @@ def _web_client(scope: ScopeConfig, cache: ResponseCache, dry_run: bool, referen
         respect_robots=scope.research.respect_robots,
         reference_date=reference,
     )
+
+
+def _today() -> dt.date:
+    """The one legitimate clock read in this codebase.
+
+    Rule 3 forbids a clock because a computed artefact must not move on its own.
+    This is not that: it records *when a person decided something*, which is a
+    fact about the person, not about the data. It never reaches an age, an
+    ordering, or `out/`.
+    """
+    return dt.date.today()
 
 
 def _setup_logging(verbose: bool) -> None:
@@ -207,6 +219,12 @@ def research(
         )
         raise typer.Exit(2)
 
+    try:
+        ledger = load_ledger(scope.research.sources)
+    except SourceVerdictError as exc:
+        typer.secho(str(exc), fg="red", err=True)
+        raise typer.Exit(2) from exc
+
     cache = ResponseCache(cache_dir, refresh=refresh)
     with (
         _client(scope, cache, dry_run) as wiki,
@@ -216,7 +234,7 @@ def research(
         with ExitStack() as stack:
             for client in foreign.values():
                 stack.enter_context(client)
-            built = research_article(article, fetched, scope, wiki, web, foreign)
+            built = research_article(article, fetched, scope, wiki, web, foreign, ledger)
         requests = wiki.stats.requests + web.stats.requests + sum(c.stats.requests for c in foreign.values())
 
     if dry_run:
@@ -230,6 +248,79 @@ def research(
         f"wrote {out / f'{stem}.md'} — {len(built.claims.claims)} dated claim(s), "
         f"{len(built.deltas)} comparison(s), {requests} request(s)"
     )
+
+
+sources_app = typer.Typer(
+    add_completion=False,
+    help="Record what you concluded about a source, so the next dossier knows it.",
+)
+app.add_typer(sources_app, name="sources")
+
+DomainArg = Annotated[str, typer.Argument(help="Host, e.g. beispiel.ch (not a URL)")]
+ReasonOpt = Annotated[str, typer.Option("--reason", help="Why. Required, and it ends up in the dossier.")]
+
+
+def _record(config_path: Path, domain: str, verdict: str, reason: str) -> None:
+    """Append one verdict, then confirm what will happen because of it."""
+    scope = _load(config_path)
+    try:
+        entry = make_verdict(domain, verdict, reason, _today())
+    except SourceVerdictError as exc:
+        typer.secho(str(exc), fg="red", err=True)
+        raise typer.Exit(2) from exc
+
+    path = scope.research.sources
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # Appended, never rewritten: hand-written comments and ordering survive.
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(format_entry(entry))
+
+    consequence = {
+        "block": "wird nicht mehr abgerufen und im Dossier als ausgeschlossen gemeldet",
+        "note": "wird weiter abgerufen; die Notiz steht künftig dabei",
+        "trust": "wird beim Sortieren bevorzugt (Zitatprüfung und Spiegel-Erkennung bleiben)",
+    }[verdict]
+    typer.echo(f"{entry.domain}: {verdict} — {consequence}")
+    typer.echo(f"recorded in {path}")
+
+
+@sources_app.command("block")
+def sources_block(domain: DomainArg, reason: ReasonOpt, config: ConfigOpt = DEFAULT_CONFIG) -> None:
+    """Never fetch this domain again. The dossier still reports the exclusion."""
+    _record(config, domain, "block", reason)
+
+
+@sources_app.command("note")
+def sources_note(domain: DomainArg, reason: ReasonOpt, config: ConfigOpt = DEFAULT_CONFIG) -> None:
+    """Keep fetching it, but attach what you concluded last time."""
+    _record(config, domain, "note", reason)
+
+
+@sources_app.command("trust")
+def sources_trust(domain: DomainArg, reason: ReasonOpt, config: ConfigOpt = DEFAULT_CONFIG) -> None:
+    """Promote it when sorting. Does not bypass any verification gate."""
+    _record(config, domain, "trust", reason)
+
+
+@sources_app.command("list")
+def sources_list(
+    config: ConfigOpt = DEFAULT_CONFIG,
+    verdict: Annotated[str | None, typer.Option("--verdict", help="block, note or trust")] = None,
+) -> None:
+    """Show what has been recorded so far."""
+    scope = _load(config)
+    try:
+        ledger = load_ledger(scope.research.sources)
+    except SourceVerdictError as exc:
+        typer.secho(str(exc), fg="red", err=True)
+        raise typer.Exit(2) from exc
+
+    entries = ledger.of_kind(verdict) if verdict else ledger.verdicts
+    if not entries:
+        typer.echo(f"nothing recorded in {scope.research.sources} yet")
+        return
+    for item in sorted(entries, key=lambda v: (v.verdict, v.domain)):
+        typer.echo(f"{item.verdict:6} {item.domain:40} {item.decided}  {item.reason}")
 
 
 def _suggest_titles(fetched: FetchResult, title: str) -> None:
