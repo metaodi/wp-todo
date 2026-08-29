@@ -185,3 +185,20 @@ access = "all-access"
 # Excludes spiders and other automated traffic: about 19% of raw views on a
 # sample article, and skewed towards exactly the pages bots crawl hardest.
 agent = "user"
+
+# Der Recherche-Schritt: `wp-todo research "<Titel>"`. Opt-in pro Artikel und
+# absichtlich nicht Teil des wöchentlichen Laufs - er liest Hosts ausserhalb
+# von Wikimedia, die niemand darum gebeten hat.
+[research]
+# Anfragen an Hosts ausserhalb von Wikimedia, pro Lauf. Harte Grenze.
+max_fetches = 60
+# Sekunden zwischen zwei Anfragen *an denselben Host*. Hosts werden getrennt
+# getaktet: die Höflichkeitspause bei einem ist kein Freibrief beim nächsten.
+delay_s = 2.0
+timeout_s = 20.0
+max_doc_bytes = 2_000_000
+# robots.txt zu beachten ist die Voreinstellung; das Abschalten muss jemand
+# hier hinschreiben.
+respect_robots = true
+compare_wikidata = true
+compare_languages = ["en", "fr", "it"]

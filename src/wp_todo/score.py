@@ -13,7 +13,16 @@ import math
 import re
 
 from .config import MarkerRule, ScopeConfig, ScoringConfig
-from .models import Article, FetchResult, Reason, Revision, ScoredArticle, ScoreResult, Subscores
+from .models import (
+    Article,
+    FetchResult,
+    MarkerHit,
+    Reason,
+    Revision,
+    ScoredArticle,
+    ScoreResult,
+    Subscores,
+)
 
 EDIT_URL = "https://de.wikipedia.org/w/index.php?title={title}&action=edit"
 
@@ -274,11 +283,19 @@ def _score_markers(
     return min(total, scoring.marker_cap)
 
 
-def _first_marker_hit(wikitext: str, rule: MarkerRule, reference: dt.date) -> tuple[int, str] | None:
-    """Report the oldest year found for the rule, with its line as evidence."""
+def all_marker_hits(wikitext: str, rule: MarkerRule, reference: dt.date) -> list[MarkerHit]:
+    """Every line where the rule fires on a year old enough to count.
+
+    Scoring only ever wants the oldest hit, but the research stage wants all of
+    them: each one is a dated claim somebody may need to go and check. Keeping
+    one walk means the two stages can never disagree about what the article
+    says.
+
+    Ordered oldest year first, then by line, so the list is stable.
+    """
     pattern = rule.compiled()
-    best: tuple[int, str] | None = None
-    for line in wikitext.splitlines():
+    hits: list[MarkerHit] = []
+    for line_no, line in enumerate(wikitext.splitlines(), start=1):
         match = pattern.search(line)
         if match is None:
             continue
@@ -287,9 +304,18 @@ def _first_marker_hit(wikitext: str, rule: MarkerRule, reference: dt.date) -> tu
             continue
         if reference.year - year <= rule.max_age_years:
             continue
-        if best is None or year < best[0]:
-            best = (year, " ".join(line.split())[:200])
-    return best
+        hits.append(MarkerHit(code=rule.code, year=year, line_no=line_no, line=_condense(line)))
+    return sorted(hits, key=lambda hit: (hit.year, hit.line_no))
+
+
+def _first_marker_hit(wikitext: str, rule: MarkerRule, reference: dt.date) -> tuple[int, str] | None:
+    """Report the oldest year found for the rule, with its line as evidence."""
+    hits = all_marker_hits(wikitext, rule, reference)
+    return (hits[0].year, hits[0].line) if hits else None
+
+
+def _condense(line: str) -> str:
+    return " ".join(line.split())[:200]
 
 
 def _year_for_match(match: re.Match[str], line: str, window: int) -> int | None:

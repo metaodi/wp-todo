@@ -166,6 +166,28 @@ class FetchConfig(Frozen):
     detail_top_n: int = Field(default=1000, ge=0)
 
 
+class ResearchConfig(Frozen):
+    """The per-article research stage: budgets and what it may read.
+
+    Every ceiling here is a hard stop that raises, in the spirit of
+    `http.max_requests`. The stage is opt-in per article and is deliberately
+    not wired into the weekly refresh: it costs requests to hosts that never
+    asked to be crawled, so it runs when somebody asks for it.
+    """
+
+    #: Requests to hosts outside Wikimedia, per run.
+    max_fetches: int = Field(default=60, ge=0)
+    #: Seconds between requests *to the same host*.
+    delay_s: float = Field(default=2.0, ge=0.0)
+    timeout_s: float = Field(default=20.0, gt=0.0)
+    max_doc_bytes: int = Field(default=2_000_000, ge=1_000)
+    #: Honouring robots.txt is the default and turning it off is a decision
+    #: somebody has to write down in the config file.
+    respect_robots: bool = True
+    compare_wikidata: bool = True
+    compare_languages: tuple[str, ...] = ("en", "fr", "it")
+
+
 class MetaConfig(Frozen):
     """Identity sent to Wikimedia on every request.
 
@@ -197,6 +219,7 @@ class ScopeConfig(Frozen):
     pages: tuple[str, ...] = ()
     exclude: ExcludeConfig = ExcludeConfig()
     scoring: ScoringConfig = ScoringConfig()
+    research: ResearchConfig = ResearchConfig()
 
     @model_validator(mode="after")
     def _needs_some_scope(self) -> Self:

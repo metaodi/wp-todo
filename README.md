@@ -22,6 +22,16 @@ uv run wp-todo render           # re-reads it, rewrites out/
 uv run wp-todo fetch --refresh  # bypass the on-disk response cache
 ```
 
+Once the worklist has told you *which* article to look at, `research` tells you
+*what* on it is worth checking:
+
+```sh
+uv run wp-todo research "Küsnachter Dorfbach"   # writes research/<id>-<slug>.md
+```
+
+**It still never edits.** The dossier is a briefing to read, not a draft and not
+a source — see `docs/research-policy.md`.
+
 ## The scoring model
 
 ```
@@ -108,6 +118,72 @@ pageview data is neutral (multiplier 1.0), never a penalty.
 
 `agent = "user"` excludes spiders — about 19 % of raw views on a sample article,
 and skewed towards exactly the pages bots crawl hardest.
+
+## The research stage
+
+`wp-todo research "<Titel>"` builds a per-article dossier under `research/`.
+It answers a different question from the worklist — not "which article", but
+"what on this one has probably gone stale, and where would I check".
+
+It reads the article out of the corpus `fetch` already wrote, and produces four
+sections:
+
+- **Abweichungen gegenüber Wikidata** — infobox values compared against the
+  item's statements, with the point-in-time qualifier on each side. A dewiki
+  `EINWOHNER` of 8 500 (Stand 2018) against a Wikidata `P1082` of 9 240 (Stand
+  2025) is a finding with a source and no inference anywhere in it. Agreement is
+  reported too, in its own section: knowing a figure has already been checked is
+  worth an editor's time.
+- **Möglicherweise fehlend** — section headings en/fr/itwiki have and this
+  article does not, boilerplate (`Einzelnachweise`, `Weblinks`, …) filtered out.
+  A weak signal, and labelled as one: the same content often lives here under a
+  different name.
+- **Angaben zum Prüfen** — every infobox value and in-text marker that can go
+  stale, with its line number, section and as-of year. This is the list to work
+  through, not a list of errors.
+- **Belege dieses Artikels** — how many references, and how old. "The newest
+  source on this page is from 2011" is often the most informative line in the
+  file.
+
+Three things it deliberately does not do: draft article prose, post anywhere, or
+decide who is right. Wikidata is frequently the side that is out of date, and
+the dossier gives you both values and both links rather than a verdict.
+
+### What it costs, and what it will not do to a website
+
+Two action-API requests per article (`pageprops`, `langlinks`), one Wikidata
+REST GET, and one content fetch per compared language. Everything is cached, so
+a rerun without `--refresh` makes no requests at all and produces a
+byte-identical file.
+
+Hosts outside Wikimedia go through a separate client (`webclient.py`), which is
+stricter than the Wikimedia one rather than looser, because those hosts never
+asked to be read by anybody's tool:
+
+- **GET only.** No other verb is implemented, so none can be called.
+- **`robots.txt` honoured**, fetched once per host through the same cache and
+  the same pacing rather than by `urllib` behind our back.
+- **Hosts paced independently.** One site's politeness delay is not an
+  allowance to hammer the next.
+- **Its own User-Agent.** Claiming the Wikimedia one at a cantonal statistics
+  office would be a lie about who is calling.
+- **Size-capped and content-type filtered**; a skip is cached, so a rerun does
+  not re-ask a host for the same 404.
+
+The stage is opt-in per article and is **not** wired into `refresh.yml`. The
+weekly job stays Wikimedia-only.
+
+### Not deterministic — reproducible
+
+`out/` keeps its byte-identical guarantee unchanged. Dossiers get the weaker but
+honest one: they are a pure function of the cache, so a replay reproduces them
+exactly, and `--refresh` is where new information comes from. They are
+gitignored by default; a directory of unchecked "current" figures is not
+something to publish.
+
+An empty section always says which kind of empty it is — `_Nicht abgefragt._`
+is not the same answer as `_Keine Abweichungen gefunden._`, and a file that
+rendered them the same way would be lying by omission.
 
 ## Rate limiting and request volume
 

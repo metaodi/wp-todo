@@ -14,7 +14,7 @@ run 3 (probes P1–P7) and run 4 (P8) unless stated.
 | `LIVE` | Observed in a recorded response |
 | `OPEN` | Still unverified — do not build on it |
 
-Tally: **41 `LIVE`**, 2 `OPEN`.
+Tally: **45 `LIVE`**, 2 `OPEN`.
 
 ---
 
@@ -259,6 +259,50 @@ an unfilled contact placeholder.
 
 ---
 
+## 7. The research stage's endpoints (P10)
+
+`src/wp_todo/enrich.py` was written against documentation without egress. P10
+settled all three of its endpoints from a runner on 2026-08-29.
+
+| Question | Answer | Mark |
+| --- | --- | --- |
+| `prop=pageprops&ppprop=wikibase_item` returns the item id | yes, at `pages[].pageprops.wikibase_item` (Thalwil → `Q68959`, Adliswil → `Q68210`) | `LIVE` |
+| Wikibase REST path | `/w/rest.php/wikibase/v1` works; **`v0` is 404** | `LIVE` |
+| REST statements payload shape | as assumed: `rank`, `value.type == "value"`, `value.content` (`{amount, unit}` for a quantity), `qualifiers[].property.id` — `P585` present on the population statement | `LIVE` |
+| `?property=P1082` filters the statements response | yes | `LIVE` |
+| `lllang` accepts a pipe-separated list | **no — and it fails silently** | `LIVE` |
+
+### The one that was wrong: `lllang` is not multi-valued
+
+`paraminfo` reports `multi: false` for `query+langlinks`'s `lang` parameter, and
+the live behaviour matches:
+
+| request | langlinks returned |
+| --- | --- |
+| `lllang=en\|fr\|it` | **0** |
+| `lllang=en` | 1 |
+| no `lllang` | 42 |
+
+The pipe form is accepted with **no error and no warning** — it simply matches
+nothing. In `wp-todo` that would have surfaced as *"Keine anderssprachige
+Fassung verlinkt"* on every single article: an answer rather than a failure, and
+so invisible. This is the case for probing an endpoint even when the code
+"obviously" works.
+
+Fixed by dropping `lllang` entirely and filtering client-side. It costs nothing:
+`lllimit=max` is one request either way, and 42 links for a municipality is a
+trivial payload. `tests/test_enrich.py::TestLanglinks::test_lllang_is_never_sent`
+asserts on the outgoing URL, not on the parsed result, because the parsed result
+of the broken form is indistinguishable from a correct empty one.
+
+### Still assumed rather than measured
+
+The `en`/`fr`/`it` article *content* fetch (`prop=revisions&rvprop=content`
+against `{lang}.wikipedia.org/w/api.php`) is the same module already verified
+against dewiki in §4; only the host differs. Not separately probed.
+
+---
+
 ## Remaining `OPEN` items
 
 1. AQS 2.0 base path. Not needed while `rest_v1` works; both hosts tried
@@ -267,8 +311,8 @@ an unfilled contact placeholder.
    rather than the HTTP 200 seen with a forced threshold. Cannot be triggered on
    demand; the client handles both.
 
-Neither blocks anything. Everything else the notes previously listed as open has
-been measured.
+Neither blocks anything. The three research-stage items previously listed here
+were closed by probe P10 on 2026-08-29 — see §7.
 
 ### Answered since the first pass
 

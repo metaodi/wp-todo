@@ -1,0 +1,189 @@
+"""Claim extraction: wikitext in, dated assertions out.
+
+Every case here is something dewiki actually does, not something a parser might
+theoretically meet.
+"""
+
+from __future__ import annotations
+
+import datetime as dt
+from pathlib import Path
+
+import pytest
+
+from wp_todo.claims import extract_claims
+from wp_todo.config import ScopeConfig, load_scope
+from wp_todo.models import Article
+
+REFERENCE = dt.date(2026, 8, 1)
+
+
+@pytest.fixture
+def config() -> ScopeConfig:
+    return load_scope(Path("config/scope.toml"))
+
+
+def article(wikitext: str) -> Article:
+    return Article(pageid=42, title="Testort", scope_label="Test", wikitext=wikitext)
+
+
+def claims_for(wikitext: str, config: ScopeConfig) -> dict[str, object]:
+    result = extract_claims(article(wikitext), config, REFERENCE)
+    return {claim.field or claim.kind: claim for claim in result.claims}
+
+
+# ------------------------------------------------------------------- infobox
+def test_wikilink_pipe_does_not_split_a_parameter(config: ScopeConfig) -> None:
+    """`[[FDP.Die Liberalen|FDP]]` is one value, not two parameters."""
+    found = claims_for(
+        "{{Infobox Ort in der Schweiz\n| STADTPRÄSIDENT = Markus Bürgi ([[FDP.Die Liberalen|FDP]])\n}}\n",
+        config,
+    )
+    claim = found["STADTPRÄSIDENT"]
+    assert claim.asserted_value == "Markus Bürgi ([[FDP.Die Liberalen|FDP]])"  # type: ignore[attr-defined]
+
+
+def test_nested_template_in_a_value_does_not_end_the_infobox(config: ScopeConfig) -> None:
+    result = extract_claims(
+        article(
+            "{{Infobox Ort in der Schweiz\n| FLÄCHE = {{FormatNum|7.79}}\n| WEBSITE = www.example.ch\n}}\n"
+        ),
+        config,
+        REFERENCE,
+    )
+    fields = {claim.field for claim in result.claims}
+    assert fields == {"FLÄCHE", "WEBSITE"}
+
+
+def test_transcluded_population_is_not_a_claim(config: ScopeConfig) -> None:
+    """Swiss municipality population comes from a centralised template. Sending
+    an editor after a number that is already maintained elsewhere is worse than
+    saying nothing."""
+    result = extract_claims(
+        article(
+            "{{Infobox Ort in der Schweiz\n"
+            "| EINWOHNER = <!-- wird durch eine zentralisierte Vorlage eingebunden-->\n"
+            "| STAND_EINWOHNER = <!-- wird durch eine zentralisierte Vorlage eingebunden-->\n"
+            "}}\n"
+        ),
+        config,
+        REFERENCE,
+    )
+    assert [claim.field for claim in result.claims] == []
+
+
+def test_stand_parameter_supplies_the_as_of_year(config: ScopeConfig) -> None:
+    found = claims_for(
+        "{{Infobox Ort in der Schweiz\n| EINWOHNER = 8500\n| STAND_EINWOHNER = 31. Dezember 2018\n}}\n",
+        config,
+    )
+    assert found["EINWOHNER"].as_of_year == 2018  # type: ignore[attr-defined]
+
+
+def test_year_inside_the_value_is_used_when_there_is_no_stand_field(config: ScopeConfig) -> None:
+    found = claims_for(
+        "{{Infobox Unternehmen\n| UMSATZ = 4,2 Mio. CHF (2019)\n}}\n",
+        config,
+    )
+    assert found["UMSATZ"].as_of_year == 2019  # type: ignore[attr-defined]
+
+
+def test_article_without_an_infobox_is_not_an_error(config: ScopeConfig) -> None:
+    result = extract_claims(article("'''Nur Prosa''' und sonst nichts.\n"), config, REFERENCE)
+    assert result.infobox is None
+    assert result.claims == ()
+
+
+def test_unclosed_infobox_is_survived(config: ScopeConfig) -> None:
+    result = extract_claims(article("{{Infobox Ort in der Schweiz\n| FLÄCHE = 7.79\n"), config, REFERENCE)
+    assert result.claims == ()
+
+
+# ------------------------------------------------------------------- markers
+def test_marker_claim_carries_its_section(config: ScopeConfig) -> None:
+    result = extract_claims(
+        article("== Bevölkerung ==\nDie Quote lag bei 12 % (Stand: 2015).\n"),
+        config,
+        REFERENCE,
+    )
+    marker = next(claim for claim in result.claims if claim.kind == "marker:stand_year")
+    assert marker.section == "Bevölkerung"
+    assert marker.as_of_year == 2015
+
+
+def test_every_marker_hit_becomes_a_claim_not_just_the_oldest(config: ScopeConfig) -> None:
+    """Scoring only needs the oldest hit. Research needs all of them - each one
+    is a separate thing somebody has to go and check."""
+    result = extract_claims(
+        article(
+            "== Wirtschaft ==\nUmsatz 4 Mio. (Stand: 2015).\n== Verkehr ==\nFahrgäste 900 (Stand: 2017).\n"
+        ),
+        config,
+        REFERENCE,
+    )
+    years = sorted(
+        claim.as_of_year
+        for claim in result.claims
+        if claim.kind == "marker:stand_year" and claim.as_of_year is not None
+    )
+    assert years == [2015, 2017]
+
+
+def test_a_recent_marker_is_not_a_claim(config: ScopeConfig) -> None:
+    """`max_age_years` is 3 for `stand_year`; last year's figure is current."""
+    result = extract_claims(article("Die Zahl lag bei 12 (Stand: 2025).\n"), config, REFERENCE)
+    assert result.claims == ()
+
+
+# ----------------------------------------------------------------------- ids
+def test_claim_ids_are_content_derived_not_positional(config: ScopeConfig) -> None:
+    """A dossier diff between weekly runs should not churn because somebody
+    added a paragraph higher up the page."""
+    body = "== Wirtschaft ==\nUmsatz 4 Mio. (Stand: 2015).\n"
+    before = extract_claims(article(body), config, REFERENCE)
+    after = extract_claims(article("Ein neuer Einleitungssatz.\n\n" + body), config, REFERENCE)
+
+    assert [claim.id for claim in before.claims] == [claim.id for claim in after.claims]
+    assert before.claims[0].line_no != after.claims[0].line_no
+
+
+def test_extraction_is_deterministic(config: ScopeConfig) -> None:
+    body = "{{Infobox Ort in der Schweiz\n| FLÄCHE = 7.79\n}}\n== X ==\nZahl 3 (Stand: 2015).\n"
+    first = extract_claims(article(body), config, REFERENCE)
+    second = extract_claims(article(body), config, REFERENCE)
+    assert first.model_dump_json() == second.model_dump_json()
+
+
+# ---------------------------------------------------------------- references
+def test_reference_years_span_the_article(config: ScopeConfig) -> None:
+    result = extract_claims(
+        article(
+            "Satz eins.<ref>{{Literatur |Titel=Alt |Datum=1998}}</ref>\n"
+            "Satz zwei.<ref>[https://example.ch/neu Bericht 2024]</ref>\n"
+            "Satz drei.<ref name='x' />\n"
+        ),
+        config,
+        REFERENCE,
+    )
+    assert result.references.total == 3
+    assert result.references.newest_year == 2024
+    assert result.references.oldest_year == 1998
+    assert result.references.external_urls == ("https://example.ch/neu",)
+
+
+def test_datum_parameter_beats_a_stray_year_in_the_title(config: ScopeConfig) -> None:
+    """`Titel=Bericht 1848` is about 1848; `Datum=2024` is when it was published."""
+    result = extract_claims(
+        article("Satz.<ref>{{Literatur |Titel=Bericht 1848 |Datum=2024}}</ref>\n"),
+        config,
+        REFERENCE,
+    )
+    assert result.references.newest_year == 2024
+
+
+def test_an_article_with_no_references_reports_nothing_rather_than_zero_years(
+    config: ScopeConfig,
+) -> None:
+    result = extract_claims(article("Ganz ohne Belege.\n"), config, REFERENCE)
+    assert result.references.total == 0
+    assert result.references.newest_year is None

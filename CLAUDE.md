@@ -12,6 +12,15 @@ those, it is out of scope — stop and say so.
 The HTTP client enforces this: it refuses any request whose `action` is not on
 an allowlist. Do not widen that allowlist.
 
+This covers the research stage too. `wp-todo research` produces a *briefing* —
+notes for a human to read before editing — and never an edit, never draft
+article prose, and never a post to a talk page or anywhere else. It reads hosts
+outside Wikimedia through `WebClient`, which is GET-only by construction: no
+other verb is implemented, so none can be called. When a research feature needs
+data from a Wikimedia service whose `action` is not on the allowlist, reach for
+that service's REST endpoint (as the Wikidata comparison does), or drop the
+feature. Do not widen the allowlist to make a feature fit.
+
 ## 2. API etiquette is not optional
 
 - Every request carries a descriptive `User-Agent` with real contact
@@ -30,6 +39,14 @@ an allowlist. Do not widen that allowlist.
   unless `--refresh` is passed. Batched title queries are cached per title, so
   changing the scope does not invalidate whole batches.
 
+Hosts outside Wikimedia never asked to be read by anybody's tool, so the
+research stage is stricter, not looser: `robots.txt` is consulted and honoured
+per host, hosts are paced independently, responses are size-capped and
+content-type filtered, the User-Agent identifies the research client separately
+rather than claiming the Wikimedia one, and a skip — a 404, a robots
+prohibition — is cached so a rerun does not ask again. The stage is opt-in per
+article and is deliberately not wired into `refresh.yml`.
+
 ## 3. Output must be deterministic
 
 `out/todo.md` and `out/todo.json` must be byte-identical across runs given the
@@ -46,6 +63,15 @@ same API responses. That means:
 
 The point is a meaningful `git diff` between weekly runs. A diff full of churn
 is a bug.
+
+This rule governs `out/`. Research dossiers under `research/` get the weaker but
+honest guarantee of **reproducibility by replay**: they are a pure function of
+the cache, so a rerun without `--refresh` produces byte-identical files, and
+`--refresh` is where new information — and a real diff — comes from. Everything
+above still applies to them: no clock is read, ages come from the corpus
+reference date, and ordering is stable. Dossiers are not committed by default;
+they are per-editor working notes, and a directory of unchecked "current"
+figures is not something to publish.
 
 ## Verifying API behaviour
 

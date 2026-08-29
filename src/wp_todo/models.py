@@ -81,6 +81,84 @@ class FetchResult(Strict):
     articles: tuple[Article, ...] = ()
 
 
+class MarkerHit(Strict):
+    """One place a staleness marker fired, with enough to go back to it."""
+
+    code: str
+    year: int
+    line_no: int
+    line: str
+
+
+class Claim(Strict):
+    """One dated assertion the article makes, and where it makes it.
+
+    A claim is not a finding. It is the *question* the research stage goes and
+    asks: "the article says this, as of that year - is it still true?"
+    """
+
+    #: Content-derived, so it survives an edit elsewhere in the article and a
+    #: dossier diff between two weekly runs stays readable.
+    id: str
+    kind: str
+    text: str
+    line_no: int
+    section: str | None = None
+    #: Infobox parameter name, when the claim came from one.
+    field: str | None = None
+    asserted_value: str | None = None
+    as_of_year: int | None = None
+
+
+class ReferenceSummary(Strict):
+    """How well-sourced this article is, and how old its sourcing is.
+
+    "The newest source on this page is from 2011" is often the single most
+    informative line in a dossier.
+    """
+
+    total: int = 0
+    with_year: int = 0
+    newest_year: int | None = None
+    oldest_year: int | None = None
+    external_urls: tuple[str, ...] = ()
+
+
+class ArticleClaims(Strict):
+    """Everything the deterministic pass could work out from the wikitext."""
+
+    pageid: int
+    title: str
+    infobox: str | None = None
+    sections: tuple[str, ...] = ()
+    claims: tuple[Claim, ...] = ()
+    references: ReferenceSummary = Field(default_factory=ReferenceSummary)
+
+
+class Delta(Strict):
+    """A comparison against an already-structured source.
+
+    Deliberately not a judgement. It records what the article says, what the
+    other source says, when each is as of, and where to check - and stops
+    there. Wikidata is often the one that is wrong, and only a human reading
+    both is in a position to know.
+    """
+
+    kind: str
+    label: str = ""
+    claim_id: str | None = None
+    field: str | None = None
+    article_value: str | None = None
+    external_value: str | None = None
+    article_as_of: int | None = None
+    external_as_of: int | None = None
+    source: str = ""
+    detail: str = ""
+    #: True when the two sources say the same thing. Agreement is worth
+    #: reporting too: it tells an editor a figure has already been checked.
+    agrees: bool = False
+
+
 class Reason(Strict):
     """Why an article surfaced. Every one carries its own contribution."""
 
@@ -112,6 +190,35 @@ class ScoredArticle(Strict):
     monthly_pageviews: int | None = None
     #: True when only discovery data was available, so the score is a lower bound.
     provisional: bool = False
+    edit_url: str = ""
+
+
+class Dossier(Strict):
+    """A briefing on one article, for a human to read before editing it.
+
+    Not an edit, not a draft, and not a source. Every entry is a pointer at
+    something to go and check - the checking, and all the writing, stays with
+    the editor.
+
+    Nothing here is derived from the wall clock: `reference_date` comes from the
+    corpus, so re-running the stage against the same cache reproduces the file
+    byte for byte and a weekly diff shows only what actually changed.
+    """
+
+    pageid: int
+    title: str
+    scope_label: str = ""
+    reference_date: dt.date
+    wikidata_item: str | None = None
+    claims: ArticleClaims
+    deltas: tuple[Delta, ...] = ()
+    #: Whether the interwiki comparison ran at all. "We looked and found
+    #: nothing" and "we did not look" are different answers, and a dossier that
+    #: renders them the same way is lying by omission.
+    interwiki_checked: bool = False
+    #: Languages that were actually compared, so an empty result can be told
+    #: apart from a language that has no article.
+    compared_languages: tuple[str, ...] = ()
     edit_url: str = ""
 
 
