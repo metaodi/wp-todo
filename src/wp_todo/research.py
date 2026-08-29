@@ -57,7 +57,7 @@ def research_article(
 
     compared: tuple[str, ...] = ()
     if foreign:
-        links = langlinks(wiki, [article.title]).get(article.title, {})
+        links = langlinks(wiki, [article.title], config.research.compare_languages).get(article.title, {})
         deltas.extend(interwiki_deltas(claims, links, foreign, config, reference))
         compared = tuple(lang for lang in config.research.compare_languages if lang in links)
         log.info("%s: compared against %s", article.title, ", ".join(compared) or "no other edition")

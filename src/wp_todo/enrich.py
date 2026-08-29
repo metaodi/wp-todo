@@ -145,7 +145,7 @@ def interwiki_deltas(
     ours = {_normalise_heading(section) for section in claims.sections}
     deltas: list[Delta] = []
 
-    for lang in COMPARE_LANGUAGES:
+    for lang in config.research.compare_languages:
         title = links.get(lang)
         client = clients.get(lang)
         if not title or client is None:
@@ -190,11 +190,20 @@ def wikibase_items(client: WikiClient, titles: list[str]) -> dict[str, str]:
     return items
 
 
-def langlinks(client: WikiClient, titles: list[str]) -> dict[str, dict[str, str]]:
-    """dewiki title -> {language code: foreign title}."""
-    pages = client.query_by_titles(
-        titles, cache_scope="langlinks", prop="langlinks", lllimit="max", lllang="|".join(COMPARE_LANGUAGES)
-    )
+def langlinks(
+    client: WikiClient, titles: list[str], wanted: tuple[str, ...] = COMPARE_LANGUAGES
+) -> dict[str, dict[str, str]]:
+    """dewiki title -> {language code: foreign title}.
+
+    **`lllang` is not multi-valued** (verified live, P10 — see
+    `docs/api-notes.md`). `lllang=en|fr|it` is accepted without a warning and
+    returns *nothing*, which would have rendered as "no other-language version
+    linked" on every article: an answer, not an error, and so invisible.
+
+    So every language is fetched - one request either way, `lllimit=max`
+    returns all 42 for a municipality - and the filtering happens here.
+    """
+    pages = client.query_by_titles(titles, cache_scope="langlinks", prop="langlinks", lllimit="max")
     out: dict[str, dict[str, str]] = {}
     for title, page in pages.items():
         links = page.get("langlinks")
@@ -203,7 +212,7 @@ def langlinks(client: WikiClient, titles: list[str]) -> dict[str, dict[str, str]
         out[title] = {
             str(link.get("lang")): str(link.get("title", ""))
             for link in links
-            if link.get("lang") in COMPARE_LANGUAGES and link.get("title")
+            if link.get("lang") in wanted and link.get("title")
         }
     return out
 

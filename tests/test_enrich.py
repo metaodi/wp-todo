@@ -20,8 +20,9 @@ import pytest
 
 from wp_todo.cache import ResponseCache
 from wp_todo.claims import extract_claims
+from wp_todo.client import WikiClient
 from wp_todo.config import MetaConfig, ScopeConfig, load_scope
-from wp_todo.enrich import _same, wikidata_deltas
+from wp_todo.enrich import _same, langlinks, wikidata_deltas
 from wp_todo.models import Article
 from wp_todo.webclient import WebClient
 
@@ -209,3 +210,73 @@ class TestValueComparison:
     )
     def test_different_values_disagree(self, article_value: str | None, external_value: str) -> None:
         assert _same(article_value, external_value) is False
+
+
+class TestLanglinks:
+    """`lllang` is not multi-valued - verified live by probe P10.
+
+    `lllang=en|fr|it` is accepted without a warning and returns nothing, so the
+    bug renders as "no other-language version linked" on every article: an
+    answer rather than an error, and therefore invisible. These tests pin the
+    request shape, not just the parsing.
+    """
+
+    @staticmethod
+    def wiki(tmp_path: Path, meta: MetaConfig, payload: dict[str, Any], seen: list[httpx.URL]) -> WikiClient:
+        def handler(request: httpx.Request) -> httpx.Response:
+            seen.append(request.url)
+            return httpx.Response(200, json=payload)
+
+        return WikiClient(
+            meta=meta,
+            cache=ResponseCache(tmp_path / "http"),
+            delay_s=0.0,
+            transport=httpx.MockTransport(handler),
+        )
+
+    def test_lllang_is_never_sent(self, tmp_path: Path, meta: MetaConfig) -> None:
+        """The regression that matters: sending it at all loses every link."""
+        seen: list[httpx.URL] = []
+        payload = {
+            "batchcomplete": True,
+            "query": {"pages": [{"pageid": 1, "title": "Thalwil", "langlinks": []}]},
+        }
+        with self.wiki(tmp_path, meta, payload, seen) as client:
+            langlinks(client, ["Thalwil"])
+
+        assert seen, "a request should have been made"
+        assert all("lllang" not in str(url) for url in seen), f"lllang must not be sent: {seen}"
+        assert any("lllimit=max" in str(url) for url in seen)
+
+    def test_only_the_wanted_languages_survive(self, tmp_path: Path, meta: MetaConfig) -> None:
+        """Filtering moved client-side, so it has to actually filter."""
+        seen: list[httpx.URL] = []
+        payload = {
+            "batchcomplete": True,
+            "query": {
+                "pages": [
+                    {
+                        "pageid": 1,
+                        "title": "Thalwil",
+                        "langlinks": [
+                            {"lang": "en", "title": "Thalwil"},
+                            {"lang": "fr", "title": "Thalwil (FR)"},
+                            {"lang": "ceb", "title": "Thalwil (CEB)"},
+                            {"lang": "azb", "title": "Thalwil (AZB)"},
+                        ],
+                    }
+                ]
+            },
+        }
+        with self.wiki(tmp_path, meta, payload, seen) as client:
+            found = langlinks(client, ["Thalwil"], ("en", "fr", "it"))
+
+        assert found["Thalwil"] == {"en": "Thalwil", "fr": "Thalwil (FR)"}
+
+    def test_an_article_with_no_other_editions_yields_an_empty_map(
+        self, tmp_path: Path, meta: MetaConfig
+    ) -> None:
+        seen: list[httpx.URL] = []
+        payload = {"batchcomplete": True, "query": {"pages": [{"pageid": 1, "title": "Nur DE"}]}}
+        with self.wiki(tmp_path, meta, payload, seen) as client:
+            assert langlinks(client, ["Nur DE"]) == {}
