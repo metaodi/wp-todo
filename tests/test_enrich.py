@@ -84,7 +84,7 @@ def test_a_newer_wikidata_value_becomes_a_delta(
 ) -> None:
     payload = {"P1082": [statement({"amount": "+9240", "unit": "1"}, point_in_time="2025-12-31")]}
     with web_for(payload, tmp_path, meta) as web:
-        deltas, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q68166", web)
+        deltas, _, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q68166", web)
 
     assert len(deltas) == 1
     delta = deltas[0]
@@ -100,7 +100,7 @@ def test_agreement_is_reported_too(config: ScopeConfig, tmp_path: Path, meta: Me
     """That a figure has already been checked is worth an editor's time."""
     payload = {"P1082": [statement({"amount": "+8500", "unit": "1"}, point_in_time="2018-12-31")]}
     with web_for(payload, tmp_path, meta) as web:
-        deltas, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
+        deltas, _, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
 
     assert deltas[0].agrees is True
 
@@ -115,7 +115,7 @@ def test_the_newest_statement_wins(config: ScopeConfig, tmp_path: Path, meta: Me
         ]
     }
     with web_for(payload, tmp_path, meta) as web:
-        deltas, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
+        deltas, _, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
 
     assert deltas[0].external_value == "9240"
 
@@ -130,7 +130,7 @@ def test_preferred_rank_beats_a_newer_normal_one(
         ]
     }
     with web_for(payload, tmp_path, meta) as web:
-        deltas, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
+        deltas, _, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
 
     assert deltas[0].external_value == "9100"
 
@@ -143,7 +143,7 @@ def test_deprecated_statements_are_ignored(config: ScopeConfig, tmp_path: Path, 
         ]
     }
     with web_for(payload, tmp_path, meta) as web:
-        deltas, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
+        deltas, _, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
 
     assert deltas[0].external_value == "9240"
 
@@ -154,7 +154,7 @@ def test_somevalue_produces_no_delta(config: ScopeConfig, tmp_path: Path, meta: 
     with web_for(payload, tmp_path, meta) as web:
         # checked=True: the statements were retrieved, they just say nothing
         # comparable. That is a real "nothing to report", unlike a failed fetch.
-        assert wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web) == ((), True)
+        assert wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web) == ((), True, 1)
 
 
 def test_an_unrecognised_payload_shape_yields_nothing_rather_than_a_guess(
@@ -164,7 +164,7 @@ def test_an_unrecognised_payload_shape_yields_nothing_rather_than_a_guess(
     expect, the right outcome is an empty section, not an invented figure."""
     payload = {"P1082": [{"mainsnak": {"datavalue": {"value": {"amount": "+9240"}}}}]}
     with web_for(payload, tmp_path, meta) as web:
-        assert wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web) == ((), True)
+        assert wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web) == ((), True, 1)
 
 
 def test_no_item_id_means_no_requests(config: ScopeConfig, tmp_path: Path, meta: MetaConfig) -> None:
@@ -177,7 +177,7 @@ def test_no_item_id_means_no_requests(config: ScopeConfig, tmp_path: Path, meta:
         delay_s=0.0,
         transport=httpx.MockTransport(handler),
     )
-    assert wikidata_deltas(claims_for(POPULATION_ARTICLE, config), None, client) == ((), False)
+    assert wikidata_deltas(claims_for(POPULATION_ARTICLE, config), None, client) == ((), False, 0)
 
 
 def test_unmapped_fields_are_not_compared(config: ScopeConfig, tmp_path: Path, meta: MetaConfig) -> None:
@@ -185,7 +185,7 @@ def test_unmapped_fields_are_not_compared(config: ScopeConfig, tmp_path: Path, m
     field is silently skipped rather than matched against a plausible guess."""
     article = "{{Infobox Ort in der Schweiz\n| ARBEITSLOSE = 3,1 % (2019)\n}}\n"
     with web_for({"P1082": [statement({"amount": "+9240", "unit": "1"})]}, tmp_path, meta) as web:
-        assert wikidata_deltas(claims_for(article, config), "Q1", web) == ((), True)
+        assert wikidata_deltas(claims_for(article, config), "Q1", web) == ((), True, 0)
 
 
 class TestValueComparison:
@@ -318,7 +318,7 @@ class TestWikidataReachability:
             transport=httpx.MockTransport(handler),
             reference_date=REFERENCE,
         ) as web:
-            deltas, checked = wikidata_deltas(claims_for(POPULATION_ARTICLE, config_for()), "Q1", web)
+            deltas, checked, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config_for()), "Q1", web)
 
         assert checked is True, "the API call must not be blocked by robots.txt"
         assert deltas and deltas[0].external_value == "9240"
@@ -391,3 +391,38 @@ class TestHeadingEquivalence:
         """`Education` is a section dewiki's Adliswil really does lack."""
         german = {_heading_key(h) for h in ("Geographie", "Geschichte", "Verkehr", "Wirtschaft")}
         assert _heading_key("Education") not in german
+
+
+class TestNumericPrecision:
+    """A tolerance band swallows the findings this exists to surface.
+
+    A 0.5% band called Adliswil's `7.79` equal to Wikidata's `7.77` and filed
+    it under "probably current" - a real discrepancy, reported as reassurance.
+    """
+
+    @pytest.mark.parametrize(
+        ("article_value", "external_value"),
+        [
+            ("7.79", "7.79"),
+            ("7,79", "7.79"),
+            ("7.79 km²", "7.79"),
+            ("7.79", "7.7912"),  # article is less precise, not wrong
+            ("8'500", "8500"),
+            ("8\u2019500", "8500"),
+            ("8", "8.4"),  # rounds to 8 at the article's precision
+        ],
+    )
+    def test_equivalent_at_the_articles_precision(self, article_value: str, external_value: str) -> None:
+        assert _same(article_value, external_value) is True
+
+    @pytest.mark.parametrize(
+        ("article_value", "external_value"),
+        [
+            ("7.79", "7.77"),  # the one the old tolerance band let through
+            ("7.79", "7.80"),
+            ("8500", "8600"),
+            ("8.0", "8.4"),
+        ],
+    )
+    def test_a_real_difference_is_a_difference(self, article_value: str, external_value: str) -> None:
+        assert _same(article_value, external_value) is False

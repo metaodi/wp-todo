@@ -50,11 +50,12 @@ def research_article(
     item_id: str | None = None
     deltas: list[Delta] = []
     wikidata_checked = False
+    wikidata_comparable = 0
 
     if config.research.compare_wikidata:
         item_id = wikibase_items(wiki, [article.title]).get(article.title)
         if item_id:
-            found, wikidata_checked = wikidata_deltas(claims, item_id, web)
+            found, wikidata_checked, wikidata_comparable = wikidata_deltas(claims, item_id, web)
             deltas.extend(found)
             if not wikidata_checked:
                 log.warning("%s: could not read Wikidata statements for %s", article.title, item_id)
@@ -75,6 +76,7 @@ def research_article(
         reference_date=reference,
         wikidata_item=item_id,
         wikidata_checked=wikidata_checked,
+        wikidata_comparable=wikidata_comparable,
         claims=claims,
         deltas=tuple(deltas),
         interwiki_checked=bool(foreign),

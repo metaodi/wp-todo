@@ -218,12 +218,69 @@ class TestWikidataEmptyStates:
         self, corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
     ) -> None:
         dossier = build(corpus, scope, tmp_path).model_copy(
-            update={"wikidata_item": "Q42", "wikidata_checked": True}
+            update={"wikidata_item": "Q42", "wikidata_checked": True, "wikidata_comparable": 2}
         )
         markdown = render_markdown(dossier)
 
         assert "_Keine Abweichungen gefunden._" in markdown
         assert "Nicht abgeglichen" not in markdown
+        assert "Nichts zu vergleichen" not in markdown
+
+    def test_nothing_comparable_is_not_the_same_as_nothing_wrong(
+        self, corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+    ) -> None:
+        """Four of the first five live articles had no mapped infobox field, so
+        nothing was compared - and the dossier said "keine Abweichungen
+        gefunden", implying a comparison that never happened. Naming the
+        infobox also makes the gap in PROPERTY_FOR_FIELD visible."""
+        dossier = build(corpus, scope, tmp_path).model_copy(
+            update={"wikidata_item": "Q42", "wikidata_checked": True, "wikidata_comparable": 0}
+        )
+        markdown = render_markdown(dossier)
+
+        assert "Nichts zu vergleichen" in markdown
+        assert "Infobox Fluss" in markdown, "say which infobox is unmapped"
+        assert "_Keine Abweichungen gefunden._" not in markdown
+
+
+class TestAgreementIsNotCurrency:
+    """Adliswil's area agreed with a Wikidata figure from 2007, and the dossier
+    called it "vermutlich aktuell". Two sources can agree because both are
+    stale; saying otherwise turns a non-finding into false comfort."""
+
+    @staticmethod
+    def agreeing(external_as_of: int) -> Any:
+        from wp_todo.models import Delta
+
+        return Delta(
+            kind="wikidata",
+            label="Fläche",
+            field="FLÄCHE",
+            article_value="7.79",
+            external_value="7.79",
+            external_as_of=external_as_of,
+            source="https://www.wikidata.org/wiki/Q68210#P2046",
+            agrees=True,
+        )
+
+    def test_a_recent_agreement_is_reported_as_probably_current(
+        self, corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+    ) -> None:
+        dossier = build(corpus, scope, tmp_path).model_copy(
+            update={"wikidata_checked": True, "wikidata_comparable": 1, "deltas": (self.agreeing(2025),)}
+        )
+        assert "vermutlich aktuell" in render_markdown(dossier)
+
+    def test_agreement_with_an_old_figure_says_so_instead(
+        self, corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+    ) -> None:
+        dossier = build(corpus, scope, tmp_path).model_copy(
+            update={"wikidata_checked": True, "wikidata_comparable": 1, "deltas": (self.agreeing(2007),)}
+        )
+        markdown = render_markdown(dossier)
+
+        assert "vermutlich aktuell" not in markdown
+        assert "beide können gemeinsam veraltet sein" in markdown
 
 
 def test_not_looked_reads_differently_from_looked_and_found_nothing(

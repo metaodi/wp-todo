@@ -63,7 +63,7 @@ def render_markdown(dossier: Dossier) -> str:
 
     # "Not retrieved" must not read as "nothing to report". For five live runs
     # it did, while our own robots gate was refusing the request.
-    unchecked = _wikidata_unchecked(dossier)
+    unchecked = _wikidata_unchecked(dossier) or _nothing_comparable(dossier)
 
     lines += _delta_section(
         "Abweichungen gegenüber Wikidata",
@@ -75,11 +75,12 @@ def render_markdown(dossier: Dossier) -> str:
         ),
     )
 
+    agreeing = [d for d in dossier.deltas if d.kind == "wikidata" and d.agrees]
     lines += _delta_section(
         "Übereinstimmend mit Wikidata",
-        [d for d in dossier.deltas if d.kind == "wikidata" and d.agrees],
+        agreeing,
         empty=unchecked or "_Nichts abgeglichen._",
-        note="Diese Angaben stimmen mit Wikidata überein - vermutlich aktuell.",
+        note=_agreement_note(agreeing, dossier.reference_date.year),
     )
 
     lines += _interwiki_section(dossier)
@@ -108,6 +109,46 @@ def _wikidata_unchecked(dossier: Dossier) -> str:
         f"(https://www.wikidata.org/wiki/{dossier.wikidata_item}) konnten nicht "
         "geladen werden. Das ist **kein** Hinweis darauf, dass alles stimmt._"
     )
+
+
+def _nothing_comparable(dossier: Dossier) -> str:
+    """When the lookup worked but no field could be compared.
+
+    Distinct from "compared and agreed": for four of the first five live
+    articles the infobox had no mapped property at all, and "keine Abweichungen
+    gefunden" implied a comparison that never happened. Naming the infobox also
+    makes the gap in `PROPERTY_FOR_FIELD` visible, which is how it gets fixed.
+    """
+    if not dossier.wikidata_checked or dossier.wikidata_comparable:
+        return ""
+    infobox = dossier.claims.infobox
+    which = f"`{infobox}`" if infobox else "diese Infobox"
+    return (
+        f"_Nichts zu vergleichen: kein Feld aus {which} ist einer "
+        "Wikidata-Eigenschaft zugeordnet. Es wurde also **nicht** geprüft, ob "
+        "die Angaben übereinstimmen._"
+    )
+
+
+#: Years after which a Wikidata figure is too old to be evidence of currency.
+STALE_AGREEMENT_YEARS = 5
+
+
+def _agreement_note(agreeing: list[Delta], reference_year: int) -> str:
+    """Agreement is only reassuring when the other side is itself current.
+
+    Adliswil's area agreed with a Wikidata figure carrying `point in time 2007`.
+    Calling that "vermutlich aktuell" was unfounded: two sources can agree
+    because both are stale, and saying otherwise turns a non-finding into false
+    comfort.
+    """
+    oldest = [d.external_as_of for d in agreeing if d.external_as_of is not None]
+    if oldest and reference_year - min(oldest) > STALE_AGREEMENT_YEARS:
+        return (
+            "Beide Seiten sagen dasselbe. Das heisst **nicht**, dass es aktuell ist:\n"
+            "die Wikidata-Angabe ist selbst alt, beide können gemeinsam veraltet sein."
+        )
+    return "Diese Angaben stimmen mit Wikidata überein - vermutlich aktuell."
 
 
 def _delta_section(heading: str, deltas: list[Delta], *, empty: str, note: str) -> list[str]:

@@ -237,6 +237,10 @@ class Dossier(Strict):
     #: This is not hypothetical: for five live runs it said "keine Abweichungen
     #: gefunden" while our own robots gate was refusing the request.
     wikidata_checked: bool = False
+    #: How many infobox fields had a mapped Wikidata property to compare
+    #: against. Zero means nothing was compared, which is a different answer
+    #: from "compared and agreed" and must not render as one.
+    wikidata_comparable: int = 0
     claims: ArticleClaims
     deltas: tuple[Delta, ...] = ()
     #: Whether the interwiki comparison ran at all. "We looked and found
