@@ -21,10 +21,14 @@ progress_every = 250
 
 # Discovery is cheap: one request per tile returns categories and the latest
 # revision for up to 500 articles. Detail (history, wikitext, pageviews) costs
-# about two requests per article, which is the entire cost of a regional run,
-# so it is spent on the highest-ranking candidates only. 0 fetches everything.
+# about two requests per article, which is the entire cost of a regional run.
+#
+# The measured scope is around 790 articles, so this ceiling does not bite
+# today - it is the safety valve if the scope grows several times over, and it
+# degrades gracefully: articles past the cut are still reported, with a score
+# marked as a lower bound. 0 fetches everything.
 [fetch]
-detail_top_n = 400
+detail_top_n = 1000
 
 [meta]
 # Wikimedia's User-Agent policy requires real contact information: an email

@@ -98,6 +98,47 @@ pageview data is neutral (multiplier 1.0), never a penalty.
 `agent = "user"` excludes spiders — about 19 % of raw views on a sample article,
 and skewed towards exactly the pages bots crawl hardest.
 
+## Rate limiting and request volume
+
+Wikimedia sets no hard limit on read requests, but asks for a descriptive
+User-Agent, serial rather than parallel requests, and `maxlag` on unattended
+tasks. All of that is enforced in one place, `client.py`:
+
+- **Serialised.** One request at a time, with a floor of `http.delay_s` seconds
+  between the start of one and the next. That floor is the hard ceiling on the
+  request rate: `1.0` means at most one request per second.
+- **`maxlag=5`** on every action-API read. A rejection arrives as **HTTP 200**
+  with `error.code == "maxlag"` and no `Retry-After`, so the response body is
+  inspected on every request, not just the status code.
+- **Exponential backoff** on 429, 5xx and maxlag, honouring `Retry-After`.
+- **A per-run request budget** (`http.max_requests`). Hitting it stops the run
+  loudly, so a scope change cannot quietly become an unbounded crawl.
+- **A descriptive User-Agent** with contact information, refusing to run without
+  one.
+
+The pageviews endpoint is a different service on a different host, and it goes
+through the same path — it carries most of the volume, so it is the last place
+that should be allowed to hammer.
+
+### Measured cost
+
+A full run over the configured Zürichsee scope: **790 articles, roughly 1 600
+requests, about 27 minutes** at one request per second. Discovery is nearly
+free — one request per tile returns categories and the latest revision for up
+to 500 articles. Everything after that costs about two requests per article:
+one for revision history (`rvlimit` is single-page only, so it cannot be
+batched) and one for pageviews.
+
+Two things keep that from growing without bound:
+
+- `fetch.detail_top_n` ranks articles by a lower-bound score computed from
+  discovery data alone and fetches full detail only for the top N. Articles past
+  the cut still appear, marked `provisional`, with a score that can only be an
+  underestimate.
+- Responses are cached on disk, keyed per request — and batched title queries
+  are cached **per title**, so adding one article to `scope.toml` costs one
+  request rather than re-fetching every batch it lands in.
+
 ## Editing `config/scope.toml`
 
 - `[[geo]]` — one geosearch tile: `label`, `lat`, `lon`, `radius_m`. **10 km is
@@ -112,6 +153,9 @@ and skewed towards exactly the pages bots crawl hardest.
 - `[exclude]` — `titles`, `title_patterns`, `category_patterns` (regexes) for
   lists, disambiguation pages and Jahresartikel.
 - `[scoring]` — every weight and curve parameter.
+- `[http]` — politeness: `delay_s`, `maxlag`, `max_retries`, `timeout_s`,
+  `max_requests`.
+- `[fetch]` — `detail_top_n`, the per-article request budget.
 
 `meta.contact` must be a real email address or project URL: the Wikimedia
 User-Agent policy requires contact information, and the loader refuses a

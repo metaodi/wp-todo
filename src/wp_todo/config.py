@@ -163,7 +163,7 @@ class FetchConfig(Frozen):
     history, wikitext and pageviews fetched. Set to 0 to fetch everything.
     """
 
-    detail_top_n: int = Field(default=400, ge=0)
+    detail_top_n: int = Field(default=1000, ge=0)
 
 
 class MetaConfig(Frozen):
