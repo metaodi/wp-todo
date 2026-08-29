@@ -57,6 +57,15 @@ class ReadOnlyViolationError(RuntimeError):
     """Something tried to make a non-read request. This must never happen."""
 
 
+class OfflineCacheMissError(RuntimeError):
+    """An offline client needed a request it has no recorded response for.
+
+    The test suite runs the real pipeline this way: the recorded cache is the
+    fixture set, so a miss means a fixture is missing, never a silent network
+    call.
+    """
+
+
 @dataclass
 class ClientStats:
     requests: int = 0
@@ -76,6 +85,8 @@ class WikiClient:
     maxlag: int = 5
     timeout_s: float = 60.0
     dry_run: bool = False
+    #: Refuse to touch the network; a cache miss is an error. Used by the tests.
+    offline: bool = False
     _client: httpx.Client | None = field(default=None, init=False, repr=False)
     stats: ClientStats = field(default_factory=ClientStats)
     _last_request_at: float = field(default=0.0, init=False, repr=False)
@@ -113,6 +124,9 @@ class WikiClient:
         if cached is not None:
             self.stats.cache_hits += 1
             return cached
+
+        if self.offline:
+            raise OfflineCacheMissError(f"no recorded response for {url} {sorted(params.items())}")
 
         if self.dry_run:
             log.info("dry-run: would GET %s %s", url, sorted(params))
@@ -263,6 +277,8 @@ class WikiClient:
             self.stats.cache_hits += 1
             return _items(cached)
 
+        if self.offline:
+            raise OfflineCacheMissError(f"no recorded pageviews for {title}")
         if self.dry_run:
             return []
         if self._client is None:

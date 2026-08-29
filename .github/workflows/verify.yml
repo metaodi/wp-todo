@@ -10,8 +10,14 @@ name: Verify assumptions
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: 'What to run against the live API'
+        type: choice
+        options: [probe, fixtures]
+        required: false
+        default: probe
       probes:
-        description: 'Probes to run: "all", or a comma-separated subset e.g. P1,P4'
+        description: 'probe mode: "all", or a comma-separated subset e.g. P1,P4'
         required: false
         default: all
       contact:
@@ -59,7 +65,18 @@ jobs:
             echo "only=$args" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Install uv
+        if: ${{ inputs.mode == 'fixtures' }}
+        uses: astral-sh/setup-uv@v5
+
+      - name: Record test fixtures
+        if: ${{ inputs.mode == 'fixtures' }}
+        env:
+          WP_TODO_CONTACT: ${{ inputs.contact != '' && inputs.contact || format('https://github.com/{0}', github.repository) }}
+        run: uv run python scripts/record_fixtures.py
+
       - name: Run the Phase 0 probe
+        if: ${{ inputs.mode != 'fixtures' }}
         env:
           # Wikimedia's User-Agent policy accepts a project URL as contact
           # information; no personal address needs to leave the runner.
@@ -70,7 +87,7 @@ jobs:
           python3 scripts/phase0_probe.py ${{ steps.args.outputs.only }}
 
       - name: Publish the answer sheet to the job summary
-        if: always()
+        if: ${{ always() && inputs.mode != 'fixtures' }}
         run: |
           if [ -f docs/phase0-probe-summary.md ]; then
             cat docs/phase0-probe-summary.md >> "$GITHUB_STEP_SUMMARY"
@@ -82,7 +99,7 @@ jobs:
           fi
 
       - name: Upload raw evidence
-        if: always()
+        if: ${{ always() && inputs.mode != 'fixtures' }}
         uses: actions/upload-artifact@v4
         with:
           name: phase0-probe-raw
@@ -98,6 +115,17 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ "${{ inputs.mode }}" = "fixtures" ]; then
+            git add -f tests/fixtures
+            if git diff --cached --quiet; then
+              echo "fixtures unchanged"
+              exit 0
+            fi
+            git commit -m "test: re-record API fixtures from the live API"
+            git push origin HEAD:"${{ github.ref_name }}"
+            exit 0
+          fi
 
           git add -f docs/phase0-probe-summary.md
 

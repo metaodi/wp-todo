@@ -79,7 +79,7 @@ def get(url: str, *, note: str = "") -> dict[str, Any]:
     except urllib.error.HTTPError as exc:
         raw = exc.read().decode("utf-8", "replace")
         status, headers = exc.code, dict(exc.headers)
-    except Exception as exc:  # noqa: BLE001 - a probe reports failures, never raises
+    except Exception as exc:  # a probe reports failures, it never raises
         return {"url": url, "note": note, "error": f"{type(exc).__name__}: {exc}"}
     elapsed = round(time.monotonic() - started, 3)
     time.sleep(DELAY_S)
@@ -107,19 +107,18 @@ def dig(obj: Any, *path: Any, default: Any = None) -> Any:
     """Walk dicts/lists defensively; probe output is untrusted shape."""
     cur = obj
     for key in path:
-        if isinstance(cur, dict) and key in cur:
-            cur = cur[key]
-        elif isinstance(cur, list) and isinstance(key, int) and -len(cur) <= key < len(cur):
-            cur = cur[key]
-        else:
+        in_dict = isinstance(cur, dict) and key in cur
+        in_list = isinstance(cur, list) and isinstance(key, int) and -len(cur) <= key < len(cur)
+        if not (in_dict or in_list):
             return default
+        cur = cur[key]
     return cur
 
 
 def api_error(resp: dict[str, Any]) -> str:
     """One-line rendering of whatever went wrong, or ''."""
-    if "error" in resp and isinstance(resp["error"], str):
-        return resp["error"]
+    if isinstance(resp.get("error"), str):
+        return str(resp["error"])
     code = dig(resp, "body", "error", "code")
     if code:
         return f"{code}: {dig(resp, 'body', 'error', 'info', default='')}"
@@ -148,7 +147,9 @@ def p1_geosearch() -> Any:
     base = dict(action="query", generator="geosearch", ggscoord="47.2906|8.5661")
 
     out["radius_10000"] = get(q(**base, ggsradius=10000, ggslimit=10), note="documented max radius")
-    out["radius_10001"] = get(q(**base, ggsradius=10001, ggslimit=10), note="expect an error naming the real max")
+    out["radius_10001"] = get(
+        q(**base, ggsradius=10001, ggslimit=10), note="expect an error naming the real max"
+    )
     out["limit_500"] = get(q(**base, ggsradius=10000, ggslimit=500), note="documented non-bot max")
     out["limit_501"] = get(q(**base, ggsradius=10000, ggslimit=501), note="expect a warning or a clamp")
     out["limit_max"] = get(q(**base, ggsradius=10000, ggslimit="max"), note="what does 'max' resolve to")
@@ -164,7 +165,9 @@ def p1_geosearch() -> Any:
         rvprop="timestamp|user|flags|comment|size",
     )
     combined = q(**combined_params)
-    out["combined_first_page"] = get(combined, note="generator + prop=categories + prop=revisions in one request")
+    out["combined_first_page"] = get(
+        combined, note="generator + prop=categories + prop=revisions in one request"
+    )
 
     body = out["combined_first_page"].get("body")
     if isinstance(body, dict) and isinstance(body.get("continue"), dict):
@@ -235,10 +238,18 @@ def p2_hidden_categories() -> Any:
     # Does {{Veraltet|seit=}} surface as a category, or only in the wikitext?
     if not veraltet_candidates:
         members = get(
-            q(action="query", list="categorymembers", cmtitle="Kategorie:Wikipedia:Veraltet", cmlimit=5, cmnamespace=0),
+            q(
+                action="query",
+                list="categorymembers",
+                cmtitle="Kategorie:Wikipedia:Veraltet",
+                cmlimit=5,
+                cmnamespace=0,
+            ),
             note="fallback sample: any dewiki article carrying the Veraltet template",
         )
-        veraltet_candidates = [m["title"] for m in dig(members, "body", "query", "categorymembers", default=[])][:3]
+        veraltet_candidates = [
+            m["title"] for m in dig(members, "body", "query", "categorymembers", default=[])
+        ][:3]
     else:
         members = None
 
@@ -397,13 +408,16 @@ def p5_pageviews() -> Any:
 # ------------------------------------------------------- P6 etiquette/maxlag
 def p6_etiquette() -> Any:
     out: dict[str, Any] = {}
-    out["maxlag_5"] = get(q(action="query", meta="siteinfo", siprop="general", maxlag=5), note="maxlag on a read")
+    out["maxlag_5"] = get(
+        q(action="query", meta="siteinfo", siprop="general", maxlag=5), note="maxlag on a read"
+    )
     out["maxlag_neg1"] = get(
         q(action="query", meta="siteinfo", siprop="general", maxlag=-1),
         note="force the lag error to see the 503 + Retry-After shape",
     )
     out["siteinfo"] = get(
-        q(action="query", meta="siteinfo", siprop="general|statistics"), note="server time, wiki id, article count"
+        q(action="query", meta="siteinfo", siprop="general|statistics"),
+        note="server time, wiki id, article count",
     )
     out["paraminfo"] = get(
         q(action="paraminfo", modules="query+geosearch|query+search|query+revisions|query+categories"),
@@ -466,7 +480,10 @@ def p7_followups() -> Any:
             note=f"hidden categories of {title}",
         )
         out[f"cats_{title}"] = [
-            c["title"] for p in pages_of(cats) for c in (p.get("categories") or []) if "Veraltet" in c["title"]
+            c["title"]
+            for p in pages_of(cats)
+            for c in (p.get("categories") or [])
+            if "Veraltet" in c["title"]
         ]
     out["veraltet_findings"] = findings
 
@@ -514,7 +531,9 @@ def p7_followups() -> Any:
 
     # (d) maxlag: run 1 saw HTTP 200 for an artificial maxlag=-1. Check a
     # realistic threshold and record the status code and headers precisely.
-    out["maxlag_0"] = get(q(action="query", meta="siteinfo", siprop="general", maxlag=0), note="realistic-ish trigger")
+    out["maxlag_0"] = get(
+        q(action="query", meta="siteinfo", siprop="general", maxlag=0), note="realistic-ish trigger"
+    )
 
     # (e) The AQS 2.0 probe in run 1 hit a wiki portal page, not an API.
     out["aqs2_correct_base"] = get(
@@ -553,13 +572,16 @@ def p8_hidden_flag() -> Any:
     # And the empirical check: same page, hidden-only vs all categories.
     samples: list[str] = []
     for cat in ("Kategorie:Wikipedia:Veraltet seit 2024", "Kategorie:Wikipedia:Veraltet nach Mai 2025"):
-        members = get(q(action="query", list="categorymembers", cmtitle=cat, cmlimit=2, cmnamespace=0), note=cat)
+        members = get(
+            q(action="query", list="categorymembers", cmtitle=cat, cmlimit=2, cmnamespace=0), note=cat
+        )
         samples.extend(m["title"] for m in dig(members, "body", "query", "categorymembers", default=[]) or [])
 
     comparison: dict[str, Any] = {}
     for title in samples[:4]:
         hidden = get(
-            q(action="query", titles=title, prop="categories", clshow="hidden", cllimit="max"), note=f"hidden {title}"
+            q(action="query", titles=title, prop="categories", clshow="hidden", cllimit="max"),
+            note=f"hidden {title}",
         )
         every = get(q(action="query", titles=title, prop="categories", cllimit="max"), note=f"all {title}")
         h = {c["title"] for p in pages_of(hidden) for c in (p.get("categories") or [])}
@@ -602,8 +624,8 @@ def _row(resp: Any) -> str:
 
 def summarize(raw: dict[str, Any]) -> str:
     probes = raw.get("probes", {})
-    L: list[str] = []
-    add = L.append
+    lines: list[str] = []
+    add = lines.append
 
     add("# Phase 0 probe — answer sheet")
     add("")
@@ -620,7 +642,14 @@ def summarize(raw: dict[str, Any]) -> str:
         add("")
         add("| probe | result | pages returned | categories present |")
         add("| --- | --- | --- | --- |")
-        for key in ("radius_10000", "radius_10001", "limit_500", "limit_501", "limit_max", "combined_first_page"):
+        for key in (
+            "radius_10000",
+            "radius_10001",
+            "limit_500",
+            "limit_501",
+            "limit_max",
+            "combined_first_page",
+        ):
             resp = p1.get(key)
             pages = pages_of(resp) if isinstance(resp, dict) else []
             has_cats = any("categories" in p for p in pages)
@@ -663,7 +692,8 @@ def summarize(raw: dict[str, Any]) -> str:
         findings = p2.get("veraltet_seit_findings") or []
         if findings:
             for f in findings[:10]:
-                add(f"- **{f['page']}** — `seit=` {'present' if f['has_seit'] else 'ABSENT'} — `{f['invocation']}`")
+                present = "present" if f["has_seit"] else "ABSENT"
+                add(f"- **{f['page']}** — `seit=` {present} — `{f['invocation']}`")
         else:
             add("_No `{{Veraltet}}` invocation captured; see raw output._")
         add("")
@@ -696,7 +726,9 @@ def summarize(raw: dict[str, Any]) -> str:
         add(f"- **is there a `bot` key on revisions? {'YES' if 'bot' in keys else 'NO'}**")
         add(f"- revisions flagged `minor`: {sum(1 for r in revs if r.get('minor'))}/{len(revs)}")
         add(f"- multi-title `rvlimit=50`: {_row(p4.get('revisions_multi_title'))}")
-        rc_old = dig(p4.get("recentchanges_oldest", {}), "body", "query", "recentchanges", 0, "timestamp", default="?")
+        rc_old = dig(
+            p4.get("recentchanges_oldest", {}), "body", "query", "recentchanges", 0, "timestamp", default="?"
+        )
         add(f"- oldest recentchanges entry (retention window): `{rc_old}`")
         bots = dig(p4.get("botlist", {}), "body", "query", "allusers", default=[]) or []
         add(f"- dewiki accounts in the `bot` group: **{len(bots)}**")
@@ -799,10 +831,7 @@ def summarize(raw: dict[str, Any]) -> str:
         add("| sample page | Veraltet cats under clshow=hidden | Veraltet cats in all categories |")
         add("| --- | --- | --- |")
         for title, cmp in (p8.get("per_page_comparison") or {}).items():
-            add(
-                f"| {title} | `{cmp['veraltet_when_hidden_only']}` "
-                f"| `{cmp['veraltet_in_all_categories']}` |"
-            )
+            add(f"| {title} | `{cmp['veraltet_when_hidden_only']}` | `{cmp['veraltet_in_all_categories']}` |")
         add("")
 
     add("---")
@@ -823,9 +852,9 @@ def summarize(raw: dict[str, Any]) -> str:
                 walk(v, f"{path}[{i}]")
 
     walk(probes, "")
-    L.extend(failures or ["- none"])
+    lines.extend(failures or ["- none"])
     add("")
-    return "\n".join(L) + "\n"
+    return "\n".join(lines) + "\n"
 
 
 def main() -> int:
@@ -833,7 +862,9 @@ def main() -> int:
     ap.add_argument("--only", action="append", choices=sorted(PROBES), help="run a subset of probes")
     ap.add_argument("--out", default="docs/phase0-probe-output.json")
     ap.add_argument("--summary-out", default="docs/phase0-probe-summary.md")
-    ap.add_argument("--summarize", metavar="RAW_JSON", help="skip probing; re-render the summary from raw output")
+    ap.add_argument(
+        "--summarize", metavar="RAW_JSON", help="skip probing; re-render the summary from raw output"
+    )
     args = ap.parse_args()
 
     if args.summarize:
@@ -853,7 +884,7 @@ def main() -> int:
             print(f"[{key}] {label} ...", file=sys.stderr, flush=True)
             try:
                 results[key] = {"label": label, "result": fn()}
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 results[key] = {"label": label, "error": f"{type(exc).__name__}: {exc}"}
             print(f"[{key}] done", file=sys.stderr, flush=True)
         raw = {"user_agent": UA, "probes": results}
