@@ -1,0 +1,137 @@
+name: Research an article
+
+# Builds a research dossier for one de.wikipedia article and commits it.
+#
+# Read-only against Wikipedia, like everything else here: the CLI can only
+# issue GETs against the action-API allowlist and the Wikibase REST endpoint.
+# The dossier is a briefing for a human to check, never an edit and never a
+# draft - see docs/research-policy.md.
+#
+# Never scheduled. This stage costs requests to hosts that did not ask to be
+# read, so it runs when somebody asks for it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: 'Article title, exactly as on de.wikipedia (e.g. "Küsnachter Dorfbach")'
+        required: true
+        type: string
+      refresh:
+        description: "Bypass the response cache and re-ask the API"
+        type: boolean
+        required: false
+        default: false
+      commit:
+        description: "Commit the dossier to research/"
+        type: boolean
+        required: false
+        default: true
+
+concurrency:
+  # Serialised: two dispatches would otherwise race the same push.
+  group: research-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+
+      # setup-uv publishes no moving major tag past v7; pin the exact release.
+      - uses: astral-sh/setup-uv@v10.0.1
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --dev
+
+      # Shared with the weekly refresh, so a title already in the corpus costs
+      # almost nothing to research.
+      - name: Restore response cache
+        uses: actions/cache@v6
+        with:
+          path: cache/http
+          key: wp-todo-http-${{ github.run_id }}
+          restore-keys: wp-todo-http-
+
+      # The title is arbitrary user input. It reaches the shell as an
+      # environment variable and never as a `${{ }}` interpolation inside the
+      # script: a title of `"; rm -rf . #` would otherwise execute.
+      - name: Build the dossier
+        id: research
+        env:
+          TITLE: ${{ inputs.title }}
+          REFRESH: ${{ inputs.refresh }}
+          # The Wikimedia User-Agent policy accepts a project URL as contact
+          # information; no personal address needs to leave the runner.
+          WP_TODO_CONTACT: ${{ format('https://github.com/{0}', github.repository) }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [ "$REFRESH" = "true" ]; then
+            args+=(--refresh)
+          fi
+          uv run wp-todo research "$TITLE" "${args[@]}"
+
+          # The CLI names the file it wrote; find it the same way rather than
+          # re-deriving the slug here and risking a mismatch.
+          dossier=$(ls -t research/*.md 2>/dev/null | head -1)
+          if [ -z "$dossier" ]; then
+            echo "::error::no dossier was produced"
+            exit 1
+          fi
+          echo "path=$dossier" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the dossier to the job summary
+        if: ${{ always() && steps.research.outputs.path != '' }}
+        env:
+          DOSSIER: ${{ steps.research.outputs.path }}
+        run: cat "$DOSSIER" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the dossier
+        if: ${{ always() && steps.research.outputs.path != '' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: research-dossier
+          path: research/
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: Commit the dossier
+        if: ${{ inputs.commit && steps.research.outputs.path != '' }}
+        env:
+          TITLE: ${{ inputs.title }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add research
+          if git diff --cached --quiet; then
+            echo "dossier unchanged"
+            exit 0
+          fi
+
+          # The title goes in through a file, not through the command line, so
+          # the same rule that governs the run step governs the message.
+          printf 'docs(research): dossier for %s\n' "$TITLE" > /tmp/commit-msg
+          git commit -F /tmp/commit-msg
+
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:"$BRANCH"; then
+              exit 0
+            fi
+            echo "push failed (attempt ${attempt}), refreshing and retrying"
+            sleep $((2 ** attempt))
+            git pull --rebase origin "$BRANCH" || true
+          done
+          echo "::error::could not push the dossier"
+          exit 1

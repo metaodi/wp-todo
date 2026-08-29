@@ -187,6 +187,10 @@ class ResearchConfig(Frozen):
     compare_wikidata: bool = True
     compare_languages: tuple[str, ...] = ("en", "fr", "it")
 
+    #: Where dossiers are written, and where the worklist looks for them when
+    #: deciding which rows get a "Recherche" link. One key so the renderer and
+    #: the research command cannot disagree about the path.
+    dir: Path = Path("research")
     #: Where recorded source verdicts live. Kept out of scope.toml because the
     #: CLI appends to it, and a file a program writes should not also be the
     #: file holding every hand-tuned scoring weight.

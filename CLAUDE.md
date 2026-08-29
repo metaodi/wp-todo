@@ -69,9 +69,21 @@ honest guarantee of **reproducibility by replay**: they are a pure function of
 the cache, so a rerun without `--refresh` produces byte-identical files, and
 `--refresh` is where new information — and a real diff — comes from. Everything
 above still applies to them: no clock is read, ages come from the corpus
-reference date, and ordering is stable. Dossiers are not committed by default;
-they are per-editor working notes, and a directory of unchecked "current"
-figures is not something to publish.
+reference date, and ordering is stable.
+
+Dossiers **are** committed, and `out/todo.md` links to the ones that exist. So
+the worklist is a function of the API responses *and* of what is committed under
+`research/` — byte-identical for a given checkout, which is what the weekly diff
+depends on. The link column changes only when a dossier is added or removed,
+which is a real change worth seeing.
+
+Committing them is a decision with a cost, and it is worth naming rather than
+forgetting: a dossier in a public repository can be found and read as though it
+were authoritative. Nothing in the deterministic sections is *asserted* — every
+figure is a pointer with both sides linked — but that stops being true when the
+open-web stage lands. When it does, its findings section must say inside the
+section, not only in the file header, that every figure there is unverified
+until a human has opened the source.
 
 ## Verifying API behaviour
 

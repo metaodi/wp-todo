@@ -18,12 +18,15 @@ from .dossier import render_json as render_dossier_json
 from .dossier import render_markdown as render_dossier_markdown
 from .dossier import slug
 from .fetch import fetch as fetch_corpus
-from .models import FetchResult, ScoreResult
+from .fetch import fetch_one
+from .models import Article, FetchResult, ScoreResult
 from .render import render_json, render_markdown
 from .research import foreign_clients, research_article
 from .score import score_corpus
 from .sources import SourceVerdictError, format_entry, load_ledger, make_verdict
 from .webclient import WebClient
+
+log = logging.getLogger(__name__)
 
 app = typer.Typer(add_completion=False, help="Build a prioritised de.wikipedia worklist. Read-only.")
 
@@ -186,38 +189,30 @@ def run(
 
 @app.command()
 def research(
-    title: Annotated[str, typer.Argument(help="Article title, exactly as in the corpus")],
+    title: Annotated[str, typer.Argument(help="Article title, exactly as on de.wikipedia")],
     config: ConfigOpt = DEFAULT_CONFIG,
     corpus: CorpusOpt = DEFAULT_CORPUS,
     out: Annotated[Path, typer.Option("--out", help="Where dossiers are written")] = DEFAULT_RESEARCH,
     cache_dir: CacheOpt = DEFAULT_CACHE,
+    corpus_only: Annotated[
+        bool, typer.Option("--corpus-only", help="Never fetch; require the article in the corpus")
+    ] = False,
     refresh: RefreshOpt = False,
     dry_run: DryRunOpt = False,
     verbose: VerboseOpt = False,
 ) -> None:
     """Build a research dossier for one article. Never edits anything.
 
-    Reads the article out of the fetched corpus, works out which of its claims
-    carry a date, and compares them against Wikidata and the other language
-    editions. The result is a briefing to read - not a draft, and not a source.
+    Works out which of the article's claims carry a date and compares them
+    against Wikidata and the other language editions. The result is a briefing
+    to read - not a draft, and not a source.
+
+    The article is taken from the fetched corpus when it is there, and fetched
+    on its own when it is not. So this works on any dewiki title, with or
+    without a corpus: researching one page should not cost a whole worklist.
     """
     _setup_logging(verbose)
     scope = _load(config)
-    fetched = _read_corpus(corpus)
-
-    article = next((a for a in fetched.articles if a.title == title), None)
-    if article is None:
-        typer.secho(f"{title!r} is not in {corpus}", fg="red", err=True)
-        _suggest_titles(fetched, title)
-        raise typer.Exit(2)
-    if not article.wikitext:
-        typer.secho(
-            f"{title!r} was fetched at discovery detail only, so there is no wikitext to read; "
-            "raise fetch.detail_top_n or add it to `pages` in scope.toml",
-            fg="red",
-            err=True,
-        )
-        raise typer.Exit(2)
 
     try:
         ledger = load_ledger(scope.research.sources)
@@ -225,17 +220,43 @@ def research(
         typer.secho(str(exc), fg="red", err=True)
         raise typer.Exit(2) from exc
 
+    stored = _read_corpus_if_present(corpus)
+    article = _from_corpus(stored, title)
+    if article is None and corpus_only:
+        typer.secho(f"{title!r} is not in {corpus} (--corpus-only)", fg="red", err=True)
+        if stored is not None:
+            _suggest_titles(stored, title)
+        raise typer.Exit(2)
+
     cache = ResponseCache(cache_dir, refresh=refresh)
-    with (
-        _client(scope, cache, dry_run) as wiki,
-        _web_client(scope, cache, dry_run, fetched.reference_date) as web,
-    ):
-        foreign = foreign_clients(scope, wiki)
-        with ExitStack() as stack:
+    with _client(scope, cache, dry_run) as wiki:
+        fetched = stored
+        if article is None:
+            log.info("%r is not in the corpus; fetching it on its own", title)
+            fetched = fetch_one(scope, wiki, title)
+            article = fetched.articles[0] if fetched.articles else None
+        if article is None or fetched is None:
+            typer.secho(
+                f"de.wikipedia has no article {title!r} (check spelling, and note that only "
+                "the main namespace can be researched)",
+                fg="red",
+                err=True,
+            )
+            if stored is not None:
+                _suggest_titles(stored, title)
+            raise typer.Exit(2)
+
+        with (
+            _web_client(scope, cache, dry_run, fetched.reference_date) as web,
+            ExitStack() as stack,
+        ):
+            foreign = foreign_clients(scope, wiki)
             for client in foreign.values():
                 stack.enter_context(client)
             built = research_article(article, fetched, scope, wiki, web, foreign, ledger)
-        requests = wiki.stats.requests + web.stats.requests + sum(c.stats.requests for c in foreign.values())
+            requests = (
+                wiki.stats.requests + web.stats.requests + sum(c.stats.requests for c in foreign.values())
+            )
 
     if dry_run:
         return
@@ -323,6 +344,26 @@ def sources_list(
         typer.echo(f"{item.verdict:6} {item.domain:40} {item.decided}  {item.reason}")
 
 
+def _read_corpus_if_present(path: Path) -> FetchResult | None:
+    """The corpus, or None. Missing is normal for `research`, not an error."""
+    if not path.exists():
+        return None
+    return FetchResult.model_validate_json(path.read_text(encoding="utf-8"))
+
+
+def _from_corpus(stored: FetchResult | None, title: str) -> Article | None:
+    """The article, if the corpus has it *with wikitext*.
+
+    An article held at discovery detail has no wikitext, and there is nothing to
+    research without it. Rather than telling the reader to raise
+    `fetch.detail_top_n`, treat it as absent and fetch it properly.
+    """
+    if stored is None:
+        return None
+    found = next((a for a in stored.articles if a.title == title), None)
+    return found if found is not None and found.wikitext else None
+
+
 def _suggest_titles(fetched: FetchResult, title: str) -> None:
     """A near-miss on a title is the likeliest way to land here.
 
@@ -339,7 +380,8 @@ def _suggest_titles(fetched: FetchResult, title: str) -> None:
 def write_outputs(result: ScoreResult, scope: ScopeConfig, out: Path) -> None:
     out.mkdir(parents=True, exist_ok=True)
     labels = [tile.label for tile in scope.geo]
-    (out / "todo.md").write_text(render_markdown(result, label_order=labels), encoding="utf-8")
+    markdown = render_markdown(result, label_order=labels, research_dir=scope.research.dir)
+    (out / "todo.md").write_text(markdown, encoding="utf-8")
     (out / "todo.json").write_text(render_json(result), encoding="utf-8")
 
 
