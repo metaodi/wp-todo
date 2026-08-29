@@ -16,7 +16,6 @@ raises. Do not widen that set - see CLAUDE.md.
 from __future__ import annotations
 
 import logging
-import time
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import Any, Self
@@ -24,8 +23,32 @@ from urllib.parse import quote
 
 import httpx
 
+from ._http import (
+    ClientStats,
+    OfflineCacheMissError,
+    RequestBudget,
+    RequestBudgetExceededError,
+    RequestPacer,
+    log_progress,
+    retry_after,
+    sleep_with_backoff,
+)
 from .cache import ResponseCache, cache_key
 from .config import MetaConfig
+
+__all__ = [
+    "ALLOWED_ACTIONS",
+    "API_URL",
+    "MAX_LIMIT",
+    "PAGEVIEWS_URL",
+    "TITLES_PER_REQUEST",
+    "ClientStats",
+    "OfflineCacheMissError",
+    "ReadOnlyViolationError",
+    "RequestBudgetExceededError",
+    "WikiApiError",
+    "WikiClient",
+]
 
 log = logging.getLogger(__name__)
 
@@ -57,27 +80,6 @@ class ReadOnlyViolationError(RuntimeError):
     """Something tried to make a non-read request. This must never happen."""
 
 
-class RequestBudgetExceededError(RuntimeError):
-    """The run asked for more requests than it was budgeted."""
-
-
-class OfflineCacheMissError(RuntimeError):
-    """An offline client needed a request it has no recorded response for.
-
-    The test suite runs the real pipeline this way: the recorded cache is the
-    fixture set, so a miss means a fixture is missing, never a silent network
-    call.
-    """
-
-
-@dataclass
-class ClientStats:
-    requests: int = 0
-    cache_hits: int = 0
-    retries: int = 0
-    seconds_waiting: float = 0.0
-
-
 @dataclass
 class WikiClient:
     """Serial, polite, cached access to the de.wikipedia API."""
@@ -101,7 +103,12 @@ class WikiClient:
     transport: httpx.BaseTransport | None = None
     _client: httpx.Client | None = field(default=None, init=False, repr=False)
     stats: ClientStats = field(default_factory=ClientStats)
-    _last_request_at: float = field(default=0.0, init=False, repr=False)
+    _pacer: RequestPacer = field(init=False, repr=False)
+    _budget: RequestBudget = field(init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        self._pacer = RequestPacer(self.delay_s)
+        self._budget = RequestBudget(self.max_requests, setting="http.max_requests")
 
     @property
     def user_agent(self) -> str:
@@ -124,13 +131,6 @@ class WikiClient:
             self._client = None
 
     # ------------------------------------------------------------------ core
-    def _sleep_between_requests(self) -> None:
-        elapsed = time.monotonic() - self._last_request_at
-        remaining = self.delay_s - elapsed
-        if remaining > 0:
-            time.sleep(remaining)
-            self.stats.seconds_waiting += remaining
-
     def _get_json(self, url: str, params: dict[str, Any], *, empty_on_404: bool = False) -> dict[str, Any]:
         """Every outbound request goes through here: one at a time, spaced by
         `delay_s`, retried with exponential backoff, counted against the budget.
@@ -158,11 +158,11 @@ class WikiClient:
         backoff = 1.0
         last_error: Exception | None = None
         for attempt in range(1, self.max_retries + 1):
-            self._check_budget()
-            self._sleep_between_requests()
-            self._last_request_at = time.monotonic()
+            self._budget.check(self.stats)
+            self._pacer.wait(self.stats)
+            self._pacer.mark()
             self.stats.requests += 1
-            self._log_progress()
+            log_progress(self.stats, self.progress_every)
             try:
                 response = self._client.get(url, params=params)
             except httpx.HTTPError as exc:  # network-level failure
@@ -183,36 +183,12 @@ class WikiClient:
                     return payload
                 last_error = WikiApiError(retriable, response.text[:200], params)
                 log.warning("retriable response (%s/%s): %s", attempt, self.max_retries, retriable)
-                backoff = max(backoff, self._retry_after(response))
+                backoff = max(backoff, retry_after(response))
 
-            self.stats.retries += 1
-            time.sleep(backoff)
-            self.stats.seconds_waiting += backoff
+            sleep_with_backoff(backoff, self.stats)
             backoff *= 2
 
         raise RuntimeError(f"giving up on {url} after {self.max_retries} attempts") from last_error
-
-    def _check_budget(self) -> None:
-        """A scope change should not be able to turn into an unbounded crawl.
-
-        Hitting the ceiling stops the run loudly rather than continuing to make
-        requests nobody has budgeted for.
-        """
-        if self.max_requests and self.stats.requests >= self.max_requests:
-            raise RequestBudgetExceededError(
-                f"request budget of {self.max_requests} exhausted; raise http.max_requests "
-                f"in scope.toml if this scope really needs more"
-            )
-
-    def _log_progress(self) -> None:
-        if self.stats.requests % self.progress_every == 0:
-            log.info(
-                "%d requests (%d cache hits, %d retries, %.0fs spent waiting)",
-                self.stats.requests,
-                self.stats.cache_hits,
-                self.stats.retries,
-                self.stats.seconds_waiting,
-            )
 
     def _retriable_reason(self, response: httpx.Response) -> str | None:
         """A maxlag rejection is HTTP 200 with an error in the body - verified live."""
@@ -227,16 +203,6 @@ class WikiClient:
             if isinstance(error, dict) and error.get("code") in {"maxlag", "readonly", "internal_api_error"}:
                 return str(error.get("code"))
         return None
-
-    @staticmethod
-    def _retry_after(response: httpx.Response) -> float:
-        raw = response.headers.get("Retry-After")
-        if raw is None:
-            return 1.0
-        try:
-            return max(1.0, float(raw))
-        except ValueError:
-            return 1.0
 
     def _raise_for_api_error(self, payload: dict[str, Any], params: dict[str, Any]) -> None:
         error = payload.get("error")
