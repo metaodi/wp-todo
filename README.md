@@ -65,6 +65,11 @@ saturating curve (`edit_age_half_life_days`) rather than a linear one: the
 difference between three months and three years matters more than between
 five years and ten.
 
+`edit_age_weight` is deliberately lower than the maintenance weights. The signal
+applies to nearly every article — 766 of 790 in the first full run — so a high
+weight buries the handful an editor has actually flagged. Halving it from 40 to
+20 moved those 22 articles from 11 to 15 of the visible top 50.
+
 "Not a bot edit" cannot be read off the revision history — **revisions carry no
 bot flag**, and the `recentchanges` table that does only retains about 30 days.
 Authorship is therefore decided against the wiki's bot group, fetched once per
@@ -77,11 +82,17 @@ fixes, and no flag distinguishes them from a bot.
 
 ### 3. In-text staleness markers
 
-Regexes over the wikitext for `Stand: YYYY`, `seit YYYY`, and bare adverbs
-(`derzeit`, `aktuell`, `zurzeit`) — the last only count when a year appears
-within `year_window` characters, since "derzeit" in a sentence about 1961 is
-history, not staleness. A rule fires when the year is more than
-`max_age_years` old, and the matching line is captured as evidence.
+Regexes over the wikitext for `Stand: YYYY` and bare adverbs (`derzeit`,
+`aktuell`, `zurzeit`) — the adverbs only count when a year appears within
+`year_window` characters, since "derzeit" in a sentence about 1961 is history,
+not staleness. A rule fires when the year is more than `max_age_years` old, and
+the matching line is captured as evidence.
+
+A `seit YYYY` rule was tried and removed. It fired on 244 of 790 articles and
+every sample was historical prose — *"seit 1928 alljährlich"*, *"Seit der
+Streckeneröffnung im Jahre 1954"* — and for 189 of them it was the only marker,
+so the worklist offered a historical fact as its reason for calling the article
+stale. The rule is left commented out in `scope.toml` with that note.
 
 These run **locally over fetched wikitext**, not as CirrusSearch
 `insource:/regex/`. Server-side regex search times out into partial results with

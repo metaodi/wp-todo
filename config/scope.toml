@@ -116,7 +116,10 @@ unknown_maintenance_weight = 0.0
 veraltet_seit_bonus_per_year = 3.0
 veraltet_seit_bonus_cap = 30.0
 
-edit_age_weight = 40.0
+# Tuned against the first full run (790 articles). The signal applies to almost
+# every article, so a high weight buries the 22 articles an editor has actually
+# flagged. Dropping 40 -> 20 moved those from 11 to 15 of the visible top 50.
+edit_age_weight = 20.0
 edit_age_half_life_days = 900.0
 # A revision changing fewer bytes than this is trivial, not substantive.
 substantive_min_bytes = 100
@@ -152,11 +155,19 @@ pattern = 'Stand:?\s*(?:[A-Za-zä.]+\s+)?(?P<year>(?:19|20)\d{2})'
 max_age_years = 3
 weight = 12.0
 
-[[scoring.markers]]
-code = "seit_year"
-pattern = 'seit\s+(?P<year>(?:19|20)\d{2})'
-max_age_years = 8
-weight = 6.0
+# Removed after the first full run: "seit YYYY" fired on 244 of 790 articles and
+# every sample was historical prose - "seit 1928 alljährlich", "Seit der
+# Streckeneröffnung im Jahre 1954". For 189 of them it was the *only* marker, so
+# the worklist offered a historical fact as its reason for calling the article
+# stale. German "seit YYYY" is overwhelmingly a statement about the past, not a
+# claim about the present. Re-enable if you find a formulation that separates
+# the two:
+#
+# [[scoring.markers]]
+# code = "seit_year"
+# pattern = 'seit\s+(?P<year>(?:19|20)\d{2})'
+# max_age_years = 8
+# weight = 6.0
 
 [[scoring.markers]]
 code = "derzeit"
