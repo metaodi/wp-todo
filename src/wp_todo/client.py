@@ -95,6 +95,10 @@ class WikiClient:
     #: Hard ceiling for one run. 0 disables it.
     max_requests: int = 0
     progress_every: int = 250
+    #: Which wiki's action API to talk to. Defaults to dewiki, which is the
+    #: whole worklist; the research stage points a second client at other
+    #: language editions to compare against. The allowlist applies either way.
+    api_url: str = API_URL
     dry_run: bool = False
     #: Refuse to touch the network; a cache miss is an error. Used by the tests.
     offline: bool = False
@@ -227,7 +231,7 @@ class WikiClient:
 
         seen_continuations: set[str] = set()
         while True:
-            payload = self._get_json(API_URL, request)
+            payload = self._get_json(self.api_url, request)
             if not payload:  # dry run
                 return
             self._raise_for_api_error(payload, request)

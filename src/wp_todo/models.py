@@ -135,6 +135,30 @@ class ArticleClaims(Strict):
     references: ReferenceSummary = Field(default_factory=ReferenceSummary)
 
 
+class Delta(Strict):
+    """A comparison against an already-structured source.
+
+    Deliberately not a judgement. It records what the article says, what the
+    other source says, when each is as of, and where to check - and stops
+    there. Wikidata is often the one that is wrong, and only a human reading
+    both is in a position to know.
+    """
+
+    kind: str
+    label: str = ""
+    claim_id: str | None = None
+    field: str | None = None
+    article_value: str | None = None
+    external_value: str | None = None
+    article_as_of: int | None = None
+    external_as_of: int | None = None
+    source: str = ""
+    detail: str = ""
+    #: True when the two sources say the same thing. Agreement is worth
+    #: reporting too: it tells an editor a figure has already been checked.
+    agrees: bool = False
+
+
 class Reason(Strict):
     """Why an article surfaced. Every one carries its own contribution."""
 
@@ -166,6 +190,35 @@ class ScoredArticle(Strict):
     monthly_pageviews: int | None = None
     #: True when only discovery data was available, so the score is a lower bound.
     provisional: bool = False
+    edit_url: str = ""
+
+
+class Dossier(Strict):
+    """A briefing on one article, for a human to read before editing it.
+
+    Not an edit, not a draft, and not a source. Every entry is a pointer at
+    something to go and check - the checking, and all the writing, stays with
+    the editor.
+
+    Nothing here is derived from the wall clock: `reference_date` comes from the
+    corpus, so re-running the stage against the same cache reproduces the file
+    byte for byte and a weekly diff shows only what actually changed.
+    """
+
+    pageid: int
+    title: str
+    scope_label: str = ""
+    reference_date: dt.date
+    wikidata_item: str | None = None
+    claims: ArticleClaims
+    deltas: tuple[Delta, ...] = ()
+    #: Whether the interwiki comparison ran at all. "We looked and found
+    #: nothing" and "we did not look" are different answers, and a dossier that
+    #: renders them the same way is lying by omission.
+    interwiki_checked: bool = False
+    #: Languages that were actually compared, so an empty result can be told
+    #: apart from a language that has no article.
+    compared_languages: tuple[str, ...] = ()
     edit_url: str = ""
 
 

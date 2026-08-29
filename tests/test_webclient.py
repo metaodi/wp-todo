@@ -155,9 +155,30 @@ def test_cache_hit_makes_no_request(meta: MetaConfig, tmp_path: Path) -> None:
     assert first.text == second.text
 
 
-def test_offline_raises_instead_of_reaching_the_network(meta: MetaConfig, tmp_path: Path) -> None:
+def test_offline_document_fetch_raises_instead_of_reaching_the_network(
+    meta: MetaConfig, tmp_path: Path
+) -> None:
     """This is what keeps the test suite honest: a missing fixture is an error,
-    never a silent live request."""
+    never a silent live request.
+
+    `respect_robots=False` matters here. There are two offline checks - one on
+    the robots path and one on the document path - and with robots on, this
+    test passes off the robots one even if the document one is deleted. Pinning
+    the document path is the whole point.
+    """
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise AssertionError("offline client must not make a request")
+
+    with (
+        make_client(meta, tmp_path, handler, offline=True, respect_robots=False) as client,
+        pytest.raises(OfflineCacheMissError),
+    ):
+        client.fetch("https://example.org/seite")
+
+
+def test_offline_robots_lookup_raises_too(meta: MetaConfig, tmp_path: Path) -> None:
+    """The other half: robots.txt is a request like any other."""
 
     def handler(request: httpx.Request) -> httpx.Response:
         raise AssertionError("offline client must not make a request")

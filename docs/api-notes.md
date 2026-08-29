@@ -14,7 +14,7 @@ run 3 (probes P1–P7) and run 4 (P8) unless stated.
 | `LIVE` | Observed in a recorded response |
 | `OPEN` | Still unverified — do not build on it |
 
-Tally: **41 `LIVE`**, 2 `OPEN`.
+Tally: **41 `LIVE`**, 5 `OPEN`.
 
 ---
 
@@ -266,9 +266,24 @@ an unfilled contact placeholder.
 2. Whether *genuine* replication lag returns 503 + `Retry-After` as documented,
    rather than the HTTP 200 seen with a forced threshold. Cannot be triggered on
    demand; the client handles both.
+3. **The Wikibase REST v1 statements payload.** `src/wp_todo/enrich.py` reads
+   `GET /w/rest.php/wikibase/v1/entities/items/{Q}/statements` and expects
+   `{"P1082": [{"rank": ..., "value": {"type": "value", "content": {...}},
+   "qualifiers": [...]}]}`. Written from the documentation, **not** observed
+   here. The parser returns nothing on a shape it does not recognise, so a
+   wrong guess yields an empty section rather than an invented figure — see
+   `tests/test_enrich.py`. Needs a probe before anyone relies on the output.
+4. **`prop=pageprops&ppprop=wikibase_item`** as the way to get an article's
+   Wikidata item. Ordinary `action=query`, so no allowlist implications, but
+   the response shape is unconfirmed from here.
+5. **`prop=langlinks&lllang=en|fr|it`** — whether `lllang` accepts a
+   pipe-separated list, or must be repeated. If it does not, the interwiki
+   comparison silently returns no links, which renders as "no other-language
+   version linked" rather than as an error.
 
-Neither blocks anything. Everything else the notes previously listed as open has
-been measured.
+The first two block nothing. Items 3-5 gate the research stage only: until they
+are probed, treat an empty Wikidata or interwiki section as "unknown", not as
+"nothing to find".
 
 ### Answered since the first pass
 

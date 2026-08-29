@@ -1,0 +1,233 @@
+"""The dossier end to end: real fixture corpus in, briefing out.
+
+The Wikimedia half runs offline from the recorded fixtures. The Wikidata half
+runs against a mock transport, because there is no recorded fixture for the
+Wikibase REST API yet - see the note in `test_enrich.py`.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+from pathlib import Path
+from typing import Any
+
+import httpx
+import pytest
+
+from wp_todo.cache import ResponseCache
+from wp_todo.client import WikiClient
+from wp_todo.config import ScopeConfig, load_scope
+from wp_todo.dossier import HEADER_NOTICE, render_json, render_markdown, slug
+from wp_todo.fetch import fetch
+from wp_todo.models import Dossier, FetchResult
+from wp_todo.research import research_article
+from wp_todo.webclient import WebClient
+
+FIXTURES = Path(__file__).parent / "fixtures"
+ARTICLE = "Küsnachter Dorfbach"
+
+
+@pytest.fixture(scope="module")
+def scope() -> ScopeConfig:
+    return load_scope(FIXTURES / "scope.toml")
+
+
+@pytest.fixture(scope="module")
+def corpus(scope: ScopeConfig) -> FetchResult:
+    with WikiClient(meta=scope.meta, cache=ResponseCache(FIXTURES / "http"), offline=True) as client:
+        return fetch(scope, client)
+
+
+def build(
+    corpus: FetchResult,
+    scope: ScopeConfig,
+    tmp_path: Path,
+    *,
+    statements: dict[str, Any] | None = None,
+    compare_wikidata: bool = False,
+) -> Dossier:
+    """A dossier for the acceptance article, with Wikimedia offline."""
+    article = next(a for a in corpus.articles if a.title == ARTICLE)
+    config = scope.model_copy(
+        update={"research": scope.research.model_copy(update={"compare_wikidata": compare_wikidata})}
+    )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            content=json.dumps(statements or {}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+
+    with (
+        WikiClient(meta=scope.meta, cache=ResponseCache(FIXTURES / "http"), offline=True) as wiki,
+        WebClient(
+            meta=scope.meta,
+            cache=ResponseCache(tmp_path / "web"),
+            delay_s=0.0,
+            respect_robots=False,
+            transport=httpx.MockTransport(handler),
+            reference_date=corpus.reference_date,
+        ) as web,
+    ):
+        return research_article(article, corpus, config, wiki, web, foreign=None)
+
+
+def test_the_dossier_leads_with_what_it_is_not(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """A file of "current" figures beside article text is exactly the thing
+    that gets pasted in unchecked. The disclaimer is load-bearing."""
+    markdown = render_markdown(build(corpus, scope, tmp_path))
+
+    assert HEADER_NOTICE in markdown
+    assert markdown.index(HEADER_NOTICE) < 200, "the notice must precede any finding"
+    assert "bearbeitet die Wikipedia nicht" in markdown
+
+
+def test_dated_claims_reach_the_dossier(corpus: FetchResult, scope: ScopeConfig, tmp_path: Path) -> None:
+    dossier = build(corpus, scope, tmp_path)
+    assert dossier.claims.claims, "the acceptance article has dated claims"
+
+    markdown = render_markdown(dossier)
+    assert "## Angaben zum Prüfen" in markdown
+    for claim in dossier.claims.claims[:3]:
+        assert str(claim.line_no) in markdown
+
+
+def test_reference_age_is_reported(corpus: FetchResult, scope: ScopeConfig, tmp_path: Path) -> None:
+    dossier = build(corpus, scope, tmp_path)
+    markdown = render_markdown(dossier)
+
+    assert "## Belege dieses Artikels" in markdown
+    if dossier.claims.references.newest_year is not None:
+        assert str(dossier.claims.references.newest_year) in markdown
+
+
+def test_no_clock_is_read(corpus: FetchResult, scope: ScopeConfig, tmp_path: Path) -> None:
+    """Ages are measured from the corpus reference date. A dossier that moved
+    every week would make its own diff useless."""
+    dossier = build(corpus, scope, tmp_path)
+    markdown = render_markdown(dossier)
+
+    assert corpus.reference_date.isoformat() in markdown
+    assert dossier.reference_date == corpus.reference_date
+
+
+def test_rendering_is_byte_identical_across_runs(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """The replay gate: same cache in, same bytes out."""
+    first = build(corpus, scope, tmp_path)
+    second = build(corpus, scope, tmp_path)
+
+    assert render_markdown(first) == render_markdown(second)
+    assert render_json(first) == render_json(second)
+
+
+def test_json_carries_everything_the_markdown_summarises(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    payload = json.loads(render_json(build(corpus, scope, tmp_path)))
+
+    assert payload["title"] == ARTICLE
+    assert payload["claims"]["claims"]
+    assert "reference_date" in payload
+    assert payload["edit_url"].startswith("https://de.wikipedia.org/w/index.php")
+
+
+def test_a_wikidata_delta_reaches_the_table(corpus: FetchResult, scope: ScopeConfig, tmp_path: Path) -> None:
+    """`Küsnachter Dorfbach` has no mapped infobox field, so this drives the
+    renderer directly rather than pretending the fixture has one."""
+    from wp_todo.models import Delta
+
+    dossier = build(corpus, scope, tmp_path).model_copy(
+        update={
+            "deltas": (
+                Delta(
+                    kind="wikidata",
+                    label="Einwohnerzahl",
+                    field="EINWOHNER",
+                    article_value="8500",
+                    external_value="9240",
+                    article_as_of=2018,
+                    external_as_of=2025,
+                    source="https://www.wikidata.org/wiki/Q68166#P1082",
+                    agrees=False,
+                ),
+            )
+        }
+    )
+    markdown = render_markdown(dossier)
+
+    assert "## Abweichungen gegenüber Wikidata" in markdown
+    assert "8500 (Stand 2018)" in markdown
+    assert "9240 (Stand 2025)" in markdown
+    assert "https://www.wikidata.org/wiki/Q68166#P1082" in markdown
+    assert "nicht automatisch im Recht" in markdown, "Wikidata is often the wrong one"
+
+
+def test_an_empty_comparison_says_so_rather_than_going_quiet(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """A section that ran and found nothing must be distinguishable from a
+    section that never ran."""
+    markdown = render_markdown(build(corpus, scope, tmp_path))
+
+    assert "_Keine Abweichungen gefunden._" in markdown
+
+
+def test_not_looked_reads_differently_from_looked_and_found_nothing(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """The distinction the whole design rests on. A dossier that renders "we
+    did not check" the same way as "we checked and it is fine" is lying by
+    omission, and an editor would have no way to tell."""
+    unchecked = build(corpus, scope, tmp_path)
+    assert unchecked.interwiki_checked is False
+    assert "_Nicht abgefragt._" in render_markdown(unchecked)
+
+    checked = unchecked.model_copy(update={"interwiki_checked": True})
+    assert "_Keine anderssprachige Fassung verlinkt._" in render_markdown(checked)
+
+    with_links = checked.model_copy(update={"compared_languages": ("en", "fr")})
+    assert "_Keine zusätzlichen Abschnitte in en, frwiki._" in render_markdown(with_links)
+
+
+def test_a_pipe_in_a_claim_does_not_break_the_table(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    from wp_todo.models import Claim
+
+    dossier = build(corpus, scope, tmp_path)
+    claims = dossier.claims.model_copy(
+        update={
+            "claims": (
+                Claim(
+                    id="x-1",
+                    kind="infobox_field",
+                    text="WEBSITE = [[a|b]] | c",
+                    line_no=3,
+                    field="WEBSITE",
+                ),
+            )
+        }
+    )
+    markdown = render_markdown(dossier.model_copy(update={"claims": claims}))
+
+    row = next(line for line in markdown.splitlines() if "WEBSITE" in line and line.startswith("|"))
+    separators = len(re.findall(r"(?<!\\)\|", row))
+    assert separators == 5, f"escaped pipes must not add columns: {row}"
+    assert r"[[a\|b]]" in row, "the pipe inside the value survives, escaped"
+
+
+class TestSlug:
+    def test_umlauts_are_transliterated_not_dropped(self) -> None:
+        assert slug("Küsnachter Dorfbach") == "kuesnachter-dorfbach"
+
+    def test_distinct_titles_do_not_collide(self) -> None:
+        assert slug("Küsnacht") != slug("Ksnacht")
+
+    def test_a_title_of_only_punctuation_still_yields_a_name(self) -> None:
+        assert slug("!!!") == "artikel"

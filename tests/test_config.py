@@ -89,3 +89,24 @@ def test_exclusions(meta: MetaConfig) -> None:
         "category_pattern:Begriffsklärung"
     )
     assert scope.is_excluded("Thalwil") is None
+
+
+def test_research_defaults_are_conservative() -> None:
+    """Every one of these is a ceiling somebody would have to raise on purpose."""
+    scope = load_scope(REPO_SCOPE)
+
+    assert scope.research.respect_robots is True
+    assert scope.research.max_fetches > 0, "an unbounded crawl must not be the default"
+    assert scope.research.delay_s >= 1.0
+    assert scope.research.max_doc_bytes <= 10_000_000
+
+
+def test_unknown_research_key_is_rejected(tmp_path: Path) -> None:
+    """A typo in a budget key must not silently leave the budget at its default."""
+    path = tmp_path / "scope.toml"
+    path.write_text(
+        '[meta]\ncontact = "https://example.org/wp-todo"\npages = ["X"]\n[research]\nmax_fetch = 5\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValidationError):
+        load_scope(path)
