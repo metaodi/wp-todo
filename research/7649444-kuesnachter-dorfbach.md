@@ -21,18 +21,19 @@ _Nichts abgeglichen._
 Abschnitte, die andere Sprachversionen haben und diese nicht. Ein Titel allein
 sagt wenig - derselbe Inhalt steht hier oft unter anderem Namen.
 
-- **[enwiki](https://en.wikipedia.org/wiki/Küsnachter_Tobel)** — 4 Abschnitt(e) ohne Entsprechung hier
-  - Geography; Attractions; Historical floods; Transportation
+- **[enwiki](https://en.wikipedia.org/wiki/Küsnachter_Tobel)** — 2 Abschnitt(e) ohne Entsprechung hier
+  - Historical floods; Transportation
 
 ## Angaben zum Prüfen
 
-1 Stelle(n), die veralten können - 1 davon mit einer Jahresangabe.
+2 Stelle(n), die veralten können - 2 davon mit einer Jahresangabe.
 Eine Liste zum Abarbeiten, keine Liste von Fehlern: ein Wert ohne Stand ist
 nicht falsch, nur ungeprüft.
 
 | Zeile | Abschnitt | Stand | Angabe |
 | ---: | --- | ---: | --- |
 | 147 | Entstehung | 1960 | Die Entstehungsgeschichte des Tobels lässt sich zunächst an zahlreichen fossilen Funden ablesen: Muscheln, Schnecken, versteinerte Blätter von Zimt- und Lorbeergewächsen, ein als Palmast interpretiert |
+| 191 | — | 2025 | {{Zukunft}}: dieser Abschnitt sollte seit 2025-05-01 überprüft werden |
 
 ## Belege dieses Artikels
 

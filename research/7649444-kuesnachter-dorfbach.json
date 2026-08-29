@@ -10,6 +10,16 @@
         "line_no": 147,
         "section": "Entstehung",
         "text": "Die Entstehungsgeschichte des Tobels lässt sich zunächst an zahlreichen fossilen Funden ablesen: Muscheln, Schnecken, versteinerte Blätter von Zimt- und Lorbeergewächsen, ein als Palmast interpretiert"
+      },
+      {
+        "as_of_year": 2025,
+        "asserted_value": null,
+        "field": null,
+        "id": "zukunft_template-6cba6779",
+        "kind": "zukunft_template",
+        "line_no": 191,
+        "section": null,
+        "text": "{{Zukunft}}: dieser Abschnitt sollte seit 2025-05-01 überprüft werden"
       }
     ],
     "infobox": "Infobox Fluss",
@@ -102,9 +112,9 @@
       "article_as_of": null,
       "article_value": null,
       "claim_id": null,
-      "detail": "4 Abschnitt(e) ohne Entsprechung hier",
+      "detail": "2 Abschnitt(e) ohne Entsprechung hier",
       "external_as_of": null,
-      "external_value": "Geography; Attractions; Historical floods; Transportation",
+      "external_value": "Historical floods; Transportation",
       "field": null,
       "kind": "interwiki_section",
       "label": "enwiki",
@@ -339,5 +349,6 @@
   ],
   "scope_label": "Recherche",
   "title": "Küsnachter Dorfbach",
+  "wikidata_checked": true,
   "wikidata_item": "Q18510869"
 }
