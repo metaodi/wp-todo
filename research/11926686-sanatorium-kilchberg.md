@@ -8,13 +8,17 @@
 
 Stand der Daten: 2026-08-29
 
+## Wahrscheinlich veraltet
+
+_Kein Dokument konnte gelesen werden - der Artikel zitiert keine abrufbaren Belege, und die Suche hat nichts geliefert. Es wurde also **nichts** geprüft._
+
 ## Abweichungen gegenüber Wikidata
 
-_Keine Abweichungen gefunden._
+_Nichts zu vergleichen: kein Feld aus diese Infobox ist einer Wikidata-Eigenschaft zugeordnet. Es wurde also **nicht** geprüft, ob die Angaben übereinstimmen._
 
 ## Übereinstimmend mit Wikidata
 
-_Nichts abgeglichen._
+_Nichts zu vergleichen: kein Feld aus diese Infobox ist einer Wikidata-Eigenschaft zugeordnet. Es wurde also **nicht** geprüft, ob die Angaben übereinstimmen._
 
 ## Möglicherweise fehlend
 
@@ -31,3 +35,11 @@ _Keine prüfenswerten Angaben gefunden._
 ## Einstufung der zitierten Quellen
 
 _Der Artikel zitiert keine externen Quellen._
+
+## Recherche-Metadaten
+
+Modell `claude-opus-5`, Effort `medium` · 0 Aufruf(e) (davon 0 aus dem Cache) von höchstens 10
+
+0 Dokument(e) gelesen, 0 davon Belege des Artikels selbst, ohne Websuche
+
+[Vollständiges Protokoll](11926686-sanatorium-kilchberg.transcript.md)

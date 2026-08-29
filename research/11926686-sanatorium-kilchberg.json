@@ -1,4 +1,18 @@
 {
+  "agent": {
+    "budget": 10,
+    "budget_exhausted": false,
+    "cached_calls": 0,
+    "calls": 0,
+    "documents": 0,
+    "dropped": [],
+    "effort": "medium",
+    "model": "claude-opus-5",
+    "reference_documents": 0,
+    "searched": false,
+    "transcript": "11926686-sanatorium-kilchberg.transcript.md",
+    "unexamined": []
+  },
   "claims": {
     "claims": [],
     "infobox": null,
@@ -42,12 +56,15 @@
   "compared_languages": [],
   "deltas": [],
   "edit_url": "https://de.wikipedia.org/w/index.php?title=Sanatorium_Kilchberg&action=edit",
+  "findings": [],
   "interwiki_checked": true,
   "pageid": 11926686,
   "reference_date": "2026-08-29",
   "reference_standing": [],
   "scope_label": "Recherche",
+  "section_notes": [],
   "title": "Sanatorium Kilchberg",
   "wikidata_checked": true,
+  "wikidata_comparable": 0,
   "wikidata_item": "Q50039750"
 }
