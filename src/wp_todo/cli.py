@@ -11,6 +11,7 @@ from typing import Annotated
 
 import typer
 
+from .agent import AgentOutcome
 from .cache import ResponseCache
 from .client import WikiClient
 from .config import ScopeConfig, load_scope
@@ -19,11 +20,13 @@ from .dossier import render_markdown as render_dossier_markdown
 from .dossier import slug
 from .fetch import fetch as fetch_corpus
 from .fetch import fetch_one
-from .models import Article, FetchResult, ScoreResult
+from .llm import LlmBudget, LlmClient, LlmUnavailableError
+from .models import Article, Dossier, FetchResult, ScoreResult
 from .render import render_json, render_markdown
 from .research import foreign_clients, research_article
 from .score import score_corpus
 from .sources import SourceVerdictError, format_entry, load_ledger, make_verdict
+from .transcript import render_transcript
 from .webclient import WebClient
 
 log = logging.getLogger(__name__)
@@ -73,6 +76,21 @@ def _web_client(scope: ScopeConfig, cache: ResponseCache, dry_run: bool, referen
         max_bytes=scope.research.max_doc_bytes,
         respect_robots=scope.research.respect_robots,
         reference_date=reference,
+    )
+
+
+def _llm_client(scope: ScopeConfig, cache: ResponseCache, dry_run: bool) -> LlmClient:
+    """The model, on the same cache and the same budget discipline as the rest.
+
+    Built only when `--agent` was passed. Everything else in this file runs
+    without it and costs nothing.
+    """
+    return LlmClient(
+        model=scope.research.model,
+        effort=scope.research.effort,
+        cache=cache,
+        budget=LlmBudget(limit=scope.research.max_llm_calls),
+        dry_run=dry_run,
     )
 
 
@@ -197,6 +215,13 @@ def research(
     corpus_only: Annotated[
         bool, typer.Option("--corpus-only", help="Never fetch; require the article in the corpus")
     ] = False,
+    agent: Annotated[
+        bool,
+        typer.Option(
+            "--agent",
+            help="Also ask a language model. Costs money; writes a transcript beside the dossier.",
+        ),
+    ] = False,
     refresh: RefreshOpt = False,
     dry_run: DryRunOpt = False,
     verbose: VerboseOpt = False,
@@ -210,6 +235,11 @@ def research(
     The article is taken from the fetched corpus when it is there, and fetched
     on its own when it is not. So this works on any dewiki title, with or
     without a corpus: researching one page should not cost a whole worklist.
+
+    Without `--agent` no model is consulted and the run is free. With it, the
+    article's own references are read first and an open web search happens only
+    for what they could not answer; every exchange lands in a transcript
+    committed next to the dossier.
     """
     _setup_logging(verbose)
     scope = _load(config)
@@ -246,6 +276,13 @@ def research(
                 _suggest_titles(stored, title)
             raise typer.Exit(2)
 
+        llm = _llm_client(scope, cache, dry_run) if agent else None
+        if llm is not None:
+            typer.echo(
+                f"--agent: up to {llm.budget.limit} call(s) to {llm.model}. "
+                "The article's own references are read first; the open web only after."
+            )
+
         with (
             _web_client(scope, cache, dry_run, fetched.reference_date) as web,
             ExitStack() as stack,
@@ -253,7 +290,11 @@ def research(
             foreign = foreign_clients(scope, wiki)
             for client in foreign.values():
                 stack.enter_context(client)
-            built = research_article(article, fetched, scope, wiki, web, foreign, ledger)
+            try:
+                built, outcome = research_article(article, fetched, scope, wiki, web, foreign, ledger, llm)
+            except LlmUnavailableError as exc:
+                typer.secho(str(exc), fg="red", err=True)
+                raise typer.Exit(2) from exc
             requests = (
                 wiki.stats.requests + web.stats.requests + sum(c.stats.requests for c in foreign.values())
             )
@@ -261,14 +302,25 @@ def research(
     if dry_run:
         return
 
-    out.mkdir(parents=True, exist_ok=True)
+    built = write_dossier(out, built, outcome)
     stem = f"{built.pageid}-{slug(built.title)}"
-    (out / f"{stem}.md").write_text(render_dossier_markdown(built), encoding="utf-8")
-    (out / f"{stem}.json").write_text(render_dossier_json(built), encoding="utf-8")
     typer.echo(
         f"wrote {out / f'{stem}.md'} — {len(built.claims.claims)} dated claim(s), "
         f"{len(built.deltas)} comparison(s), {requests} request(s)"
     )
+    if built.agent is not None:
+        run = built.agent
+        typer.echo(
+            f"agent: {len(built.findings)} finding(s) from {run.calls} call(s) "
+            f"({run.cached_calls} replayed), {len(run.dropped)} answer(s) rejected by the checks"
+        )
+        if run.budget_exhausted:
+            typer.secho(
+                f"the budget of {run.budget} call(s) ran out before every claim was examined; "
+                "the dossier says so, and --config can raise research.max_llm_calls",
+                fg="yellow",
+                err=True,
+            )
 
 
 sources_app = typer.Typer(
@@ -375,6 +427,29 @@ def _suggest_titles(fetched: FetchResult, title: str) -> None:
     close += [t for t in titles if title.casefold() in t.casefold() and t not in close]
     if close:
         typer.secho("did you mean: " + ", ".join(close[:5]), fg="yellow", err=True)
+
+
+def write_dossier(out: Path, built: Dossier, outcome: AgentOutcome | None) -> Dossier:
+    """Write the dossier, and the transcript beside it when the agent ran.
+
+    The transcript goes first, because the dossier links to it. A link to a
+    file that is not there yet is the kind of small lie this project has spent
+    a lot of effort not telling - and the returned dossier is the one carrying
+    that link, so the markdown and the JSON say the same thing.
+    """
+    out.mkdir(parents=True, exist_ok=True)
+    stem = f"{built.pageid}-{slug(built.title)}"
+
+    if outcome is not None and outcome.run is not None:
+        transcript = out / f"{stem}.transcript.md"
+        transcript.write_text(render_transcript(built, outcome), encoding="utf-8")
+        built = built.model_copy(
+            update={"agent": outcome.run.model_copy(update={"transcript": transcript.name})}
+        )
+
+    (out / f"{stem}.md").write_text(render_dossier_markdown(built), encoding="utf-8")
+    (out / f"{stem}.json").write_text(render_dossier_json(built), encoding="utf-8")
+    return built
 
 
 def write_outputs(result: ScoreResult, scope: ScopeConfig, out: Path) -> None:

@@ -195,3 +195,24 @@ class TestWorkflowSafety:
         text = WORKFLOW.read_text(encoding="utf-8")
         assert "permissions:\n  contents: write" in text
         assert "pull-requests:" not in text
+
+    def test_the_agent_is_off_unless_somebody_asks_for_it(self) -> None:
+        """A dispatch that costs money must be a decision, not a default."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        agent_input = text.split("      agent:", 1)[1].split("\nconcurrency", 1)[0]
+        assert "default: false" in agent_input
+
+    def test_a_missing_api_key_stops_the_run_rather_than_quietly_doing_less(self) -> None:
+        """Without the secret the CLI would fall over somewhere further in, or
+        worse, produce a dossier that looks complete. An unset secret is an
+        empty string, so the check has to be for emptiness."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert 'if [ -z "${ANTHROPIC_API_KEY:-}" ]' in text
+        assert "::error::the agent was requested but ANTHROPIC_API_KEY is not set" in text
+
+    def test_the_transcript_is_not_mistaken_for_the_dossier(self) -> None:
+        """`research/*.md` matches the transcript too, and the transcript is
+        written first - so mtime order alone would publish the wrong file to
+        the job summary."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert "grep -v '\\.transcript\\.md$'" in text

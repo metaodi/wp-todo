@@ -74,7 +74,7 @@ def build(
             reference_date=corpus.reference_date,
         ) as web,
     ):
-        return research_article(article, corpus, config, wiki, web, None, ledger)
+        return research_article(article, corpus, config, wiki, web, None, ledger)[0]
 
 
 def test_the_dossier_leads_with_what_it_is_not(
