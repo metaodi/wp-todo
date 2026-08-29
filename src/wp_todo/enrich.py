@@ -62,8 +62,6 @@ COMPARE_LANGUAGES = ("en", "fr", "it")
 #: Swiss thousands separators: the ASCII apostrophe and U+2019, both used.
 _NUMBER = re.compile(r"-?\d[\d'\u2019., \xa0]*")
 _YEAR = re.compile(r"\b(?:19|20)\d{2}\b")
-#: Section headings that exist to hold apparatus rather than content. A dewiki
-#: article "missing" an Einzelnachweise section is not missing anything.
 #: Headings that mean the same thing in the languages we compare.
 #:
 #: Without this the comparison is worthless, and confidently so: it reported 27
@@ -153,6 +151,8 @@ HEADING_EQUIVALENTS: dict[str, str] = {
     "religione": "religion",
 }
 
+#: Headings that hold apparatus rather than content. A dewiki article "missing"
+#: an Einzelnachweise section is not missing anything.
 BOILERPLATE_SECTIONS = frozenset(
     {
         "einzelnachweise",
@@ -183,7 +183,7 @@ BOILERPLATE_SECTIONS = frozenset(
 
 def wikidata_deltas(
     claims: ArticleClaims, item_id: str | None, web: WebClient
-) -> tuple[tuple[Delta, ...], bool]:
+) -> tuple[tuple[Delta, ...], bool, int]:
     """Compare the article's infobox claims against the item's statements.
 
     Returns the deltas *and whether the statements were actually retrieved*.
@@ -193,19 +193,21 @@ def wikidata_deltas(
     false. See `docs/api-notes.md` §8 for the run where exactly that happened.
     """
     if not item_id:
-        return (), False
+        return (), False, 0
 
     statements = _statements(item_id, web)
     if not statements:
-        return (), False
+        return (), False, 0
 
     deltas: list[Delta] = []
+    comparable = 0
     for claim in claims.claims:
         if claim.kind != "infobox_field" or claim.field is None:
             continue
         prop = PROPERTY_FOR_FIELD.get(claim.field)
         if prop is None:
             continue
+        comparable += 1
         best = _preferred_statement(statements.get(prop, []))
         if best is None:
             continue
@@ -224,7 +226,7 @@ def wikidata_deltas(
                 agrees=_same(claim.asserted_value, value),
             )
         )
-    return tuple(sorted(deltas, key=lambda d: (d.agrees, d.field or "", d.label))), True
+    return tuple(sorted(deltas, key=lambda d: (d.agrees, d.field or "", d.label))), True, comparable
 
 
 def interwiki_deltas(
@@ -388,18 +390,37 @@ def _qualifier_year(qualifiers: Any) -> int | None:
 def _same(article_value: str | None, external_value: str) -> bool:
     """Do these two say the same thing?
 
-    Compared numerically when both sides are numbers, because `7.79`, `7,79`
-    and `7.79 km²` are the same area written three ways; otherwise on a
-    normalised string, because `www.adliswil.ch` and `https://www.adliswil.ch/`
-    are the same website.
+    Numbers are compared **at the precision the article states**, and strings on
+    a normalised form: `7,79` and `7.79 km²` are one area written two ways, and
+    `www.adliswil.ch` and `https://www.adliswil.ch/` are one website.
+
+    Precision rather than a tolerance band, because a band swallows exactly the
+    findings this exists to surface. A 0.5% band called Adliswil's `7.79` equal
+    to Wikidata's `7.77` and filed it under "probably current" - a real
+    discrepancy, reported as reassurance. Rounding Wikidata's value to the
+    article's decimal places keeps `7.79` vs `7.7912` equal, which is right (the
+    article is less precise, not wrong) while `7.79` vs `7.77` differs, which is
+    also right.
     """
     if article_value is None:
         return False
     ours, theirs = _number(article_value), _number(external_value)
     if ours is not None and theirs is not None:
-        scale = max(abs(ours), abs(theirs), 1.0)
-        return abs(ours - theirs) / scale < 0.005
+        places = _decimals(article_value)
+        return round(ours, places) == round(theirs, places)
     return _normalise_text(article_value) == _normalise_text(external_value)
+
+
+def _decimals(text: str) -> int:
+    """How many decimal places the article commits to."""
+    found = _NUMBER.search(text)
+    if found is None:
+        return 0
+    cleaned = re.sub(r"['\u2019 \xa0]", "", found.group(0).strip())
+    if cleaned.count(",") == 1 and cleaned.count(".") == 0:
+        cleaned = cleaned.replace(",", ".")
+    _, _, fraction = cleaned.partition(".")
+    return len(fraction.strip())
 
 
 def _number(text: str) -> float | None:
