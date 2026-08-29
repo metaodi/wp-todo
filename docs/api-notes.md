@@ -14,7 +14,7 @@ run 3 (probes P1–P7) and run 4 (P8) unless stated.
 | `LIVE` | Observed in a recorded response |
 | `OPEN` | Still unverified — do not build on it |
 
-Tally: **34 `LIVE`**, 6 `OPEN`.
+Tally: **35 `LIVE`**, 5 `OPEN`.
 
 ---
 
@@ -38,8 +38,15 @@ Tally: **34 `LIVE`**, 6 `OPEN`.
    available."* Two runs of the identical query reported **24 175** and
    **20 029** total hits, taking 18.9 s and 23.8 s. Anything built on it
    breaks the determinism requirement outright.
-4. **`{{Zukunft}}` is a dead signal.** `Kategorie:Wikipedia:Zukunft` exists but
-   has **0 members**. Drop it, or find what dewiki actually uses.
+4. **`{{Zukunft}}` categorises somewhere else entirely.**
+   `Kategorie:Wikipedia:Zukunft` exists but has **0 members** — yet the template
+   is in active use. Found while building the fetch stage: dewiki writes
+   `{{Zukunft|YYYY|MM}}` ("goes stale after that month"), and *that* is what
+   populates the `Veraltet nach <Monat> <Jahr>` categories. Confirmed on
+   *Küsnachter Dorfbach*, which carries `{{Zukunft|2025|05}}` and sits in
+   `Kategorie:Wikipedia:Veraltet nach Mai 2025` with no `{{Veraltet}}` anywhere
+   in its wikitext. Watching for the category name alone would have worked;
+   watching for the template name would have found nothing.
 5. **A `maxlag` violation comes back as HTTP 200, with no `Retry-After`.**
    Observed twice (`maxlag=-1`, `maxlag=0`): status 200, body
    `{"error":{"code":"maxlag","info":"Waiting for 10.64.0.50: 0.538996 seconds lagged.","lag":...}}`.
@@ -110,7 +117,7 @@ Verified names and sizes (`prop=categoryinfo`, whole wiki):
 | `Kategorie:Wikipedia:Veraltet seit 2024` | yes | **NO** | 149 |
 | `Kategorie:Wikipedia:Veraltet seit 2025` | yes | `OPEN` | 123 |
 | `Kategorie:Wikipedia:Veraltet nach Mai 2025` | yes | yes | 17 |
-| `Kategorie:Wikipedia:Zukunft` | yes | — | **0** |
+| `Kategorie:Wikipedia:Zukunft` | yes | — | **0** (see headline 4) |
 | `Kategorie:Wikipedia:Defekter Weblink` | **no** | — | — |
 
 **Three dated `Veraltet` families exist**, all seen in the wild:
@@ -223,13 +230,18 @@ an unfilled contact placeholder.
    whole `seit` family may be visible; fetching unfiltered categories makes it
    moot.)
 2. Why `hastemplate:Veraltet` reports 4× the members of the category.
-3. What dewiki uses in place of the empty `Kategorie:Wikipedia:Zukunft`.
 4. `deepcat:` depth/category caps in practice.
 5. AQS 2.0 base path (not needed while `rest_v1` works).
 6. Genuine-lag `maxlag` behaviour, and pageview data recency.
 
-None blocks the first milestone. Items 1–3 are worth one more probe run before
+None blocks the first milestone. Items 1–2 are worth one more probe run before
 the scoring weights are finalised.
+
+### Answered since
+
+- **What dewiki uses instead of `Kategorie:Wikipedia:Zukunft`**: `{{Zukunft|YYYY|MM}}`,
+  which populates the `Veraltet nach <Monat> <Jahr>` families. See headline 4.
+  `wp-todo` parses the template directly and dates its overdue bonus from it.
 
 ## Re-verifying
 
