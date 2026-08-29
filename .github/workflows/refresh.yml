@@ -23,15 +23,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      # setup-uv publishes no moving major tag past v7; pin the exact release.
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
       - run: uv sync --frozen --dev
 
       # Reuse the HTTP cache between runs so a re-run is cheap for the API.
       - name: Restore response cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: cache/http
           key: wp-todo-http-${{ github.run_id }}
