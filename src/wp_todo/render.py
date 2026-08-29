@@ -5,13 +5,24 @@ from __future__ import annotations
 
 import json
 from collections.abc import Sequence
+from pathlib import Path
 
+from .dossier import slug
 from .models import ScoredArticle, ScoreResult
 
 MAX_REASONS = 3
 
 
-def render_markdown(result: ScoreResult, *, label_order: Sequence[str] = ()) -> str:
+def render_markdown(
+    result: ScoreResult, *, label_order: Sequence[str] = (), research_dir: Path | None = None
+) -> str:
+    """The worklist.
+
+    `research_dir` adds a link to an article's dossier on the rows that have
+    one. Passing None reproduces the artefact exactly as it was before dossiers
+    existed, which is what keeps the change to rule 3 honest: the link column is
+    a function of what is committed under `research/`, and nothing else.
+    """
     groups: dict[str, list[ScoredArticle]] = {}
     for article in result.articles:
         groups.setdefault(article.scope_label, []).append(article)
@@ -51,7 +62,7 @@ def render_markdown(result: ScoreResult, *, label_order: Sequence[str] = ()) -> 
         for article in scored:
             lines.append(
                 "| [{title}](https://de.wikipedia.org/wiki/{link}) | {score} | {reasons} "
-                "| {edit} | {views} | [bearbeiten]({url}) |".format(
+                "| {edit} | {views} | [bearbeiten]({url}){research} |".format(
                     title=_escape(article.title) + ("&nbsp;·" if article.provisional else ""),
                     link=article.title.replace(" ", "_"),
                     score=_number(article.score),
@@ -59,6 +70,7 @@ def render_markdown(result: ScoreResult, *, label_order: Sequence[str] = ()) -> 
                     edit=article.last_substantive_edit.isoformat() if article.last_substantive_edit else "—",
                     views=article.monthly_pageviews if article.monthly_pageviews is not None else "—",
                     url=article.edit_url,
+                    research=_research_link(article, research_dir),
                 )
             )
         lines.append("")
@@ -68,6 +80,22 @@ def render_markdown(result: ScoreResult, *, label_order: Sequence[str] = ()) -> 
 def render_json(result: ScoreResult) -> str:
     payload = result.model_dump(mode="json")
     return json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+
+
+def _research_link(article: ScoredArticle, research_dir: Path | None) -> str:
+    """A link to the dossier, when one has been committed for this article.
+
+    The path is built from `dossier.slug` rather than reimplemented, so the two
+    sides cannot drift apart and produce a link to a file that is right there
+    under a slightly different name.
+    """
+    if research_dir is None:
+        return ""
+    stem = f"{article.pageid}-{slug(article.title)}"
+    if not (research_dir / f"{stem}.md").exists():
+        return ""
+    # Relative to out/todo.md, which is where this is rendered.
+    return f" · [Recherche](../{research_dir.name}/{stem}.md)"
 
 
 def _reasons(article: ScoredArticle) -> str:

@@ -53,6 +53,45 @@ def fetch(config: ScopeConfig, client: WikiClient, *, limit: int | None = None) 
     )
 
 
+def fetch_one(config: ScopeConfig, client: WikiClient, title: str) -> FetchResult:
+    """Fetch exactly one article, by title, without discovering anything.
+
+    The research stage needs an article, not a worklist, and building a whole
+    corpus to look at one page costs about 1 600 requests. This is the same
+    enrichment the full fetch applies, minus discovery: roughly five requests.
+
+    An empty `articles` means no such mainspace article - `_article_from_page`
+    already returns None for `missing` and for other namespaces, so a typo or a
+    `Kategorie:` prefix lands here rather than producing an empty dossier.
+
+    Two things `fetch()` does are deliberately skipped:
+
+    * **Exclusions.** They exist to keep lists and disambiguation pages out of a
+      *discovered* worklist. A title somebody typed was not discovered, and
+      dropping it because it matches `exclude.title_patterns` would answer a
+      different question than the one asked.
+    * **The detail budget.** One article is always worth detailing.
+    """
+    reference_date = _server_date(client)
+    start, end = pageview_window(reference_date, config.scoring.pageviews.months)
+
+    articles = list(_pages_by_title([title], client, "Recherche", "page"))
+    if not articles:
+        return FetchResult(reference_date=reference_date, pageviews_start=start, pageviews_end=end)
+
+    articles = _add_wikitext(articles, client)
+    articles = [_add_history(article, client, config) for article in articles]
+    articles = [_add_pageviews(article, client, config, start, end) for article in articles]
+
+    return FetchResult(
+        reference_date=reference_date,
+        pageviews_start=start,
+        pageviews_end=end,
+        bot_accounts=_bot_accounts(client),
+        articles=tuple(articles),
+    )
+
+
 # ------------------------------------------------------------------ discovery
 def _discover(config: ScopeConfig, client: WikiClient) -> list[Article]:
     """Collect candidates from every scope entry, keeping the first label seen."""

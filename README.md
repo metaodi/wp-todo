@@ -29,6 +29,12 @@ Once the worklist has told you *which* article to look at, `research` tells you
 uv run wp-todo research "Küsnachter Dorfbach"   # writes research/<id>-<slug>.md
 ```
 
+Any de.wikipedia title works, in or out of the configured scope, with or without
+a fetched corpus — an article that is not in `cache/corpus.json` is fetched on
+its own, about five requests. Or run it from the browser: **Actions → Research an
+article → Run workflow**, type the title, and the dossier appears in the job
+summary and is committed to `research/`.
+
 **It still never edits.** The dossier is a briefing to read, not a draft and not
 a source — see `docs/research-policy.md`.
 
@@ -125,8 +131,9 @@ and skewed towards exactly the pages bots crawl hardest.
 It answers a different question from the worklist — not "which article", but
 "what on this one has probably gone stale, and where would I check".
 
-It reads the article out of the corpus `fetch` already wrote, and produces four
-sections:
+It takes the article from the fetched corpus when it is there and fetches it on
+its own when it is not, so any de.wikipedia title works. Four sections, plus the
+source classification below:
 
 - **Abweichungen gegenüber Wikidata** — infobox values compared against the
   item's statements, with the point-in-time qualifier on each side. A dewiki
@@ -226,6 +233,36 @@ label boundaries: `beispiel.ch` covers `www.beispiel.ch` and not
 
 After enough articles the `trust` set becomes an allowlist you actually earned,
 rather than one you guessed at up front.
+
+### Running it from GitHub
+
+`.github/workflows/research.yml`, `workflow_dispatch` only — never on a
+schedule, because this stage reads hosts that did not ask to be read.
+
+| input | default | |
+| --- | --- | --- |
+| `title` | — | the article, exactly as on de.wikipedia |
+| `refresh` | false | bypass the response cache |
+| `commit` | true | commit the dossier to `research/` |
+
+The dossier goes to the job summary (readable immediately in the browser), to a
+downloadable artifact, and — unless you turn `commit` off — into `research/` on
+the branch you dispatched from.
+
+The title is arbitrary text typed by whoever clicks the button, so it reaches
+the runner through `env:` and never as a `${{ }}` interpolation inside a shell
+script: a title of `"; rm -rf . #` would otherwise execute. That rule is stated
+with no exceptions and is enforced by a test that parses the workflow, because
+"no interpolation in a run block" is checkable by anyone while "none except the
+safe ones" needs a judgement call every time the file is edited.
+
+### Dossiers in `out/todo.md`
+
+Dossiers are committed, and a worklist row links to its own dossier when one
+exists — `[bearbeiten] · [Recherche]`. The link appears on the next weekly
+refresh rather than immediately: rendering `todo.md` needs `cache/corpus.json`,
+which is not committed, so the research workflow cannot regenerate it. The
+dossier itself lands right away; only the cross-link waits.
 
 ### Not deterministic — reproducible
 
