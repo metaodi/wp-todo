@@ -1,0 +1,160 @@
+{
+  "agent": {
+    "budget": 10,
+    "budget_exhausted": false,
+    "cached_calls": 0,
+    "calls": 4,
+    "documents": 6,
+    "dropped": [
+      {
+        "claim_id": "marker_stand_year-7eeca412",
+        "detail": "nennt Wikipedia bzw. CC-BY-SA als Quelle",
+        "gate": "circularity",
+        "url": "https://en.wikipedia.org/wiki/Park_im_Gr%C3%BCene"
+      }
+    ],
+    "effort": "medium",
+    "model": "claude-opus-5",
+    "reference_documents": 1,
+    "searched": true,
+    "transcript": "733616-park-im-grueene.transcript.md",
+    "unexamined": [
+      "marker_stand_year-7eeca412"
+    ]
+  },
+  "claims": {
+    "claims": [
+      {
+        "as_of_year": null,
+        "asserted_value": "4,5 Hektaren",
+        "field": "FLÄCHE",
+        "id": "infobox_field-5f6fe9ca",
+        "kind": "infobox_field",
+        "line_no": 9,
+        "section": null,
+        "text": "FLÄCHE = 4,5 Hektaren"
+      },
+      {
+        "as_of_year": 1933,
+        "asserted_value": null,
+        "field": null,
+        "id": "marker_stand_year-7eeca412",
+        "kind": "marker:stand_year",
+        "line_no": 31,
+        "section": "Geschichte",
+        "text": "Im Laufe der Jahre vergrösserten er und seine Ehefrau Adele Duttweiler-Bertschi das Anwesen, indem sie von der Genossenschaft Langhalden mehrere Parzellen mit Wiesen, Wald und Äckern erwarben. In mehr"
+      }
+    ],
+    "infobox": "Infobox Freizeitpark",
+    "pageid": 733616,
+    "references": {
+      "external_urls": [
+        "https://www.gdi.ch/de/ueber-uns/stiftung-und-traegerschaft",
+        "https://www.parkimgruene.ch/de/informationen/anfahrt.html"
+      ],
+      "newest_year": 2019,
+      "oldest_year": 1962,
+      "total": 12,
+      "with_year": 5
+    },
+    "sections": [
+      "Anlage",
+      "Geschichte",
+      "Galerie",
+      "Weblinks",
+      "Einzelnachweise"
+    ],
+    "title": "Park im Grüene"
+  },
+  "compared_languages": [
+    "en"
+  ],
+  "deltas": [
+    {
+      "agrees": false,
+      "article_as_of": null,
+      "article_value": null,
+      "claim_id": null,
+      "detail": "4 Abschnitt(e) ohne Entsprechung hier",
+      "external_as_of": null,
+      "external_value": "Location; Name; Points of interest; Literature",
+      "field": null,
+      "kind": "interwiki_section",
+      "label": "enwiki",
+      "source": "https://en.wikipedia.org/wiki/Park_im_Grüene"
+    }
+  ],
+  "edit_url": "https://de.wikipedia.org/w/index.php?title=Park_im_Grüene&action=edit",
+  "findings": [],
+  "interwiki_checked": true,
+  "pageid": 733616,
+  "reference_date": "2026-08-29",
+  "reference_standing": [
+    {
+      "decided": null,
+      "host": "www.gdi.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.parkimgruene.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    }
+  ],
+  "scope_label": "Recherche",
+  "section_notes": [
+    {
+      "bullets": [
+        "Literaturangabe zu einem Titel: 'Gartenbiografien: Orte erzählen'",
+        "Verlag vdf Hochschulverlag AG, ETH Zürich, Zürich 2013, mit ISBN-Angabe"
+      ],
+      "heading": "Literature",
+      "lang": "en",
+      "source": "https://en.wikipedia.org/wiki/Park_im_Grüene#Literature"
+    },
+    {
+      "bullets": [
+        "Lage des Parks in der Gemeinde Rüschlikon, Kanton Zürich, auf dem nördlichen Zimmerberg-Plateau",
+        "Aussicht auf Zürichsee und Sihltal",
+        "Anbindung mit öffentlichem Verkehr: VBZ-Buslinie 165 ab Bürkliplatz Zürich und Arboretum Zürich bis Haltestelle 'Belvoir'; S-Bahn Zürich Linie S8 zum Bahnhof Rüschlikon"
+      ],
+      "heading": "Location",
+      "lang": "en",
+      "source": "https://en.wikipedia.org/wiki/Park_im_Grüene#Location"
+    },
+    {
+      "bullets": [
+        "Erklärung des schweizerdeutschen Parknamens, wörtlich 'Park im Grünen'",
+        "Verbreiteter Übername 'Dutti-Park', abgeleitet vom Spitznamen Gottlieb Duttweilers"
+      ],
+      "heading": "Name",
+      "lang": "en",
+      "source": "https://en.wikipedia.org/wiki/Park_im_Grüene#Name"
+    },
+    {
+      "bullets": [
+        "Einrichtungen im Park: Restaurant, Badeanlage, Duttweiler-Museum",
+        "Grosse Rasenflächen und weitläufiger Kinderspielplatz",
+        "Sommerangebote: Puppentheater, Eselreiten, Spielzeugeisenbahn, Wasserspiel sowie verschiedene Kulturveranstaltungen",
+        "Belege: badi-info.ch und migros-kulturprozent.ch (Zugriff 2015)"
+      ],
+      "heading": "Points of interest",
+      "lang": "en",
+      "source": "https://en.wikipedia.org/wiki/Park_im_Grüene#Points_of_interest"
+    }
+  ],
+  "title": "Park im Grüene",
+  "wikidata_checked": true,
+  "wikidata_comparable": 1,
+  "wikidata_item": "Q1729273"
+}
