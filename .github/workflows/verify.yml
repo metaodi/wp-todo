@@ -123,8 +123,16 @@ jobs:
               exit 0
             fi
             git commit -m "test: re-record API fixtures from the live API"
-            git push origin HEAD:"${{ github.ref_name }}"
-            exit 0
+            for attempt in 1 2 3 4; do
+              if git push origin HEAD:"${{ github.ref_name }}"; then
+                exit 0
+              fi
+              echo "push failed (attempt ${attempt}), refreshing and retrying"
+              sleep $((2 ** attempt))
+              git pull --rebase origin "${{ github.ref_name }}" || true
+            done
+            echo "::error::could not push re-recorded fixtures"
+            exit 1
           fi
 
           git add -f docs/phase0-probe-summary.md

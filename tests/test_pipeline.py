@@ -154,3 +154,41 @@ def test_scores_do_not_move_between_runs_in_the_same_month(scope: ScopeConfig, c
     early = corpus.model_copy(update={"reference_date": dt.date(2026, 8, 3)})
     late = corpus.model_copy(update={"reference_date": dt.date(2026, 8, 27)})
     assert render_markdown(score_corpus(early, scope)) == render_markdown(score_corpus(late, scope))
+
+
+def test_detail_budget_limits_the_expensive_requests(scope: ScopeConfig) -> None:
+    """Discovery is one request per tile; detail is ~2 per article. The budget
+    decides how many articles get the expensive treatment."""
+    tight = scope.model_copy(update={"fetch": scope.fetch.model_copy(update={"detail_top_n": 3})})
+    with WikiClient(meta=tight.meta, cache=ResponseCache(FIXTURES / "http"), offline=True) as client:
+        corpus = fetch(tight, client)
+
+    detailed = [a for a in corpus.articles if a.detailed]
+    assert len(detailed) == 3
+    assert all(a.wikitext for a in detailed)
+    # The rest keep their discovery data and nothing more.
+    for article in corpus.articles:
+        if not article.detailed:
+            assert article.wikitext is None
+            assert article.pageviews is None
+            assert len(article.revisions) <= 1
+
+
+def test_detail_budget_keeps_the_strongest_candidates(scope: ScopeConfig) -> None:
+    """The article the acceptance test relies on must survive a tight budget:
+    it is exactly the kind of article the budget exists to prioritise."""
+    tight = scope.model_copy(update={"fetch": scope.fetch.model_copy(update={"detail_top_n": 3})})
+    with WikiClient(meta=tight.meta, cache=ResponseCache(FIXTURES / "http"), offline=True) as client:
+        corpus = fetch(tight, client)
+    detailed = {a.title for a in corpus.articles if a.detailed}
+    assert "Küsnachter Dorfbach" in detailed
+
+
+def test_provisional_articles_are_flagged_in_both_artefacts(scope: ScopeConfig) -> None:
+    tight = scope.model_copy(update={"fetch": scope.fetch.model_copy(update={"detail_top_n": 3})})
+    with WikiClient(meta=tight.meta, cache=ResponseCache(FIXTURES / "http"), offline=True) as client:
+        result = score_corpus(fetch(tight, client), tight)
+    markdown = render_markdown(result)
+    assert "vorläufig" in markdown
+    payload = json.loads(render_json(result))
+    assert any(a["provisional"] for a in payload["articles"])

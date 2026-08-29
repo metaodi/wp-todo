@@ -22,8 +22,13 @@ an allowlist. Do not widen that allowlist.
   the body, and no `Retry-After` header (verified — see `docs/api-notes.md`).
   Always inspect the body for `error.code`; never branch on status alone.
 - Requests are serialised per host with a small delay. No parallel hammering.
+  `http.delay_s` is the hard ceiling on the request rate; the pageviews REST
+  endpoint goes through the same path as the action API, not around it.
+- A per-run request budget (`http.max_requests`) stops the run rather than
+  letting a scope change become an unbounded crawl.
 - Responses are cached on disk. A development rerun must not re-hit the API
-  unless `--refresh` is passed.
+  unless `--refresh` is passed. Batched title queries are cached per title, so
+  changing the scope does not invalidate whole batches.
 
 ## 3. Output must be deterministic
 

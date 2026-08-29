@@ -26,7 +26,7 @@ user_agent_product = "wp-todo-tests"
 
 [scoring]
 history_depth = 25
-edit_age_weight = 40.0
+edit_age_weight = 20.0
 edit_age_half_life_days = 900.0
 substantive_min_bytes = 100
 veraltet_seit_bonus_per_year = 3.0
@@ -54,14 +54,6 @@ code = "stand_year"
 pattern = 'Stand:?\s*(?:[A-Za-zä.]+\s+)?(?P<year>(?:19|20)\d{2})'
 max_age_years = 3
 weight = 12.0
-requires_year = true
-year_window = 60
-
-[[scoring.markers]]
-code = "seit_year"
-pattern = 'seit\s+(?P<year>(?:19|20)\d{2})'
-max_age_years = 8
-weight = 6.0
 requires_year = true
 year_window = 60
 

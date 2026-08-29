@@ -267,3 +267,30 @@ def test_ranking_is_stable_for_tied_scores() -> None:
     second = score_corpus(corpus(*reversed(articles)), scope())
     assert [a.title for a in first.articles] == [a.title for a in second.articles]
     assert [a.title for a in first.articles] == ["Adliswil", "Meilen", "Zürich"]
+
+
+def test_provisional_score_is_a_lower_bound() -> None:
+    """The detail budget ranks on discovery data alone, so that ranking must
+    never overstate an article's real score."""
+    from wp_todo.score import provisional_score
+
+    detailed = article(
+        categories=("Kategorie:Wikipedia:Belege fehlen",),
+        wikitext="Stand: 2005 war das so. {{Veraltet|seit=2019}}",
+        pageviews={"202601": 9000},
+        revisions=(
+            revision(5, size=5000, user="Xqbot"),
+            revision(2000, size=4000, user="Mensch"),
+            revision(2100, size=1000, user="Mensch"),
+        ),
+    )
+    lower = provisional_score(detailed, REFERENCE, scope().scoring)
+    full = score_corpus(corpus(detailed), scope()).articles[0].score
+    assert lower <= full
+
+
+def test_provisional_articles_are_marked_and_explained() -> None:
+    undetailed = article(revisions=(revision(1500, size=5000),), detailed=False)
+    scored = score_corpus(corpus(undetailed), scope()).articles[0]
+    assert scored.provisional is True
+    assert any(r.code == "provisional" for r in scored.reasons)

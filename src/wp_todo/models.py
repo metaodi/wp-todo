@@ -61,6 +61,8 @@ class Article(Strict):
     wikitext: str | None = None
     #: month (YYYYMM) -> views. None means the endpoint had no data.
     pageviews: dict[str, int] | None = None
+    #: False when the article was left at discovery detail - see FetchConfig.
+    detailed: bool = True
 
     @property
     def latest_revision(self) -> Revision | None:
@@ -108,6 +110,8 @@ class ScoredArticle(Strict):
     last_substantive_edit_days: int | None = None
     last_edit: dt.date | None = None
     monthly_pageviews: int | None = None
+    #: True when only discovery data was available, so the score is a lower bound.
+    provisional: bool = False
     edit_url: str = ""
 
 

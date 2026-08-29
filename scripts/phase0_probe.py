@@ -596,6 +596,69 @@ def p8_hidden_flag() -> Any:
     return out
 
 
+# ------------------------------------- P9 the OPEN items left in the notes
+def p9_open_items() -> Any:
+    """Closes the questions docs/api-notes.md still lists as OPEN."""
+    out: dict[str, Any] = {}
+
+    # (1) Is the whole "Veraltet seit YYYY" family non-hidden, or just 2024?
+    years = [f"Kategorie:Wikipedia:Veraltet seit {y}" for y in range(2018, 2027)]
+    out["seit_family_hidden"] = get(
+        q(action="query", titles="|".join(years), prop="categoryinfo"),
+        note="hidden flag and member count for the whole seit family",
+    )
+    nach = [
+        "Kategorie:Wikipedia:Veraltet nach Jahr 2024",
+        "Kategorie:Wikipedia:Veraltet nach Jahr 2026",
+        "Kategorie:Wikipedia:Veraltet in über fünf Jahren",
+        "Kategorie:Wikipedia:Veraltet in zwei bis drei Jahren",
+    ]
+    out["nach_family_hidden"] = get(
+        q(action="query", titles="|".join(nach), prop="categoryinfo"), note="the other dated families"
+    )
+
+    # (2) Why does hastemplate:Veraltet report ~4x the category's membership?
+    for name, params in {
+        "hastemplate_all_ns": dict(srsearch="hastemplate:Veraltet"),
+        "hastemplate_ns0": dict(srsearch="hastemplate:Veraltet", srnamespace=0),
+        "incategory_veraltet": dict(srsearch='incategory:"Wikipedia:Veraltet"', srnamespace=0),
+        "insource_veraltet": dict(srsearch='insource:"{{Veraltet"', srnamespace=0),
+    }.items():
+        out[name] = get(q(action="query", list="search", srlimit=1, srinfo="totalhits", **params), note=name)
+    out["veraltet_transclusions"] = get(
+        q(action="query", prop="transcludedin", titles="Vorlage:Veraltet", tinamespace=0, tilimit=1),
+        note="what actually transcludes the template",
+    )
+    out["veraltet_redirects"] = get(
+        q(action="query", prop="redirects", titles="Vorlage:Veraltet", rdlimit="max"),
+        note="template redirects would inflate hastemplate",
+    )
+
+    # (3) deepcat caps in practice: does a wide tree warn, or silently truncate?
+    for name, srsearch in {
+        "deepcat_small": 'deepcat:"Bezirk Horgen"',
+        "deepcat_wide": 'deepcat:"Kanton Zürich"',
+        "deepcat_very_wide": 'deepcat:"Schweiz"',
+    }.items():
+        out[name] = get(
+            q(action="query", list="search", srsearch=srsearch, srlimit=1, srinfo="totalhits"), note=srsearch
+        )
+
+    # (5) How recent is the most recent complete month of pageview data?
+    today = time.gmtime()
+    out["pageviews_recency"] = get(
+        f"{PAGEVIEWS}/de.wikipedia.org/all-access/user/Thalwil/monthly/"
+        f"{today.tm_year - 1:04d}{today.tm_mon:02d}01/{today.tm_year:04d}{today.tm_mon:02d}01",
+        note="window ending in the current month; see which months actually come back",
+    )
+    out["pageviews_daily_recency"] = get(
+        f"{PAGEVIEWS}/de.wikipedia.org/all-access/user/Thalwil/daily/"
+        f"{today.tm_year:04d}{today.tm_mon:02d}01/{today.tm_year:04d}{today.tm_mon:02d}28",
+        note="daily granularity shows the true data lag",
+    )
+    return out
+
+
 PROBES = {
     "P1": ("geosearch generator limits, prop combination, continuation", p1_geosearch),
     "P2": ("hidden maintenance categories in the Bezirk Horgen area", p2_hidden_categories),
@@ -605,6 +668,7 @@ PROBES = {
     "P6": ("User-Agent policy, maxlag on reads, paraminfo limits", p6_etiquette),
     "P7": ("follow-ups: Veraltet seit=, hastemplate, continuation keys, maxlag status", p7_followups),
     "P8": ("are the dated Veraltet categories hidden categories?", p8_hidden_flag),
+    "P9": ("the OPEN items still listed in docs/api-notes.md", p9_open_items),
 }
 
 
@@ -832,6 +896,55 @@ def summarize(raw: dict[str, Any]) -> str:
         add("| --- | --- | --- |")
         for title, cmp in (p8.get("per_page_comparison") or {}).items():
             add(f"| {title} | `{cmp['veraltet_when_hidden_only']}` | `{cmp['veraltet_in_all_categories']}` |")
+        add("")
+
+    # -- P9
+    p9 = dig(probes, "P9", "result", default={})
+    if p9:
+        add("## P9 — the remaining OPEN items")
+        add("")
+        add("### Are the dated Veraltet categories hidden?")
+        add("")
+        add("| category | exists | hidden | members |")
+        add("| --- | --- | --- | --- |")
+        for key in ("seit_family_hidden", "nach_family_hidden"):
+            for page in pages_of(p9.get(key, {})):
+                info = page.get("categoryinfo") or {}
+                add(
+                    f"| `{page.get('title')}` | {'no' if page.get('missing') else 'yes'} "
+                    f"| {'yes' if info.get('hidden') else '**NO**'} | {info.get('pages', '-')} |"
+                )
+        add("")
+        add("### Why hastemplate reports more than the category")
+        add("")
+        add("| query | totalhits |")
+        add("| --- | --- |")
+        for key in ("hastemplate_all_ns", "hastemplate_ns0", "incategory_veraltet", "insource_veraltet"):
+            hits = dig(p9.get(key, {}), "body", "query", "searchinfo", "totalhits", default="-")
+            add(f"| `{key}` | {hits} |")
+        redirects = dig(
+            p9.get("veraltet_redirects", {}), "body", "query", "pages", 0, "redirects", default=[]
+        )
+        add("")
+        add(f"- redirects to `Vorlage:Veraltet`: {len(redirects or [])}")
+        for red in (redirects or [])[:10]:
+            add(f"  - `{red.get('title')}`")
+        add("")
+        add("### deepcat on progressively wider trees")
+        add("")
+        add("| query | result | totalhits |")
+        add("| --- | --- | --- |")
+        for key in ("deepcat_small", "deepcat_wide", "deepcat_very_wide"):
+            resp = p9.get(key)
+            hits = dig(resp, "body", "query", "searchinfo", "totalhits", default="-")
+            add(f"| `{key}` | {_row(resp)} | {hits} |")
+        add("")
+        add("### Pageview data recency")
+        add("")
+        for key in ("pageviews_recency", "pageviews_daily_recency"):
+            items = dig(p9.get(key, {}), "body", "items", default=[]) or []
+            last = items[-1].get("timestamp") if items else "-"
+            add(f"- `{key}`: {len(items)} points, most recent `{last}`")
         add("")
 
     add("---")

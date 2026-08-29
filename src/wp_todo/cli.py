@@ -33,6 +33,21 @@ DEFAULT_OUT = Path("out")
 DEFAULT_CACHE = Path("cache/http")
 
 
+def _client(scope: ScopeConfig, cache: ResponseCache, dry_run: bool) -> WikiClient:
+    """One place where the politeness settings reach the client."""
+    return WikiClient(
+        meta=scope.meta,
+        cache=cache,
+        dry_run=dry_run,
+        delay_s=scope.http.delay_s,
+        max_retries=scope.http.max_retries,
+        maxlag=scope.http.maxlag,
+        timeout_s=scope.http.timeout_s,
+        max_requests=scope.http.max_requests,
+        progress_every=scope.http.progress_every,
+    )
+
+
 def _setup_logging(verbose: bool) -> None:
     logging.basicConfig(
         level=logging.DEBUG if verbose else logging.INFO,
@@ -62,7 +77,7 @@ def fetch(
     _setup_logging(verbose)
     scope = _load(config)
     cache = ResponseCache(cache_dir, refresh=refresh)
-    with WikiClient(meta=scope.meta, cache=cache, dry_run=dry_run) as client:
+    with _client(scope, cache, dry_run) as client:
         result = fetch_corpus(scope, client, limit=limit)
         typer.echo(
             f"fetched {len(result.articles)} articles "
@@ -119,7 +134,7 @@ def run(
     _setup_logging(verbose)
     scope = _load(config)
     cache = ResponseCache(cache_dir, refresh=refresh)
-    with WikiClient(meta=scope.meta, cache=cache, dry_run=dry_run) as client:
+    with _client(scope, cache, dry_run) as client:
         fetched = fetch_corpus(scope, client, limit=limit)
         typer.echo(
             f"fetched {len(fetched.articles)} articles "
