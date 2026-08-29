@@ -45,6 +45,12 @@ jobs:
           set -euo pipefail
           args=""
           if [ -n "${WP_TODO_LIMIT:-}" ]; then
+            case "$WP_TODO_LIMIT" in
+              ''|*[!0-9]*)
+                echo "::error::limit must be a whole number, got '$WP_TODO_LIMIT'"
+                exit 1
+                ;;
+            esac
             args="--limit ${WP_TODO_LIMIT}"
           fi
           # No `|| true` anywhere: an API failure must fail the job rather than
@@ -74,6 +80,10 @@ jobs:
           PY
 
       - name: Commit the worklist
+        env:
+          # Git permits `$`, backticks and `&` in a branch name, so this is
+          # interpolated into the environment rather than into the script.
+          BRANCH: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -85,11 +95,11 @@ jobs:
           fi
           git commit -m "chore: refresh worklist"
           for attempt in 1 2 3 4; do
-            if git push origin HEAD:"${{ github.ref_name }}"; then
+            if git push origin HEAD:"$BRANCH"; then
               exit 0
             fi
             sleep $((2 ** attempt))
-            git pull --rebase origin "${{ github.ref_name }}" || true
+            git pull --rebase origin "$BRANCH" || true
           done
           echo "::error::could not push the refreshed worklist"
           exit 1

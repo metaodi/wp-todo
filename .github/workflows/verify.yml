@@ -51,19 +51,33 @@ jobs:
         with:
           python-version: '3.12'
 
+      # `probes` is chosen by whoever dispatches the workflow, so it is
+      # untrusted input. It reaches the shell through the environment rather
+      # than `${{ }}` interpolation -- interpolation splices the raw string
+      # into the script before bash ever sees it, so no amount of quoting
+      # here would help -- and each id is checked before it reaches argv.
       - name: Build probe arguments
         id: args
+        env:
+          PROBES: ${{ inputs.probes }}
         run: |
-          if [ "${{ inputs.probes }}" = "all" ] || [ -z "${{ inputs.probes }}" ]; then
-            echo "only=" >> "$GITHUB_OUTPUT"
-          else
-            args=""
-            IFS=',' read -ra parts <<< "${{ inputs.probes }}"
+          set -euo pipefail
+          only=""
+          if [ -n "$PROBES" ] && [ "$PROBES" != "all" ]; then
+            IFS=',' read -ra parts <<< "$PROBES"
             for p in "${parts[@]}"; do
-              args="$args --only $(echo "$p" | tr -d '[:space:]')"
+              p="${p//[[:space:]]/}"
+              [ -n "$p" ] || continue
+              case "$p" in
+                *[!A-Za-z0-9]*)
+                  echo "::error::not a probe id: '$p' (expected e.g. P1,P4)"
+                  exit 1
+                  ;;
+              esac
+              only="$only --only $p"
             done
-            echo "only=$args" >> "$GITHUB_OUTPUT"
           fi
+          echo "only=$only" >> "$GITHUB_OUTPUT"
 
       - name: Install uv
         if: ${{ inputs.mode == 'fixtures' }}
@@ -74,7 +88,14 @@ jobs:
         if: ${{ inputs.mode == 'fixtures' }}
         env:
           WP_TODO_CONTACT: ${{ inputs.contact != '' && inputs.contact || format('https://github.com/{0}', github.repository) }}
-        run: uv run python scripts/record_fixtures.py
+        run: |
+          set -euo pipefail
+          # Build the environment from the lock, as CI does. A bare `uv run`
+          # syncs too, but is free to re-resolve; fixtures recorded against
+          # dependency versions the lock does not pin are not the versions the
+          # suite replays them with.
+          uv sync --frozen --dev
+          uv run --frozen python scripts/record_fixtures.py
 
       - name: Run the Phase 0 probe
         if: ${{ inputs.mode != 'fixtures' }}
@@ -83,9 +104,14 @@ jobs:
           # information; no personal address needs to leave the runner.
           WP_TODO_CONTACT: ${{ inputs.contact != '' && inputs.contact || format('https://github.com/{0}', github.repository) }}
           WP_TODO_DELAY_S: '1.0'
+          PROBE_ARGS: ${{ steps.args.outputs.only }}
         run: |
+          set -euo pipefail
           mkdir -p docs
-          python3 scripts/phase0_probe.py ${{ steps.args.outputs.only }}
+          # Unquoted on purpose: PROBE_ARGS is the validated list of
+          # `--only <id>` pairs built above, and has to word-split into
+          # separate arguments.
+          python3 scripts/phase0_probe.py $PROBE_ARGS
 
       - name: Publish the answer sheet to the job summary
         if: ${{ always() && inputs.mode != 'fixtures' }}
@@ -112,12 +138,17 @@ jobs:
 
       - name: Commit results
         if: ${{ inputs.commit_results }}
+        env:
+          MODE: ${{ inputs.mode }}
+          # Git permits `$`, backticks and `&` in a branch name, so this is
+          # interpolated into the environment rather than into the script.
+          BRANCH: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if [ "${{ inputs.mode }}" = "fixtures" ]; then
+          if [ "$MODE" = "fixtures" ]; then
             git add -f tests/fixtures
             if git diff --cached --quiet; then
               echo "fixtures unchanged"
@@ -125,12 +156,12 @@ jobs:
             fi
             git commit -m "test: re-record API fixtures from the live API"
             for attempt in 1 2 3 4; do
-              if git push origin HEAD:"${{ github.ref_name }}"; then
+              if git push origin HEAD:"$BRANCH"; then
                 exit 0
               fi
               echo "push failed (attempt ${attempt}), refreshing and retrying"
               sleep $((2 ** attempt))
-              git pull --rebase origin "${{ github.ref_name }}" || true
+              git pull --rebase origin "$BRANCH" || true
             done
             echo "::error::could not push re-recorded fixtures"
             exit 1
@@ -153,12 +184,12 @@ jobs:
           else
             git commit -m "chore: record phase 0 probe results from the live API"
             for attempt in 1 2 3 4; do
-              if git push origin HEAD:"${{ github.ref_name }}"; then
+              if git push origin HEAD:"$BRANCH"; then
                 exit 0
               fi
               echo "push failed (attempt ${attempt}), refreshing and retrying"
               sleep $((2 ** attempt))
-              git pull --rebase origin "${{ github.ref_name }}" || true
+              git pull --rebase origin "$BRANCH" || true
             done
             echo "::error::could not push probe results"
             exit 1
