@@ -1,0 +1,50 @@
+version: 2
+
+# Weekly, grouped bumps. Grouping keeps the noise to one PR per ecosystem per
+# week rather than one per dependency; CI is the gate on each of them.
+#
+# Scheduled after the Monday refresh run (05:17 UTC) so a dependency PR never
+# races the worklist commit for the same branch.
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:13"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      # `dependency-type` is not honoured for github-actions, so this is one
+      # group for everything under .github/workflows.
+      actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:13"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "build"
+      prefix-development: "chore"
+      include: "scope"
+    groups:
+      # Runtime and tooling move separately: a ruff or mypy bump can change
+      # what CI accepts, while an httpx or pydantic bump can change what the
+      # pipeline sends to the API. Reviewing them apart keeps that clear.
+      runtime:
+        dependency-type: "production"
+        patterns:
+          - "*"
+      dev-tooling:
+        dependency-type: "development"
+        patterns:
+          - "*"
