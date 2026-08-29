@@ -64,6 +64,95 @@ _NUMBER = re.compile(r"-?\d[\d'\u2019., \xa0]*")
 _YEAR = re.compile(r"\b(?:19|20)\d{2}\b")
 #: Section headings that exist to hold apparatus rather than content. A dewiki
 #: article "missing" an Einzelnachweise section is not missing anything.
+#: Headings that mean the same thing in the languages we compare.
+#:
+#: Without this the comparison is worthless, and confidently so: it reported 27
+#: "missing" sections for Adliswil, of which about twenty are present under a
+#: translated name - Geschichte/History/Histoire/Storia,
+#: Verkehr/Transportation/Transports. A checklist of gaps that are not gaps is
+#: worse than no checklist, because somebody has to go and disprove each line.
+#:
+#: Deliberately a hand-written equivalence table rather than a translation
+#: service: it is small, it is auditable, and a wrong entry hides a real gap
+#: rather than inventing one. Entries are lowercase and punctuation-free, to
+#: match `_normalise_heading`.
+HEADING_EQUIVALENTS: dict[str, str] = {
+    # geography
+    "geographie": "geo",
+    "geografie": "geo",
+    "geography": "geo",
+    "géographie": "geo",
+    "geografia": "geo",
+    "geografia fisica": "geo",
+    "lage": "geo",
+    "location": "geo",
+    "situation": "geo",
+    # history
+    "geschichte": "history",
+    "history": "history",
+    "histoire": "history",
+    "storia": "history",
+    # population
+    "bevölkerung": "population",
+    "demographics": "population",
+    "démographie": "population",
+    "demografia": "population",
+    "evoluzione demografica": "population",
+    "einwohner": "population",
+    "bevölkerungsentwicklung": "population",
+    # economy
+    "wirtschaft": "economy",
+    "economy": "economy",
+    "économie": "economy",
+    "economia": "economy",
+    # transport
+    "verkehr": "transport",
+    "transportation": "transport",
+    "transport": "transport",
+    "transports": "transport",
+    "infrastrutture e trasporti": "transport",
+    "infrastruktur": "transport",
+    # politics and administration
+    "politik": "politics",
+    "politics": "politics",
+    "politique": "politics",
+    "politica": "politics",
+    "administration": "politics",
+    "amministrazione": "politics",
+    "government": "politics",
+    # people
+    "persönlichkeiten": "people",
+    "notable people": "people",
+    "personnalités": "people",
+    "personalità": "people",
+    "söhne und töchter der gemeinde": "people",
+    # sights and culture
+    "sehenswürdigkeiten": "sights",
+    "attractions": "sights",
+    "monumenti e luoghi d interesse": "sights",
+    "sights": "sights",
+    "culture et patrimoine": "culture",
+    "kultur": "culture",
+    "culture": "culture",
+    "cultura": "culture",
+    # coat of arms
+    "wappen": "arms",
+    "wappen und fahne": "arms",
+    "héraldique": "arms",
+    "coat of arms": "arms",
+    "stemma": "arms",
+    # education
+    "bildung": "education",
+    "education": "education",
+    "schulen": "education",
+    "enseignement": "education",
+    # religion
+    "religion": "religion",
+    "kirchen": "religion",
+    "kirchen und tempel": "religion",
+    "religione": "religion",
+}
+
 BOILERPLATE_SECTIONS = frozenset(
     {
         "einzelnachweise",
@@ -92,14 +181,23 @@ BOILERPLATE_SECTIONS = frozenset(
 )
 
 
-def wikidata_deltas(claims: ArticleClaims, item_id: str | None, web: WebClient) -> tuple[Delta, ...]:
-    """Compare the article's infobox claims against the item's statements."""
+def wikidata_deltas(
+    claims: ArticleClaims, item_id: str | None, web: WebClient
+) -> tuple[tuple[Delta, ...], bool]:
+    """Compare the article's infobox claims against the item's statements.
+
+    Returns the deltas *and whether the statements were actually retrieved*.
+    The caller needs both: an empty tuple on its own cannot distinguish "the
+    article agrees with Wikidata" from "the request never happened", and
+    rendering those identically is how a dossier ends up asserting something
+    false. See `docs/api-notes.md` §8 for the run where exactly that happened.
+    """
     if not item_id:
-        return ()
+        return (), False
 
     statements = _statements(item_id, web)
     if not statements:
-        return ()
+        return (), False
 
     deltas: list[Delta] = []
     for claim in claims.claims:
@@ -126,7 +224,7 @@ def wikidata_deltas(claims: ArticleClaims, item_id: str | None, web: WebClient) 
                 agrees=_same(claim.asserted_value, value),
             )
         )
-    return tuple(sorted(deltas, key=lambda d: (d.agrees, d.field or "", d.label)))
+    return tuple(sorted(deltas, key=lambda d: (d.agrees, d.field or "", d.label))), True
 
 
 def interwiki_deltas(
@@ -142,7 +240,7 @@ def interwiki_deltas(
     a different name - so this is reported as "worth a look", never as "the
     article is missing a section".
     """
-    ours = {_normalise_heading(section) for section in claims.sections}
+    ours = {_heading_key(section) for section in claims.sections}
     deltas: list[Delta] = []
 
     for lang in config.research.compare_languages:
@@ -159,8 +257,7 @@ def interwiki_deltas(
         extra = [
             section
             for section in foreign.sections
-            if _normalise_heading(section) not in ours
-            and _normalise_heading(section) not in BOILERPLATE_SECTIONS
+            if _heading_key(section) not in ours and _normalise_heading(section) not in BOILERPLATE_SECTIONS
         ]
         if not extra:
             continue
@@ -345,6 +442,16 @@ def _foreign_wikitext(client: WikiClient, title: str) -> str | None:
     main = slots.get("main", {}) if isinstance(slots, dict) else {}
     content = main.get("content") if isinstance(main, dict) else None
     return content if isinstance(content, str) else None
+
+
+def _heading_key(heading: str) -> str:
+    """What a heading is *about*, across languages.
+
+    Falls back to the normalised heading itself, so an unmapped one still
+    matches its own translation-free twin and is reported when it has none.
+    """
+    normalised = _normalise_heading(heading)
+    return HEADING_EQUIVALENTS.get(normalised, normalised)
 
 
 def _normalise_heading(heading: str) -> str:

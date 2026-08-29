@@ -22,7 +22,7 @@ from wp_todo.cache import ResponseCache
 from wp_todo.claims import extract_claims
 from wp_todo.client import WikiClient
 from wp_todo.config import MetaConfig, ScopeConfig, load_scope
-from wp_todo.enrich import _same, langlinks, wikidata_deltas
+from wp_todo.enrich import _heading_key, _same, langlinks, wikidata_deltas
 from wp_todo.models import Article
 from wp_todo.webclient import WebClient
 
@@ -84,7 +84,7 @@ def test_a_newer_wikidata_value_becomes_a_delta(
 ) -> None:
     payload = {"P1082": [statement({"amount": "+9240", "unit": "1"}, point_in_time="2025-12-31")]}
     with web_for(payload, tmp_path, meta) as web:
-        deltas = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q68166", web)
+        deltas, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q68166", web)
 
     assert len(deltas) == 1
     delta = deltas[0]
@@ -100,7 +100,7 @@ def test_agreement_is_reported_too(config: ScopeConfig, tmp_path: Path, meta: Me
     """That a figure has already been checked is worth an editor's time."""
     payload = {"P1082": [statement({"amount": "+8500", "unit": "1"}, point_in_time="2018-12-31")]}
     with web_for(payload, tmp_path, meta) as web:
-        deltas = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
+        deltas, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
 
     assert deltas[0].agrees is True
 
@@ -115,7 +115,7 @@ def test_the_newest_statement_wins(config: ScopeConfig, tmp_path: Path, meta: Me
         ]
     }
     with web_for(payload, tmp_path, meta) as web:
-        deltas = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
+        deltas, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
 
     assert deltas[0].external_value == "9240"
 
@@ -130,7 +130,7 @@ def test_preferred_rank_beats_a_newer_normal_one(
         ]
     }
     with web_for(payload, tmp_path, meta) as web:
-        deltas = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
+        deltas, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
 
     assert deltas[0].external_value == "9100"
 
@@ -143,7 +143,7 @@ def test_deprecated_statements_are_ignored(config: ScopeConfig, tmp_path: Path, 
         ]
     }
     with web_for(payload, tmp_path, meta) as web:
-        deltas = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
+        deltas, _ = wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web)
 
     assert deltas[0].external_value == "9240"
 
@@ -152,7 +152,9 @@ def test_somevalue_produces_no_delta(config: ScopeConfig, tmp_path: Path, meta: 
     """ "Some value, unknown which" is not something to show an editor."""
     payload = {"P1082": [{"rank": "normal", "value": {"type": "somevalue"}, "qualifiers": []}]}
     with web_for(payload, tmp_path, meta) as web:
-        assert wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web) == ()
+        # checked=True: the statements were retrieved, they just say nothing
+        # comparable. That is a real "nothing to report", unlike a failed fetch.
+        assert wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web) == ((), True)
 
 
 def test_an_unrecognised_payload_shape_yields_nothing_rather_than_a_guess(
@@ -162,7 +164,7 @@ def test_an_unrecognised_payload_shape_yields_nothing_rather_than_a_guess(
     expect, the right outcome is an empty section, not an invented figure."""
     payload = {"P1082": [{"mainsnak": {"datavalue": {"value": {"amount": "+9240"}}}}]}
     with web_for(payload, tmp_path, meta) as web:
-        assert wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web) == ()
+        assert wikidata_deltas(claims_for(POPULATION_ARTICLE, config), "Q1", web) == ((), True)
 
 
 def test_no_item_id_means_no_requests(config: ScopeConfig, tmp_path: Path, meta: MetaConfig) -> None:
@@ -175,7 +177,7 @@ def test_no_item_id_means_no_requests(config: ScopeConfig, tmp_path: Path, meta:
         delay_s=0.0,
         transport=httpx.MockTransport(handler),
     )
-    assert wikidata_deltas(claims_for(POPULATION_ARTICLE, config), None, client) == ()
+    assert wikidata_deltas(claims_for(POPULATION_ARTICLE, config), None, client) == ((), False)
 
 
 def test_unmapped_fields_are_not_compared(config: ScopeConfig, tmp_path: Path, meta: MetaConfig) -> None:
@@ -183,7 +185,7 @@ def test_unmapped_fields_are_not_compared(config: ScopeConfig, tmp_path: Path, m
     field is silently skipped rather than matched against a plausible guess."""
     article = "{{Infobox Ort in der Schweiz\n| ARBEITSLOSE = 3,1 % (2019)\n}}\n"
     with web_for({"P1082": [statement({"amount": "+9240", "unit": "1"})]}, tmp_path, meta) as web:
-        assert wikidata_deltas(claims_for(article, config), "Q1", web) == ()
+        assert wikidata_deltas(claims_for(article, config), "Q1", web) == ((), True)
 
 
 class TestValueComparison:
@@ -280,3 +282,112 @@ class TestLanglinks:
         payload = {"batchcomplete": True, "query": {"pages": [{"pageid": 1, "title": "Nur DE"}]}}
         with self.wiki(tmp_path, meta, payload, seen) as client:
             assert langlinks(client, ["Nur DE"]) == {}
+
+
+class TestWikidataReachability:
+    """The Wikidata comparison silently returned nothing for five live runs.
+
+    Our own robots gate was refusing the request - Wikimedia's robots.txt
+    carries `Disallow: /w/`, and the Wikibase REST API lives at `/w/rest.php`.
+    The dossier reported "keine Abweichungen gefunden", which was false.
+    """
+
+    def test_the_wikibase_rest_path_is_not_treated_as_a_page_to_crawl(
+        self, tmp_path: Path, meta: MetaConfig
+    ) -> None:
+        """robots.txt governs crawling a site, not calling its published API."""
+        seen: list[str] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            seen.append(request.url.path)
+            if request.url.path == "/robots.txt":
+                return httpx.Response(200, text="User-agent: *\nDisallow: /w/\n")
+            return httpx.Response(
+                200,
+                content=json.dumps(
+                    {"P1082": [statement({"amount": "+9240", "unit": "1"}, point_in_time="2025-12-31")]}
+                ).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+            )
+
+        with WebClient(
+            meta=meta,
+            cache=ResponseCache(tmp_path / "web"),
+            delay_s=0.0,
+            respect_robots=True,
+            transport=httpx.MockTransport(handler),
+            reference_date=REFERENCE,
+        ) as web:
+            deltas, checked = wikidata_deltas(claims_for(POPULATION_ARTICLE, config_for()), "Q1", web)
+
+        assert checked is True, "the API call must not be blocked by robots.txt"
+        assert deltas and deltas[0].external_value == "9240"
+        assert "/robots.txt" not in seen, "an API endpoint needs no crawl-exclusion check"
+
+    def test_an_ordinary_page_still_honours_robots(self, tmp_path: Path, meta: MetaConfig) -> None:
+        """The exemption is for named API prefixes only, not a general opt-out."""
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if request.url.path == "/robots.txt":
+                return httpx.Response(200, text="User-agent: *\nDisallow: /w/\n")
+            raise AssertionError("robots.txt disallows this path")
+
+        with WebClient(
+            meta=meta,
+            cache=ResponseCache(tmp_path / "web"),
+            delay_s=0.0,
+            respect_robots=True,
+            transport=httpx.MockTransport(handler),
+            reference_date=REFERENCE,
+        ) as web:
+            assert web.fetch("https://beispiel.example/w/irgendwas") is None
+
+
+def config_for() -> ScopeConfig:
+    return load_scope(Path("config/scope.toml"))
+
+
+class TestHeadingEquivalence:
+    """Section gaps are compared across languages, so headings must be too.
+
+    Before this, Adliswil's dossier listed 25 "missing" sections of which about
+    twenty were present under a translated name. A checklist of gaps that are
+    not gaps is worse than no checklist: somebody has to disprove every line.
+    """
+
+    @pytest.mark.parametrize(
+        ("german", "foreign"),
+        [
+            ("Geschichte", "History"),
+            ("Geschichte", "Histoire"),
+            ("Geschichte", "Storia"),
+            ("Verkehr", "Transportation"),
+            ("Bevölkerung", "Demographics"),
+            ("Bevölkerung", "Evoluzione demografica"),
+            ("Wirtschaft", "Économie"),
+            ("Persönlichkeiten", "Notable people"),
+            ("Wappen und Fahne", "Héraldique"),
+            ("Sehenswürdigkeiten", "Attractions"),
+            ("Kirchen und Tempel", "Religion"),
+            ("Geographie", "Geografia fisica"),
+        ],
+    )
+    def test_translations_are_recognised_as_the_same_section(self, german: str, foreign: str) -> None:
+        assert _heading_key(german) == _heading_key(foreign)
+
+    def test_genuinely_different_sections_stay_different(self) -> None:
+        """The map must not collapse everything into one bucket."""
+        keys = {_heading_key(h) for h in ("Geschichte", "Verkehr", "Wirtschaft", "Bevölkerung")}
+        assert len(keys) == 4
+
+    def test_an_unmapped_heading_still_matches_itself(self) -> None:
+        """The map is a shortlist, not a requirement. Anything not in it falls
+        back to its own normalised form, so it is reported only when genuinely
+        absent."""
+        assert _heading_key("Vereine") == _heading_key("vereine")
+        assert _heading_key("Höhlenforschung") != _heading_key("Geschichte")
+
+    def test_a_real_gap_survives_the_map(self) -> None:
+        """`Education` is a section dewiki's Adliswil really does lack."""
+        german = {_heading_key(h) for h in ("Geographie", "Geschichte", "Verkehr", "Wirtschaft")}
+        assert _heading_key("Education") not in german

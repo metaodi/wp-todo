@@ -58,6 +58,25 @@ JSON_TYPES = ("application/json", "application/sparql-results+json")
 #: involved and the frozen ALLOWED_ACTIONS allowlist is not implicated.
 WIKIDATA_REST = "https://www.wikidata.org/w/rest.php/wikibase/v1"
 
+#: Documented API endpoints, which robots.txt does not govern.
+#:
+#: Found the hard way: Wikimedia's robots.txt carries `Disallow: /w/`, aimed at
+#: crawlers walking the wiki through its script paths. The Wikibase REST API
+#: lives at `/w/rest.php`, so the politeness gate was refusing our own API call
+#: and every Wikidata comparison silently returned nothing - see
+#: `docs/api-notes.md` §8.
+#:
+#: robots.txt is a convention for crawling a *site*. Calling a published API,
+#: at the documented rate, with a User-Agent that names a contact, is a
+#: different activity and the Wikimedia API policy is what governs it. The
+#: pacing, the budget and the User-Agent all still apply here; only the
+#: crawl-exclusion check is skipped, and only for these exact prefixes.
+API_PREFIXES: tuple[str, ...] = (
+    "https://www.wikidata.org/w/rest.php/",
+    "https://www.wikidata.org/w/api.php",
+    "https://wikimedia.org/api/rest_v1/",
+)
+
 _SCRIPT_STYLE = re.compile(r"<(script|style|noscript)\b.*?</\1>", re.IGNORECASE | re.DOTALL)
 _COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 _BLOCK_END = re.compile(r"</(p|div|li|tr|h[1-6]|section|article|br)\s*>", re.IGNORECASE)
@@ -297,6 +316,9 @@ class WebClient:
 
     # -------------------------------------------------------------- robots
     def _robots_allow(self, url: str) -> bool:
+        if url.startswith(API_PREFIXES):
+            # A published API, not a site to crawl. See API_PREFIXES.
+            return True
         parsed = urlparse(url)
         host = parsed.netloc.lower()
         if host not in self._robots:

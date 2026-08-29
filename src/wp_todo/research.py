@@ -49,11 +49,15 @@ def research_article(
 
     item_id: str | None = None
     deltas: list[Delta] = []
+    wikidata_checked = False
 
     if config.research.compare_wikidata:
         item_id = wikibase_items(wiki, [article.title]).get(article.title)
         if item_id:
-            deltas.extend(wikidata_deltas(claims, item_id, web))
+            found, wikidata_checked = wikidata_deltas(claims, item_id, web)
+            deltas.extend(found)
+            if not wikidata_checked:
+                log.warning("%s: could not read Wikidata statements for %s", article.title, item_id)
         else:
             log.info("%s: no Wikidata item", article.title)
 
@@ -70,6 +74,7 @@ def research_article(
         scope_label=article.scope_label,
         reference_date=reference,
         wikidata_item=item_id,
+        wikidata_checked=wikidata_checked,
         claims=claims,
         deltas=tuple(deltas),
         interwiki_checked=bool(foreign),

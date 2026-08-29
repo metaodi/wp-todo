@@ -14,7 +14,7 @@ run 3 (probes P1–P7) and run 4 (P8) unless stated.
 | `LIVE` | Observed in a recorded response |
 | `OPEN` | Still unverified — do not build on it |
 
-Tally: **45 `LIVE`**, 2 `OPEN`.
+Tally: **47 `LIVE`**, 2 `OPEN`.
 
 ---
 
@@ -300,6 +300,40 @@ of the broken form is indistinguishable from a correct empty one.
 The `en`/`fr`/`it` article *content* fetch (`prop=revisions&rvprop=content`
 against `{lang}.wikipedia.org/w/api.php`) is the same module already verified
 against dewiki in §4; only the host differs. Not separately probed.
+
+## 8. `robots.txt` blocks the Wikibase REST API (P10 follow-up)
+
+Found by running the research workflow on five real articles on 2026-08-29, not
+by a probe. Every dossier reported *"Keine Abweichungen gegenüber Wikidata"* and
+the comparison had never run once.
+
+```
+INFO wp_todo.webclient robots.txt disallows
+     https://www.wikidata.org/w/rest.php/wikibase/v1/entities/items/Q50039750/statements
+```
+
+| Finding | Mark |
+| --- | --- |
+| Wikimedia's `robots.txt` carries `Disallow: /w/` | `LIVE` |
+| The Wikibase REST API lives under `/w/rest.php`, so a robots-respecting client blocks its own API call | `LIVE` |
+
+`robots.txt` is a crawl-exclusion convention: it tells automated agents not to
+walk a *site*. Calling a published API, at the documented rate, with a
+User-Agent naming a contact, is a different activity, and the Wikimedia API
+etiquette policy is what governs it — that is why `WikiClient` never consulted
+robots.txt for `/w/api.php` either.
+
+`webclient.API_PREFIXES` now exempts the named API endpoints from the crawl
+check. **Only that check.** The pacing, the per-run budget, the size cap and the
+User-Agent all still apply, and an ordinary page under `/w/` on any other host
+is still refused.
+
+### The part worth remembering
+
+The failure was invisible because the dossier rendered "no differences found"
+for both "compared, nothing differs" and "never retrieved". A section that
+cannot tell those apart is not reporting, it is asserting. `Dossier.wikidata_checked`
+now carries the distinction and the renderer prints three different sentences.
 
 ---
 

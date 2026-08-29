@@ -29,8 +29,15 @@ on:
         default: true
 
 concurrency:
-  # Serialised: two dispatches would otherwise race the same push.
-  group: research-${{ github.ref }}
+  # Keyed on the *title*, not just the branch. `cancel-in-progress: false`
+  # protects the running job, but GitHub keeps only one pending run per group:
+  # dispatching several titles in a row silently cancelled the middle ones.
+  # Observed - a "St. Josef (Horgen)" run was cancelled with no output.
+  #
+  # Two different articles have no reason to block each other, and the push
+  # step already retries with a rebase, so concurrent pushes are handled.
+  # Re-running the *same* title still serialises, which is what matters.
+  group: research-${{ github.ref }}-${{ inputs.title }}
   cancel-in-progress: false
 
 permissions:
