@@ -21,6 +21,7 @@ from wp_todo.client import WikiClient
 from wp_todo.config import ScopeConfig, load_scope
 from wp_todo.dossier import HEADER_NOTICE, render_json, render_markdown, slug
 from wp_todo.fetch import fetch
+from wp_todo.llm import LlmBudget, LlmClient, LlmUnavailableError
 from wp_todo.models import Dossier, FetchResult
 from wp_todo.research import research_article
 from wp_todo.sources import SourceLedger, make_verdict
@@ -49,6 +50,7 @@ def build(
     statements: dict[str, Any] | None = None,
     compare_wikidata: bool = False,
     ledger: SourceLedger | None = None,
+    llm: LlmClient | None = None,
 ) -> Dossier:
     """A dossier for the acceptance article, with Wikimedia offline."""
     article = next(a for a in corpus.articles if a.title == ARTICLE)
@@ -74,7 +76,7 @@ def build(
             reference_date=corpus.reference_date,
         ) as web,
     ):
-        return research_article(article, corpus, config, wiki, web, None, ledger)[0]
+        return research_article(article, corpus, config, wiki, web, None, ledger, llm)[0]
 
 
 def test_the_dossier_leads_with_what_it_is_not(
@@ -423,3 +425,66 @@ def test_standing_survives_the_json_round_trip(
     assert entry["verdict"] == "block"
     assert entry["reason"] == "x"
     assert entry["decided"] == "2026-03-14"
+
+
+# ------------------------------------------------------- when the agent dies
+class BrokenLlm(LlmClient):
+    """An `LlmClient` whose network hop fails the way run #14 failed.
+
+    A real `BadRequestError` needs the SDK; the behaviour under test is that
+    *any* exception out of the stage is survivable, so the exception class is
+    deliberately not the interesting part.
+    """
+
+    def __init__(self, exc: Exception, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self._exc = exc
+
+    def _send(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        raise self._exc
+
+
+def broken(tmp_path: Path, exc: Exception) -> BrokenLlm:
+    return BrokenLlm(exc, cache=ResponseCache(tmp_path / "llm"), budget=LlmBudget(limit=10))
+
+
+def test_a_failed_agent_does_not_take_the_dossier_with_it(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """Run #14 spent nine requests on Wikimedia, then lost all of it to a 400
+    from a different service. The deterministic half is already paid for."""
+    dossier = build(
+        corpus,
+        scope,
+        tmp_path,
+        llm=broken(tmp_path, RuntimeError("Error code: 400 - anthropic-workspace-id is required")),
+    )
+
+    assert dossier.claims.claims, "the deterministic half survived intact"
+    assert dossier.agent is not None
+    assert "400" in dossier.agent.failed
+    assert not dossier.findings
+
+
+def test_a_failed_agent_says_so_where_the_findings_would_have_been(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """ "Nothing found" and "the stage crashed before it looked" are not the
+    same sentence, and only one of them is true here. This is the same lesson
+    as the Wikidata clean-bill-of-health bug, one layer out."""
+    markdown = render_markdown(build(corpus, scope, tmp_path, llm=broken(tmp_path, RuntimeError("kaputt"))))
+
+    findings = markdown.split("## ")[1]
+    assert "abgebrochen" in findings.lower()
+    assert "kaputt" in findings
+    assert "**nicht** stattgefunden" in findings
+    assert "Nichts gefunden" not in findings
+
+
+def test_an_unusable_agent_still_stops_the_run(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """A missing package or absent credentials is the operator's to fix before
+    anything else, and keeps its clean exit rather than becoming a footnote."""
+    with pytest.raises(LlmUnavailableError):
+        build(corpus, scope, tmp_path, llm=broken(tmp_path, LlmUnavailableError("no credentials")))

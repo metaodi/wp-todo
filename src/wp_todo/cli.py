@@ -321,6 +321,18 @@ def research(
                 fg="yellow",
                 err=True,
             )
+        if run.failed:
+            # The dossier is written and says what happened - but the agent was
+            # explicitly asked for and did not run, so the command still fails.
+            # A green run that quietly did less than was asked is how a broken
+            # key goes unnoticed for weeks.
+            typer.secho(
+                f"the research agent failed: {run.failed}\n"
+                f"the deterministic dossier was still written to {out / f'{stem}.md'}",
+                fg="red",
+                err=True,
+            )
+            raise typer.Exit(1)
 
 
 sources_app = typer.Typer(

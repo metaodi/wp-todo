@@ -13,12 +13,12 @@ from __future__ import annotations
 
 import logging
 
-from .agent import AgentOutcome, run_agent
+from .agent import AgentOutcome, failed_outcome, run_agent
 from .claims import extract_claims
 from .client import WikiClient
 from .config import ScopeConfig
 from .enrich import foreign_wikitexts, interwiki_deltas, langlinks, wikibase_items, wikidata_deltas
-from .llm import LlmClient
+from .llm import LlmClient, LlmUnavailableError
 from .models import Article, ArticleClaims, Delta, Dossier, FetchResult, SourceStanding
 from .score import EDIT_URL
 from .sources import TIERS, SourceLedger, Standing, host_of, standing
@@ -80,17 +80,28 @@ def research_article(
 
     outcome: AgentOutcome | None = None
     if llm is not None:
-        outcome = run_agent(
-            claims=claims,
-            wikitext=article.wikitext or "",
-            deltas=tuple(deltas),
-            foreign_texts=foreign_wikitexts(links, foreign) if foreign else {},
-            config=config,
-            reference=reference,
-            web=web,
-            llm=llm,
-            ledger=ledger or SourceLedger(),
-        )
+        try:
+            outcome = run_agent(
+                claims=claims,
+                wikitext=article.wikitext or "",
+                deltas=tuple(deltas),
+                foreign_texts=foreign_wikitexts(links, foreign) if foreign else {},
+                config=config,
+                reference=reference,
+                web=web,
+                llm=llm,
+                ledger=ledger or SourceLedger(),
+            )
+        except LlmUnavailableError:
+            # "The agent cannot run at all" is the operator's problem to fix
+            # before anything else - a missing package, absent credentials. It
+            # keeps its clean exit rather than being buried in a dossier.
+            raise
+        except Exception as exc:
+            # Everything else - a 400 from the API, a timeout, a bad response -
+            # loses the agent, not the dossier. The deterministic sections are
+            # already built and already paid for.
+            outcome = failed_outcome(llm, exc)
 
     dossier = Dossier(
         pageid=article.pageid,

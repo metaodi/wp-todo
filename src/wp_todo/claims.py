@@ -40,12 +40,36 @@ DATED_FIELDS: dict[str, str | None] = {
     "UMSATZ": "STAND",
 }
 
+#: Sections whose external links are worth reading even though they are not
+#: `<ref>` citations. On de.wikipedia `Weblinks` is where the subject's own
+#: site lives and `Literatur` is where a digitised monograph does, so an
+#: article can carry forty references, none of them fetchable, and still link
+#: the two documents most worth reading. `Sanatorium Kilchberg` does exactly
+#: that: 46 print references, zero URLs among them, and a municipal
+#: 150-year monograph sitting under `Literatur` that nothing ever looked at.
+LINK_SECTIONS = frozenset({"weblinks", "literatur"})
+
+#: `{{Belege fehlen}}` and the redirects editors actually type. It lives here
+#: rather than in `score.py` deliberately: `Kategorie:Wikipedia:Belege fehlen`
+#: already scores this signal, and a second scoring path would count it twice.
+#: As a *claim* it is new - an editor writing "this page is not sourced" is a
+#: question worth putting to whatever documents we can find.
+BELEGE_TEMPLATE = re.compile(
+    r"\{\{\s*(?:Belege|Quellen)(?:\s+fehlen)?\s*(?:\|[^{}]{0,400})?\}\}",
+    re.IGNORECASE | re.DOTALL,
+)
+
 _HEADING = re.compile(r"^\s*(={2,6})\s*(.+?)\s*\1\s*$")
 _COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
-_REF = re.compile(r"<ref[^>]*?(?:/>|>(.*?)</ref\s*>)", re.IGNORECASE | re.DOTALL)
+#: The lookahead is load-bearing: without it `<references />` matches as a
+#: self-closing `<ref/>`, because `[^>]*?` happily eats "erences ". Nearly
+#: every article ends with that tag, so every reference count was one too
+#: high - `Sanatorium Kilchberg` reported 46 where it has 45.
+_REF = re.compile(r"<ref(?=[\s/>])[^>]*?(?:/>|>(.*?)</ref\s*>)", re.IGNORECASE | re.DOTALL)
 _YEAR = re.compile(r"\b(?:19|20)\d{2}\b")
 _URL = re.compile(r"https?://[^\s\|\]\}<>\"']+")
 _DATE_PARAM = re.compile(r"\|\s*(?:Datum|Jahr|Date|Year|Zugriff|Abruf)\s*=\s*([^\|\}\n]+)", re.IGNORECASE)
+_TEMPLATE_REASON = re.compile(r"\|\s*(?:1\s*=\s*)?(.+?)\s*\}\}\s*$", re.DOTALL)
 
 
 def extract_claims(article: Article, config: ScopeConfig, reference: dt.date) -> ArticleClaims:
@@ -140,7 +164,40 @@ def _maintenance_claims(article: Article, wikitext: str, reference: dt.date) -> 
                     )
                 )
                 break
+
+    # Appended *after* the fallback above, never before it: the fallback is
+    # guarded by `if not claims`, so adding this any earlier would silence a
+    # real `Veraltet seit YYYY` category on every page that also carries
+    # `{{Belege fehlen}}`.
+    #
+    # It is a claim without a year, and that is not an oversight. "Nothing on
+    # this page is sourced" has no as-of date to go stale; what it has is an
+    # editor asking for a citation, which is a question the documents we can
+    # already reach might answer.
+    belege = BELEGE_TEMPLATE.search(wikitext)
+    if belege:
+        reason = _template_reason(belege.group(0))
+        claims.append(
+            _claim(
+                kind="belege_fehlen",
+                text=(
+                    "{{Belege fehlen}}: als unzureichend belegt markiert" + (f" - {reason}" if reason else "")
+                ),
+                line_no=line_of(belege.start()),
+            )
+        )
     return claims
+
+
+def _template_reason(template: str) -> str:
+    """The free-text argument an editor left on a maintenance template.
+
+    `{{Belege fehlen|Teilweise: Nur spärliche Einzelnachweise}}` says far more
+    than the bare template does, and it is the editor's own words about what
+    is wrong - worth carrying into the claim rather than dropping.
+    """
+    match = _TEMPLATE_REASON.search(template)
+    return _condense(_COMMENT.sub("", match.group(1))) if match else ""
 
 
 def _line_of(wikitext: str) -> Callable[[int], int]:
@@ -304,7 +361,30 @@ def _references(wikitext: str) -> ReferenceSummary:
         newest_year=max(years) if years else None,
         oldest_year=min(years) if years else None,
         external_urls=tuple(sorted(urls)),
+        linked_urls=_linked_urls(wikitext, urls),
     )
+
+
+def _linked_urls(wikitext: str, cited: set[str]) -> tuple[str, ...]:
+    """External links from `Weblinks` and `Literatur`, minus the cited ones.
+
+    Kept in their own field rather than merged into `external_urls`, because
+    "the article cites this host" and "the article links it at the bottom" are
+    different facts and only the first one is sourcing. The standing signal
+    `already_cited` and the `Einstufung der zitierten Quellen` section both
+    mean the first one, and both would start quietly overstating an article's
+    sourcing if these were folded in.
+    """
+    found: set[str] = set()
+    current = ""
+    for line in _COMMENT.sub("", wikitext).splitlines():
+        heading = _HEADING.match(line)
+        if heading:
+            current = heading.group(2).strip().casefold()
+            continue
+        if current in LINK_SECTIONS:
+            found.update(_URL.findall(line))
+    return tuple(sorted(found - cited))
 
 
 # ----------------------------------------------------------------- structure

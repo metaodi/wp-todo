@@ -67,6 +67,14 @@ def render_transcript(dossier: Dossier, outcome: AgentOutcome) -> str:
             + (" · Websuche: ja" if run.searched else " · Websuche: nein"),
             "",
         ]
+        if run.failed:
+            lines += [
+                "> **Die Recherche ist abgebrochen.** Was unten steht, sind die Aufrufe,",
+                "> die vor dem Abbruch noch zustande kamen - nicht der vollständige Lauf.",
+                ">",
+                f"> `{run.failed}`",
+                "",
+            ]
         if run.budget_exhausted:
             lines += [
                 "> **Das Budget war aufgebraucht, bevor alle Angaben geprüft waren.**",
