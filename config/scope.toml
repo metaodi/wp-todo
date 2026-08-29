@@ -1,0 +1,152 @@
+# wp-todo scope and scoring. Hand-edited; the code reads it, never writes it.
+#
+# Limits below are not arbitrary - they are what the live API actually enforces.
+# See docs/api-notes.md.
+
+# Titles always checked, whatever the geographic or category scope says.
+pages = []
+
+[meta]
+# Wikimedia's User-Agent policy requires real contact information: an email
+# address or a project URL. A placeholder is rejected at load time.
+contact = "https://github.com/metaodi/wp-todo"
+user_agent_product = "wp-todo"
+
+# ---------------------------------------------------------------- geographic
+# One geosearch request covers at most a 10 km radius, so the region is tiled.
+# Tiles may overlap; articles are de-duplicated by page id, and an article keeps
+# the label of the first tile that found it (tiles are processed in file order).
+
+[[geo]]
+label = "Thalwil"
+lat = 47.2906
+lon = 8.5661
+radius_m = 6000
+
+[[geo]]
+label = "Horgen"
+lat = 47.2588
+lon = 8.5900
+radius_m = 6000
+
+[[geo]]
+label = "Wädenswil"
+lat = 47.2200
+lon = 8.6300
+radius_m = 7000
+
+[[geo]]
+label = "Kilchberg-Adliswil"
+lat = 47.3200
+lon = 8.5300
+radius_m = 6000
+
+[[geo]]
+label = "Küsnacht-Zollikon"
+lat = 47.3200
+lon = 8.5900
+radius_m = 6000
+
+[[geo]]
+label = "Meilen-Herrliberg"
+lat = 47.2700
+lon = 8.6450
+radius_m = 6000
+
+[[geo]]
+label = "Stäfa-Männedorf"
+lat = 47.2400
+lon = 8.7200
+radius_m = 7000
+
+[[geo]]
+label = "Rapperswil-Jona"
+lat = 47.2260
+lon = 8.8180
+radius_m = 7000
+
+# ------------------------------------------------------------------ category
+# Walked with list=categorymembers, depth levels down. Keep depth small: the
+# tree widens fast and every level costs requests.
+
+# [[category]]
+# name = "Kategorie:Verkehr (Kanton Zürich)"
+# depth = 2
+
+# --------------------------------------------------------------------- filter
+[exclude]
+titles = []
+title_patterns = [
+    '^Liste ',
+    '\(Begriffsklärung\)$',
+    '^\d{1,4}$',              # Jahresartikel
+    '^\d{1,2}\. (Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)$',
+]
+category_patterns = [
+    'Kategorie:Wikipedia:Begriffsklärung',
+]
+
+# -------------------------------------------------------------------- scoring
+[scoring]
+unknown_maintenance_weight = 0.0
+veraltet_seit_bonus_per_year = 3.0
+veraltet_seit_bonus_cap = 30.0
+
+edit_age_weight = 40.0
+edit_age_half_life_days = 900.0
+# A revision changing fewer bytes than this is trivial, not substantive.
+substantive_min_bytes = 100
+history_depth = 50
+
+marker_cap = 30.0
+
+# Matched as a prefix against every category on the article, hidden or not.
+# Longest matching prefix wins, so the dated Veraltet families outrank the plain
+# one. Note that "Kategorie:Wikipedia:Veraltet seit YYYY" is NOT a hidden
+# category, which is why categories are fetched unfiltered.
+[scoring.maintenance]
+"Kategorie:Wikipedia:Veraltet seit" = 60.0
+"Kategorie:Wikipedia:Veraltet nach" = 45.0
+"Kategorie:Wikipedia:Veraltet in" = 15.0
+"Kategorie:Wikipedia:Veraltet" = 50.0
+"Kategorie:Wikipedia:Lückenhaft" = 25.0
+"Kategorie:Wikipedia:Überarbeiten" = 25.0
+"Kategorie:Wikipedia:Neutralität" = 12.0
+"Kategorie:Wikipedia:Belege fehlen" = 15.0
+"Kategorie:Wikipedia:Qualitätssicherung" = 10.0
+"Kategorie:Wikipedia:Redundanz" = 8.0
+# Dead-link bookkeeping dominates the raw counts in this region and is mostly
+# bot-generated. Deliberately weighted near zero so it cannot drive the ranking.
+"Kategorie:Wikipedia:Weblink offline IABot" = 1.0
+"Kategorie:Wikipedia:Weblink offline fix-attempted" = 1.0
+"Kategorie:Wikipedia:Weblink offline" = 4.0
+"Kategorie:Wikipedia:Defekte Weblinks" = 1.0
+
+[[scoring.markers]]
+code = "stand_year"
+pattern = 'Stand:?\s*(?:[A-Za-zä.]+\s+)?(?P<year>(?:19|20)\d{2})'
+max_age_years = 3
+weight = 12.0
+
+[[scoring.markers]]
+code = "seit_year"
+pattern = 'seit\s+(?P<year>(?:19|20)\d{2})'
+max_age_years = 8
+weight = 6.0
+
+[[scoring.markers]]
+code = "derzeit"
+pattern = '\b(?:derzeit|zurzeit|aktuell|gegenwärtig|momentan)\b'
+max_age_years = 5
+weight = 8.0
+requires_year = true
+
+[scoring.pageviews]
+months = 12
+pivot = 500.0
+strength = 0.5
+max_multiplier = 3.0
+access = "all-access"
+# Excludes spiders and other automated traffic: about 19% of raw views on a
+# sample article, and skewed towards exactly the pages bots crawl hardest.
+agent = "user"
