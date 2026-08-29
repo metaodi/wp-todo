@@ -22,10 +22,27 @@ EDIT_URL = "https://de.wikipedia.org/w/index.php?title={title}&action=edit"
 VERALTET_TEMPLATE = re.compile(r"\{\{\s*veraltet\b[^{}]{0,400}\}\}", re.IGNORECASE | re.DOTALL)
 SEIT_PARAM = re.compile(r"seit\s*=\s*([^|}\n]*)", re.IGNORECASE)
 YEAR = re.compile(r"\b(19|20)\d{2}\b")
-#: The dated category families, e.g. "Kategorie:Wikipedia:Veraltet seit 2024".
+#: The dated category families, e.g. "Kategorie:Wikipedia:Veraltet seit 2024"
+#: and "Kategorie:Wikipedia:Veraltet nach Mai 2025".
 CATEGORY_YEAR = re.compile(r"Veraltet (?:seit|nach)\D{0,12}((?:19|20)\d{2})")
+#: {{Zukunft|YYYY|MM}} announces that a passage goes stale after that month. It
+#: is what actually populates the "Veraltet nach <Monat> <Jahr>" categories -
+#: Kategorie:Wikipedia:Zukunft itself is empty.
+ZUKUNFT_TEMPLATE = re.compile(r"\{\{\s*Zukunft\s*\|\s*((?:19|20)\d{2})\s*(?:\|\s*(\d{1,2}))?", re.IGNORECASE)
 
 ROUND = 2
+
+
+def scoring_reference(fetched_on: dt.date) -> dt.date:
+    """The "now" used for every age calculation, snapped to the month.
+
+    The fetch date itself is recorded exactly, but scoring against it would move
+    every article's edit-age subscore on every run: a weekly job would produce a
+    diff in which every row changed and none of it meant anything. Snapping to
+    the first of the month means a run only differs from the previous one where
+    the wiki actually changed, with one deliberate shift at each month boundary.
+    """
+    return fetched_on.replace(day=1)
 
 
 def score_corpus(result: FetchResult, config: ScopeConfig) -> ScoreResult:
@@ -40,7 +57,7 @@ def score_corpus(result: FetchResult, config: ScopeConfig) -> ScoreResult:
 
 
 def _score_article(article: Article, result: FetchResult, scoring: ScoringConfig) -> ScoredArticle:
-    reference = result.reference_date
+    reference = scoring_reference(result.reference_date)
     reasons: list[Reason] = []
 
     maintenance = _score_maintenance(article, reference, scoring, reasons)
@@ -91,45 +108,69 @@ def _score_maintenance(
             Reason(code="maintenance", detail=category.removeprefix("Kategorie:Wikipedia:"), points=weight)
         )
 
-    bonus, evidence = _veraltet_seit_bonus(article, reference, scoring)
-    if bonus > 0.0:
+    dated = _dated_staleness(article, reference, scoring)
+    if dated is not None:
+        code, detail, bonus = dated
         total += bonus
-        reasons.append(Reason(code="veraltet_seit", detail=evidence or "", points=round(bonus, ROUND)))
+        reasons.append(Reason(code=code, detail=detail, points=round(bonus, ROUND)))
     return total
 
 
-def _veraltet_seit_bonus(
+def _dated_staleness(
     article: Article, reference: dt.date, scoring: ScoringConfig
-) -> tuple[float, str | None]:
-    """The older the `seit=`, the more overdue. Malformed values score nothing
-    but are still reported, because a broken `seit=` is itself worth seeing."""
-    raw_value: str | None = None
-    if article.wikitext:
-        template = VERALTET_TEMPLATE.search(article.wikitext)
-        if template:
-            param = SEIT_PARAM.search(template.group(0))
-            if param:
-                raw_value = param.group(1).strip()
+) -> tuple[str, str, float] | None:
+    """How overdue an explicitly dated staleness marker is.
 
-    year: int | None = None
-    if raw_value:
-        found = YEAR.search(raw_value)
+    Three sources, in order of precision:
+
+    * ``{{Veraltet|seit=...}}`` - free text in practice, so parsed leniently;
+    * ``{{Zukunft|YYYY|MM}}`` - a passage that goes stale after that month;
+    * the dated categories, when the wikitext is unavailable.
+
+    A malformed value scores nothing but is still reported: a broken ``seit=``
+    is itself worth seeing in the worklist.
+    """
+    wikitext = article.wikitext or ""
+
+    template = VERALTET_TEMPLATE.search(wikitext)
+    if template:
+        param = SEIT_PARAM.search(template.group(0))
+        raw = param.group(1).strip() if param else ""
+        found = YEAR.search(raw) if raw else None
         if found:
             year = int(found.group(0))
-    if year is None:
-        for category in article.categories:
-            found_cat = CATEGORY_YEAR.search(category)
-            if found_cat:
-                year = int(found_cat.group(1))
-                raw_value = raw_value or category.removeprefix("Kategorie:Wikipedia:")
-                break
+            stale_years = max(0, reference.year - year)
+            return ("veraltet_seit", f"seit {year} ({stale_years}a)", _bonus_years(stale_years, scoring))
+        if param:
+            return ("veraltet_seit_unparsable", f"seit={raw!r}", 0.0)
 
-    if year is None:
-        return (0.0, f"seit={raw_value!r} (unparsable)" if raw_value is not None else None)
+    zukunft = ZUKUNFT_TEMPLATE.search(wikitext)
+    if zukunft:
+        year = int(zukunft.group(1))
+        month = int(zukunft.group(2) or 1)
+        due = dt.date(year, min(max(month, 1), 12), 1)
+        if due > reference:
+            return ("zukunft_offen", f"faellig ab {due.isoformat()}", 0.0)
+        elapsed = (reference - due).days / 365.25
+        return (
+            "zukunft_faellig",
+            f"faellig seit {due.isoformat()} ({elapsed:.1f}a)",
+            _bonus_years(elapsed, scoring),
+        )
 
-    years_stale = max(0, reference.year - year)
-    bonus = min(years_stale * scoring.veraltet_seit_bonus_per_year, scoring.veraltet_seit_bonus_cap)
-    return (bonus, f"seit {year} ({years_stale}a)")
+    for category in article.categories:
+        found_cat = CATEGORY_YEAR.search(category)
+        if found_cat:
+            year = int(found_cat.group(1))
+            label = category.removeprefix("Kategorie:Wikipedia:")
+            stale_years = max(0, reference.year - year)
+            return ("veraltet_kategorie", f"{label} ({stale_years}a)", _bonus_years(stale_years, scoring))
+
+    return None
+
+
+def _bonus_years(years: float, scoring: ScoringConfig) -> float:
+    return min(max(years, 0.0) * scoring.veraltet_seit_bonus_per_year, scoring.veraltet_seit_bonus_cap)
 
 
 # --------------------------------------------- 2. time since substantive edit
@@ -141,7 +182,7 @@ def _score_edit_age(
         reasons.append(Reason(code="no_substantive_edit", detail="none in fetched history", points=0.0))
         return (0.0, None, None)
 
-    age_days = (result.reference_date - revision.timestamp.date()).days
+    age_days = (scoring_reference(result.reference_date) - revision.timestamp.date()).days
     # Saturating: the difference between 3 and 10 years matters less than the
     # difference between 3 months and 3 years.
     factor = 1.0 - math.pow(0.5, max(age_days, 0) / scoring.edit_age_half_life_days)
@@ -211,7 +252,7 @@ def _first_marker_hit(wikitext: str, rule: MarkerRule, reference: dt.date) -> tu
         match = pattern.search(line)
         if match is None:
             continue
-        year = _year_for_match(match, line)
+        year = _year_for_match(match, line, rule.year_window)
         if year is None:
             continue
         if reference.year - year <= rule.max_age_years:
@@ -221,12 +262,15 @@ def _first_marker_hit(wikitext: str, rule: MarkerRule, reference: dt.date) -> tu
     return best
 
 
-def _year_for_match(match: re.Match[str], line: str) -> int | None:
+def _year_for_match(match: re.Match[str], line: str, window: int) -> int | None:
     groups = match.groupdict()
     if groups.get("year"):
         return int(groups["year"])
-    # Bare adverbs ("derzeit", "aktuell") only mean something next to a year.
-    nearby = YEAR.search(line)
+    # Bare adverbs ("derzeit", "aktuell") only mean something next to a year,
+    # and "next to" means nearby, not merely somewhere on the same line.
+    start = max(0, match.start() - window)
+    end = min(len(line), match.end() + window)
+    nearby = YEAR.search(line[start:end])
     return int(nearby.group(0)) if nearby else None
 
 

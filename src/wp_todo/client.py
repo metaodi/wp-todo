@@ -87,6 +87,9 @@ class WikiClient:
     dry_run: bool = False
     #: Refuse to touch the network; a cache miss is an error. Used by the tests.
     offline: bool = False
+    #: Injectable transport, so the retry and continuation logic can be tested
+    #: without a network.
+    transport: httpx.BaseTransport | None = None
     _client: httpx.Client | None = field(default=None, init=False, repr=False)
     stats: ClientStats = field(default_factory=ClientStats)
     _last_request_at: float = field(default=0.0, init=False, repr=False)
@@ -102,6 +105,7 @@ class WikiClient:
             headers={"User-Agent": self.user_agent, "Accept": "application/json"},
             timeout=self.timeout_s,
             follow_redirects=True,
+            transport=self.transport,
         )
         return self
 

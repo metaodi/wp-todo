@@ -1,0 +1,94 @@
+name: Refresh worklist
+
+on:
+  schedule:
+    # Mondays, 05:17 UTC. Off the hour to avoid the top-of-hour crowd.
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Only process the first N articles (debugging)"
+        required: false
+        default: ""
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --dev
+
+      # Reuse the HTTP cache between runs so a re-run is cheap for the API.
+      - name: Restore response cache
+        uses: actions/cache@v4
+        with:
+          path: cache/http
+          key: wp-todo-http-${{ github.run_id }}
+          restore-keys: wp-todo-http-
+
+      - name: Run the pipeline
+        env:
+          WP_TODO_LIMIT: ${{ inputs.limit }}
+        run: |
+          set -euo pipefail
+          args=""
+          if [ -n "${WP_TODO_LIMIT:-}" ]; then
+            args="--limit ${WP_TODO_LIMIT}"
+          fi
+          # No `|| true` anywhere: an API failure must fail the job rather than
+          # commit a truncated worklist.
+          uv run wp-todo run $args
+
+      - name: Sanity-check the output
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          payload = json.loads(Path("out/todo.json").read_text(encoding="utf-8"))
+          articles = payload.get("articles", [])
+          scored = [a for a in articles if a.get("score", 0) > 0]
+          print(f"{len(articles)} articles, {len(scored)} with a non-zero score")
+
+          # A sudden collapse means a partial fetch, not a tidy wiki. Refuse to
+          # commit it over a good list.
+          floor = 50
+          if len(articles) < floor:
+              sys.exit(f"only {len(articles)} articles (< {floor}): refusing to commit a truncated list")
+          if not scored:
+              sys.exit("no article scored above zero: refusing to commit an empty worklist")
+          PY
+
+      - name: Commit the worklist
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add out/todo.md out/todo.json
+          if git diff --cached --quiet; then
+            echo "worklist unchanged"
+            exit 0
+          fi
+          git commit -m "chore: refresh worklist"
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:"${{ github.ref_name }}"; then
+              exit 0
+            fi
+            sleep $((2 ** attempt))
+            git pull --rebase origin "${{ github.ref_name }}" || true
+          done
+          echo "::error::could not push the refreshed worklist"
+          exit 1

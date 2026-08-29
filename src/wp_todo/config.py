@@ -74,6 +74,10 @@ class MarkerRule(Frozen):
     max_age_years: int = Field(ge=0)
     weight: float = 0.0
     requires_year: bool = True
+    #: How far either side of the match to look for a year, in characters, when
+    #: the pattern does not capture one itself. "derzeit" in a sentence about
+    #: 1961 is history, not staleness, so the year has to actually be nearby.
+    year_window: int = Field(default=60, ge=0, le=500)
 
     def compiled(self) -> re.Pattern[str]:
         return re.compile(self.pattern, re.IGNORECASE)

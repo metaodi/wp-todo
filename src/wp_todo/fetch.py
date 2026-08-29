@@ -208,18 +208,24 @@ def _add_wikitext(articles: list[Article], client: WikiClient) -> list[Article]:
 
 
 def _add_history(article: Article, client: WikiClient, config: ScopeConfig) -> Article:
-    """Revision history. One request per article: rvlimit is single-page only."""
-    pages = client.query_pages(
+    """Revision history. One request per article: rvlimit is single-page only.
+
+    Deliberately does not follow continuation. rvlimit caps a *batch*, not the
+    query, so continuing would walk the entire history of the article - hundreds
+    of requests for a well-tended one. history_depth is the whole budget.
+    """
+    for batch in client.query(
         titles=article.title,
         prop="revisions",
         rvprop=REVISION_PROPS,
         rvlimit=config.scoring.history_depth,
-    )
-    for page in pages.values():
-        raw = page.get("revisions")
-        if isinstance(raw, list) and raw:
-            revisions = tuple(Revision.from_api(r) for r in raw if isinstance(r, dict))
-            return article.model_copy(update={"revisions": revisions})
+    ):
+        for page in batch.get("query", {}).get("pages", []):
+            raw = page.get("revisions")
+            if isinstance(raw, list) and raw:
+                revisions = tuple(Revision.from_api(r) for r in raw if isinstance(r, dict))
+                return article.model_copy(update={"revisions": revisions})
+        break  # first batch only
     return article
 
 

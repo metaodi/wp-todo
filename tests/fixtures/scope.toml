@@ -24,11 +24,14 @@ pages = [
 contact = "https://github.com/metaodi/wp-todo"
 user_agent_product = "wp-todo-tests"
 
-[exclude]
-titles = []
-
 [scoring]
 history_depth = 25
+edit_age_weight = 40.0
+edit_age_half_life_days = 900.0
+substantive_min_bytes = 100
+veraltet_seit_bonus_per_year = 3.0
+veraltet_seit_bonus_cap = 30.0
+marker_cap = 30.0
 
 [scoring.maintenance]
 "Kategorie:Wikipedia:Veraltet seit" = 60.0
@@ -37,19 +40,38 @@ history_depth = 25
 "Kategorie:Wikipedia:Veraltet" = 50.0
 "Kategorie:Wikipedia:Lückenhaft" = 25.0
 "Kategorie:Wikipedia:Überarbeiten" = 25.0
+"Kategorie:Wikipedia:Neutralität" = 12.0
 "Kategorie:Wikipedia:Belege fehlen" = 15.0
+"Kategorie:Wikipedia:Qualitätssicherung" = 10.0
+"Kategorie:Wikipedia:Redundanz" = 8.0
 "Kategorie:Wikipedia:Weblink offline IABot" = 1.0
+"Kategorie:Wikipedia:Weblink offline fix-attempted" = 1.0
 "Kategorie:Wikipedia:Weblink offline" = 4.0
 "Kategorie:Wikipedia:Defekte Weblinks" = 1.0
 
 [[scoring.markers]]
 code = "stand_year"
-pattern = 'Stand:?\\s*(?:[A-Za-zä.]+\\s+)?(?P<year>(?:19|20)\\d{2})'
+pattern = 'Stand:?\s*(?:[A-Za-zä.]+\s+)?(?P<year>(?:19|20)\d{2})'
 max_age_years = 3
 weight = 12.0
+requires_year = true
+year_window = 60
+
+[[scoring.markers]]
+code = "seit_year"
+pattern = 'seit\s+(?P<year>(?:19|20)\d{2})'
+max_age_years = 8
+weight = 6.0
+requires_year = true
+year_window = 60
 
 [[scoring.markers]]
 code = "derzeit"
-pattern = '\\b(?:derzeit|zurzeit|aktuell)\\b'
+pattern = '\b(?:derzeit|zurzeit|aktuell|gegenwärtig|momentan)\b'
 max_age_years = 5
 weight = 8.0
+requires_year = true
+year_window = 60
+
+[scoring.pageviews]
+months = 12
