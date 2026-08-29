@@ -21,8 +21,8 @@ _Nichts abgeglichen._
 Abschnitte, die andere Sprachversionen haben und diese nicht. Ein Titel allein
 sagt wenig - derselbe Inhalt steht hier oft unter anderem Namen.
 
-- **[enwiki](https://en.wikipedia.org/wiki/Adliswil-Felsenegg_cable_car)** — 4 Abschnitt(e) ohne Entsprechung hier
-  - History; Operation; Connections; Gallery
+- **[enwiki](https://en.wikipedia.org/wiki/Adliswil-Felsenegg_cable_car)** — 3 Abschnitt(e) ohne Entsprechung hier
+  - Operation; Connections; Gallery
 
 ## Angaben zum Prüfen
 

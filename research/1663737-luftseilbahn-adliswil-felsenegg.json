@@ -49,9 +49,9 @@
       "article_as_of": null,
       "article_value": null,
       "claim_id": null,
-      "detail": "4 Abschnitt(e) ohne Entsprechung hier",
+      "detail": "3 Abschnitt(e) ohne Entsprechung hier",
       "external_as_of": null,
-      "external_value": "History; Operation; Connections; Gallery",
+      "external_value": "Operation; Connections; Gallery",
       "field": null,
       "kind": "interwiki_section",
       "label": "enwiki",
@@ -86,5 +86,6 @@
   ],
   "scope_label": "Recherche",
   "title": "Luftseilbahn Adliswil–Felsenegg",
+  "wikidata_checked": true,
   "wikidata_item": "Q1273422"
 }
