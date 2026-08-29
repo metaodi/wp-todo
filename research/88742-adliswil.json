@@ -1,0 +1,244 @@
+{
+  "claims": {
+    "claims": [
+      {
+        "as_of_year": null,
+        "asserted_value": "7.79",
+        "field": "FLÄCHE",
+        "id": "infobox_field-976fc0c9",
+        "kind": "infobox_field",
+        "line_no": 16,
+        "section": null,
+        "text": "FLÄCHE = 7.79"
+      },
+      {
+        "as_of_year": null,
+        "asserted_value": "Markus Bürgi ([[FDP.Die Liberalen|FDP]])",
+        "field": "STADTPRÄSIDENT",
+        "id": "infobox_field-acb8e24c",
+        "kind": "infobox_field",
+        "line_no": 23,
+        "section": null,
+        "text": "STADTPRÄSIDENT = Markus Bürgi ([[FDP.Die Liberalen|FDP]])"
+      },
+      {
+        "as_of_year": null,
+        "asserted_value": "www.adliswil.ch",
+        "field": "WEBSITE",
+        "id": "infobox_field-d1e5af1c",
+        "kind": "infobox_field",
+        "line_no": 28,
+        "section": null,
+        "text": "WEBSITE = www.adliswil.ch"
+      },
+      {
+        "as_of_year": 2022,
+        "asserted_value": null,
+        "field": null,
+        "id": "marker_stand_year-5e6444d3",
+        "kind": "marker:stand_year",
+        "line_no": 68,
+        "section": "Bevölkerung",
+        "text": "* Konfessionszugehörigkeit: 18,02 % [[Reformierte Kirchen|evangelisch-reformiert]], 25,84 % [[Römisch-katholische Kirche|römisch-katholisch]], 56,14 % andere oder keine konfessionelle Zugehörigkeit (S"
+      }
+    ],
+    "infobox": "Infobox Ort in der Schweiz",
+    "pageid": 88742,
+    "references": {
+      "external_urls": [
+        "http://www.adliswil.ch/de/freizeit/vereineveranstalltungen/vereinsliste/",
+        "http://www.football.ch/fvrz/de/verein.aspx?v=1461",
+        "http://www.zeno.org/Brockhaus-1911/K/brockh-1911-011-0016",
+        "https://app.statistik.zh.ch/wahlen_abstimmungen/prod/Actual/Det/0_0_20231022/247586",
+        "https://geschichtsverein.ch/var/m_a/aa/aad/262766/11857304-artikel_sieber-16790.pdf?download",
+        "https://web.archive.org/web/20160512164137/http://www.adliswil.ch/de/freizeit/vereineveranstalltungen/vereinsliste/",
+        "https://www.adliswil.ch/geschichte/6986",
+        "https://www.adliswil.ch/werkleitungenred/13237",
+        "https://www.arasihltal.ch/",
+        "https://www.wahlen.zh.ch/wahlen2019/public/dist/#/nrw/listen/Gemeinden/Parteien/131",
+        "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=405,406,408&bfs=131",
+        "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=455&bfs=131",
+        "https://www.zsz.ch/die-klaeranlage-im-sihltal-wird-modernisiert-493393496245"
+      ],
+      "newest_year": 2026,
+      "oldest_year": 1911,
+      "total": 19,
+      "with_year": 14
+    },
+    "sections": [
+      "Geographie",
+      "Geschichte",
+      "Wappen und Fahne",
+      "Bevölkerung",
+      "Politik",
+      "Wirtschaft",
+      "Infrastruktur",
+      "Verkehr",
+      "Kirchen und Tempel",
+      "Vereine",
+      "Sehenswürdigkeiten",
+      "Persönlichkeiten",
+      "Literatur",
+      "Weblinks",
+      "Einzelnachweise"
+    ],
+    "title": "Adliswil"
+  },
+  "compared_languages": [
+    "en",
+    "fr",
+    "it"
+  ],
+  "deltas": [
+    {
+      "agrees": false,
+      "article_as_of": null,
+      "article_value": null,
+      "claim_id": null,
+      "detail": "10 Abschnitt(e) ohne Entsprechung hier",
+      "external_as_of": null,
+      "external_value": "History; Geography; Demographics; Religion; Education; Public schools; Private, publicly subsidised schools; Other private schools; Transportation; Notable people",
+      "field": null,
+      "kind": "interwiki_section",
+      "label": "enwiki",
+      "source": "https://en.wikipedia.org/wiki/Adliswil"
+    },
+    {
+      "agrees": false,
+      "article_as_of": null,
+      "article_value": null,
+      "claim_id": null,
+      "detail": "9 Abschnitt(e) ohne Entsprechung hier",
+      "external_as_of": null,
+      "external_value": "Géographie; Situation; Transports; Démographie; Histoire; Économie; Culture et patrimoine; Personnalités; Héraldique",
+      "field": null,
+      "kind": "interwiki_section",
+      "label": "frwiki",
+      "source": "https://fr.wikipedia.org/wiki/Adliswil"
+    },
+    {
+      "agrees": false,
+      "article_as_of": null,
+      "article_value": null,
+      "claim_id": null,
+      "detail": "8 Abschnitt(e) ohne Entsprechung hier",
+      "external_as_of": null,
+      "external_value": "Geografia fisica; Storia; Monumenti e luoghi d'interesse; Società; Evoluzione demografica; Economia; Infrastrutture e trasporti; Amministrazione",
+      "field": null,
+      "kind": "interwiki_section",
+      "label": "itwiki",
+      "source": "https://it.wikipedia.org/wiki/Adliswil"
+    }
+  ],
+  "edit_url": "https://de.wikipedia.org/w/index.php?title=Adliswil&action=edit",
+  "interwiki_checked": true,
+  "pageid": 88742,
+  "reference_date": "2026-08-29",
+  "reference_standing": [
+    {
+      "decided": null,
+      "host": "www.web.statistik.zh.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 2,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "app.statistik.zh.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.wahlen.zh.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.zsz.ch",
+      "label": "Presse/Wissenschaft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "press_academic",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.adliswil.ch",
+      "label": "nicht eingestuft · offizielle Website des Artikelgegenstands",
+      "reason": "",
+      "references": 3,
+      "signals": [
+        "article_official"
+      ],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "geschichtsverein.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "web.archive.org",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.arasihltal.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.football.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.zeno.org",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    }
+  ],
+  "scope_label": "Recherche",
+  "title": "Adliswil",
+  "wikidata_item": "Q68210"
+}
