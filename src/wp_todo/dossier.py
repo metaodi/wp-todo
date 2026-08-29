@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 import re
 
-from .models import Delta, Dossier
+from .models import Delta, Dossier, Finding
 
 HEADER_NOTICE = (
     "> **Dieses Werkzeug bearbeitet die Wikipedia nicht.** Alles hier ist ein *Hinweis*,\n"
@@ -61,6 +61,11 @@ def render_markdown(dossier: Dossier) -> str:
         "",
     ]
 
+    # Above everything deterministic, because it is what an editor came for -
+    # and, for the same reason, the section that has to be loudest about how
+    # little it is worth before somebody checks it.
+    lines += _findings_section(dossier)
+
     # "Not retrieved" must not read as "nothing to report". For five live runs
     # it did, while our own robots gate was refusing the request.
     unchecked = _wikidata_unchecked(dossier) or _nothing_comparable(dossier)
@@ -88,6 +93,7 @@ def render_markdown(dossier: Dossier) -> str:
     lines += _references_section(dossier)
     lines += _standing_section(dossier)
     lines += _excluded_section(dossier)
+    lines += _agent_section(dossier)
 
     return "\n".join(lines).rstrip() + "\n"
 
@@ -194,6 +200,7 @@ def _interwiki_section(dossier: Dossier) -> list[str]:
         lines.append(f"- **[{_escape(delta.label)}]({delta.source})** — {_escape(delta.detail)}")
         lines.append(f"  - {_escape(delta.external_value or '')}")
     lines.append("")
+    lines += _section_notes_block(dossier)
     return lines
 
 
@@ -310,3 +317,162 @@ def _value(value: str | None, as_of: int | None) -> str:
 
 def _escape(text: str) -> str:
     return text.replace("|", "\\|").replace("\n", " ")
+
+
+# --------------------------------------------------------------- the agent
+#: Stated inside the section, not only in the file header. The header is read
+#: once, by whoever opens the file; this section is what gets scrolled to,
+#: screenshotted and pasted, and CLAUDE.md requires the warning to travel with
+#: it. Every figure below came out of a language model.
+FINDINGS_NOTICE = (
+    "> **Jede Angabe in diesem Abschnitt ist ungeprüft.** Sie stammt von einem\n"
+    "> Sprachmodell, das ein Dokument gelesen hat - nicht von einer Person, die es\n"
+    "> beurteilt hat. Das Zitat wurde maschinell wörtlich im Dokument wiedergefunden;\n"
+    "> das heisst, dass es dort steht, und sonst nichts. Ob es die Angabe im Artikel\n"
+    "> wirklich überholt, weisst du erst, wenn du den Beleg selbst geöffnet hast."
+)
+
+STATUS_LABELS = {
+    "supersedes_with_newer_value": "neuerer Wert",
+    "contradicts_current": "widerspricht dem Artikel",
+    "confirms_current": "bestätigt den Artikel",
+}
+
+
+def _findings_section(dossier: Dossier) -> list[str]:
+    """What the research agent found - or the honest reason there is nothing.
+
+    Absent entirely when the agent never ran, which is the normal case. An
+    empty section would say "we looked and found nothing" about a search that
+    was never made.
+    """
+    run = dossier.agent
+    if run is None:
+        return []
+
+    lines = ["## Wahrscheinlich veraltet", ""]
+    if not dossier.findings:
+        lines += [_no_findings(dossier), ""]
+        lines += _unexamined(dossier)
+        return lines
+
+    lines += [FINDINGS_NOTICE, ""]
+    for finding in dossier.findings:
+        lines += _finding(dossier, finding)
+    lines += _unexamined(dossier)
+    return lines
+
+
+def _finding(dossier: Dossier, finding: Finding) -> list[str]:
+    origin = "Beleg des Artikels" if finding.from_reference else "Websuche"
+    label = STATUS_LABELS.get(finding.status, finding.status)
+    lines = [f"### {_escape(finding.claim_text)}", "", f"*{label} · {origin}*", ""]
+    if finding.demoted:
+        # Kept, but never sold as an update: two figures can differ because the
+        # source is the older one.
+        lines += [f"- **Kein Update:** {_escape(finding.demoted)}"]
+    if finding.current_value:
+        value = _value(finding.current_value, finding.as_of)
+        lines += [f"- **Laut Quelle:** {value}"]
+    lines += [
+        f"- **Beleg:** <{finding.url}> — {_escape(finding.standing)}",
+        f"- **Zitat:** „{_escape(finding.quote)}“",
+        "",
+    ]
+    return lines
+
+
+def _no_findings(dossier: Dossier) -> str:
+    run = dossier.agent
+    if run is None:  # pragma: no cover - guarded by the caller
+        return ""
+    if run.budget_exhausted:
+        return (
+            "_Das Aufruf-Budget war aufgebraucht, bevor etwas geprüft werden konnte. "
+            "Das ist **kein** Hinweis darauf, dass alles aktuell ist._"
+        )
+    if not run.documents:
+        return (
+            "_Kein Dokument konnte gelesen werden - der Artikel zitiert keine "
+            "abrufbaren Belege, und die Suche hat nichts geliefert. Es wurde also "
+            "**nichts** geprüft._"
+        )
+    where = "den Belegen des Artikels" + (" und der Websuche" if run.searched else "")
+    return f"_Nichts gefunden: in {where} stand zu diesen Angaben nichts Neueres._"
+
+
+def _unexamined(dossier: Dossier) -> list[str]:
+    """The claims that were on the agenda and never got asked about.
+
+    Without this line a short findings section reads as "little to find" when
+    it may mean "we stopped early". They are named by id, which is what the
+    Angaben zum Prüfen table is keyed on.
+    """
+    run = dossier.agent
+    if run is None or not run.unexamined:
+        return []
+    ids = ", ".join(f"`{claim_id}`" for claim_id in run.unexamined)
+    reason = "das Budget war aufgebraucht" if run.budget_exhausted else "keine Quelle sagte etwas dazu"
+    return [f"_Nicht abschliessend geprüft ({reason}): {ids}._", ""]
+
+
+def _agent_section(dossier: Dossier) -> list[str]:
+    """What the model layer cost and what its gates threw away.
+
+    The drop counts are the part worth reading: a run where the quote check
+    rejected most answers is a run whose survivors deserve more suspicion.
+    """
+    run = dossier.agent
+    if run is None:
+        return []
+
+    lines = ["## Recherche-Metadaten", ""]
+    lines += [
+        f"Modell `{run.model}`, Effort `{run.effort}` · {run.calls} Aufruf(e) "
+        f"(davon {run.cached_calls} aus dem Cache) von höchstens {run.budget}",
+        "",
+        f"{run.documents} Dokument(e) gelesen, {run.reference_documents} davon Belege "
+        f"des Artikels selbst" + (", danach Websuche" if run.searched else ", ohne Websuche"),
+        "",
+    ]
+
+    counts: dict[str, int] = {}
+    for drop in run.dropped:
+        counts[drop.gate] = counts.get(drop.gate, 0) + 1
+    if counts:
+        labels = {
+            "quote": "Zitat nicht im Dokument",
+            "provenance": "Dokument gibt es nicht",
+            "circularity": "Kopie des Artikels",
+            "source_standing": "Quelle ausgeschlossen",
+            "schema": "unbrauchbare Antwort",
+        }
+        parts = [f"{labels.get(gate, gate)}: {count}" for gate, count in sorted(counts.items())]
+        lines += ["Von den Prüfungen verworfen — " + " · ".join(parts), ""]
+
+    if run.transcript:
+        lines += [f"[Vollständiges Protokoll]({run.transcript})", ""]
+    return lines
+
+
+def _section_notes_block(dossier: Dossier) -> list[str]:
+    """Bullet points on sections this article does not have.
+
+    A summary of the *other edition's* section, not of the subject: the link
+    goes to the text the bullets were written from, so the summary can be
+    checked the same way everything else here can.
+    """
+    if not dossier.section_notes:
+        return []
+    lines = [
+        "",
+        "Worum es in diesen Abschnitten anderswo geht - zusammengefasst von einem",
+        "Sprachmodell aus dem dortigen Text, nicht aus eigenem Wissen, und deshalb",
+        "ebenso ungeprüft wie alles andere Maschinelle hier:",
+        "",
+    ]
+    for note in dossier.section_notes:
+        lines.append(f"- **[{_escape(note.heading)}]({note.source})** ({note.lang}wiki)")
+        lines += [f"  - {_escape(bullet)}" for bullet in note.bullets]
+    lines.append("")
+    return lines

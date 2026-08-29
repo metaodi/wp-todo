@@ -213,6 +213,34 @@ class ResearchConfig(Frozen):
     #: treated as a copy of it rather than as a source for it.
     circularity_span: int = Field(default=200, ge=40)
 
+    # ------------------------------------------------------------- the agent
+    # Only read when `--agent` is passed. Without it nothing below costs
+    # anything, because no model is ever consulted.
+    model: str = "claude-opus-5"
+    effort: str = "medium"
+    #: Model calls per article. Deliberately tight: the stage earns its keep by
+    #: reading the article's own references, which is a handful of questions,
+    #: not by exploring. Running out is reported, never silently truncated.
+    max_llm_calls: int = Field(default=10, ge=1, le=100)
+    #: Claims put to the model, most overdue first. The rest are named in the
+    #: dossier as unexamined rather than left to look answered.
+    max_claims: int = Field(default=5, ge=1, le=40)
+    #: References fetched and shown, best standing first. What was left unread
+    #: is in the transcript.
+    max_reference_docs: int = Field(default=8, ge=1, le=40)
+    #: Search results fetched, when the references answered nothing.
+    max_search_docs: int = Field(default=6, ge=1, le=40)
+    #: How stale a dated claim has to be before it is worth a call. A figure
+    #: from last year is not news.
+    stale_after_years: int = Field(default=2, ge=0, le=50)
+
+    @model_validator(mode="after")
+    def _check_effort(self) -> Self:
+        allowed = ("low", "medium", "high", "xhigh", "max")
+        if self.effort not in allowed:
+            raise ValueError(f"research.effort must be one of {', '.join(allowed)}")
+        return self
+
 
 class MetaConfig(Frozen):
     """Identity sent to Wikimedia on every request.

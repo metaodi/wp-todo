@@ -13,10 +13,12 @@ from __future__ import annotations
 
 import logging
 
+from .agent import AgentOutcome, run_agent
 from .claims import extract_claims
 from .client import WikiClient
 from .config import ScopeConfig
-from .enrich import interwiki_deltas, langlinks, wikibase_items, wikidata_deltas
+from .enrich import foreign_wikitexts, interwiki_deltas, langlinks, wikibase_items, wikidata_deltas
+from .llm import LlmClient
 from .models import Article, ArticleClaims, Delta, Dossier, FetchResult, SourceStanding
 from .score import EDIT_URL
 from .sources import TIERS, SourceLedger, Standing, host_of, standing
@@ -36,12 +38,18 @@ def research_article(
     web: WebClient,
     foreign: dict[str, WikiClient] | None = None,
     ledger: SourceLedger | None = None,
-) -> Dossier:
-    """Build the dossier for one article.
+    llm: LlmClient | None = None,
+) -> tuple[Dossier, AgentOutcome | None]:
+    """Build the dossier for one article, and whatever the agent did.
 
     `foreign` maps a language code to a client pointed at that wiki's action
     API. It is passed in rather than built here so the caller owns every client
     that can make a request, and the tests can hand over offline ones.
+
+    `llm` is the opt-in half. Without it nothing here consults a model, no
+    money is spent, and the dossier is exactly what it was before M2 - which
+    is why the second half of the return value is `None` in the normal case
+    and must never be rendered as "the agent found nothing".
     """
     reference = corpus.reference_date
     claims = extract_claims(article, config, reference)
@@ -63,13 +71,28 @@ def research_article(
             log.info("%s: no Wikidata item", article.title)
 
     compared: tuple[str, ...] = ()
+    links: dict[str, str] = {}
     if foreign:
         links = langlinks(wiki, [article.title], config.research.compare_languages).get(article.title, {})
         deltas.extend(interwiki_deltas(claims, links, foreign, config, reference))
         compared = tuple(lang for lang in config.research.compare_languages if lang in links)
         log.info("%s: compared against %s", article.title, ", ".join(compared) or "no other edition")
 
-    return Dossier(
+    outcome: AgentOutcome | None = None
+    if llm is not None:
+        outcome = run_agent(
+            claims=claims,
+            wikitext=article.wikitext or "",
+            deltas=tuple(deltas),
+            foreign_texts=foreign_wikitexts(links, foreign) if foreign else {},
+            config=config,
+            reference=reference,
+            web=web,
+            llm=llm,
+            ledger=ledger or SourceLedger(),
+        )
+
+    dossier = Dossier(
         pageid=article.pageid,
         title=article.title,
         scope_label=article.scope_label,
@@ -82,8 +105,12 @@ def research_article(
         interwiki_checked=bool(foreign),
         compared_languages=compared,
         reference_standing=reference_standing(claims, ledger or SourceLedger()),
+        agent=outcome.run if outcome else None,
+        findings=outcome.findings if outcome else (),
+        section_notes=outcome.section_notes if outcome else (),
         edit_url=EDIT_URL.format(title=article.title.replace(" ", "_")),
     )
+    return dossier, outcome
 
 
 def reference_standing(claims: ArticleClaims, ledger: SourceLedger) -> tuple[SourceStanding, ...]:

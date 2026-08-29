@@ -27,6 +27,7 @@ Once the worklist has told you *which* article to look at, `research` tells you
 
 ```sh
 uv run wp-todo research "Küsnachter Dorfbach"   # writes research/<id>-<slug>.md
+uv run wp-todo research "Küsnachter Dorfbach" --agent   # ... and asks a model
 ```
 
 Any de.wikipedia title works, in or out of the configured scope, with or without
@@ -156,6 +157,47 @@ Three things it deliberately does not do: draft article prose, post anywhere, or
 decide who is right. Wikidata is frequently the side that is out of date, and
 the dossier gives you both values and both links rather than a verdict.
 
+### `--agent`: the part that costs money
+
+Off by default. Without the flag no model is consulted and the run is free; with
+it, two more sections appear.
+
+The order of work is the whole idea: **the article's own references are read
+first, and the open web only for what they could not answer.** A page whose
+population figure says "Stand 2018" very often already cites the office that has
+since published 2025 — so reading what is already cited is both cheaper and
+better than searching, and it cannot drag in a source nobody has vetted. Only
+the claims the references leave open trigger a single web-search call for the
+whole article; sections other editions have and this one does not get a few
+bullet points summarising what the *linked* text says.
+
+Roughly ten model calls per article at the shipped defaults, a few cents. Every
+one is cached, so a rerun without `--refresh` replays it for nothing. Running
+out of the budget is reported in the dossier, with every claim it never got to
+named — a short findings list because the ceiling was hit is a different fact
+from a short findings list because there was little to find.
+
+Then the paranoid half. Everything the model says goes through five checks
+applied **in code, afterwards**:
+
+| check | what it refuses |
+| --- | --- |
+| quote containment | a quote that is not verbatim in the stored document — a paraphrase is refused even when it is *true* |
+| provenance | a document index that resolves to nothing; the model picks by number and never emits a URL |
+| recency | a source older than the article — demoted to context, not sold as an update |
+| circularity | a copy of the article. `trust` cannot override this; trusting a mirror is always an error |
+| source standing | a host you blocked. Applied before the fetch, and always reported |
+
+Every rejection is counted and shown. A run where the quote check rejected six
+of twenty answers is telling you something about that run.
+
+Alongside the dossier it commits `research/<id>-<slug>.transcript.md`: what was
+asked, what came back, and which check refused what — including the answers that
+were thrown away. It carries a louder header than the dossier for that reason.
+
+Needs `uv sync --extra agent` and `ANTHROPIC_API_KEY`. Model, effort and every
+budget live in `[research]` in `config/scope.toml`.
+
 ### What it costs, and what it will not do to a website
 
 Two action-API requests per article (`pageprops`, `langlinks`), one Wikidata
@@ -244,6 +286,7 @@ schedule, because this stage reads hosts that did not ask to be read.
 | `title` | — | the article, exactly as on de.wikipedia |
 | `refresh` | false | bypass the response cache |
 | `commit` | true | commit the dossier to `research/` |
+| `agent` | false | also ask a language model — needs the `ANTHROPIC_API_KEY` secret |
 
 The dossier goes to the job summary (readable immediately in the browser), to a
 downloadable artifact, and — unless you turn `commit` off — into `research/` on

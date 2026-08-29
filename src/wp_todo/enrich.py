@@ -477,3 +477,22 @@ def _heading_key(heading: str) -> str:
 
 def _normalise_heading(heading: str) -> str:
     return " ".join(re.sub(r"[^\w\s]", " ", heading).lower().split())
+
+
+def foreign_wikitexts(links: dict[str, str], clients: dict[str, WikiClient]) -> dict[str, tuple[str, str]]:
+    """Title and wikitext per compared language.
+
+    The research agent needs the *body* of a section another edition has, not
+    just its heading, so its bullet points can be a summary of real text rather
+    than of the model's own recollection. It goes through the same cached
+    client `interwiki_deltas` used, so asking twice costs one request.
+    """
+    found: dict[str, tuple[str, str]] = {}
+    for lang, title in sorted(links.items()):
+        client = clients.get(lang)
+        if client is None:
+            continue
+        wikitext = _foreign_wikitext(client, title)
+        if wikitext:
+            found[lang] = (title, wikitext)
+    return found

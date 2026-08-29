@@ -21,6 +21,13 @@ data from a Wikimedia service whose `action` is not on the allowlist, reach for
 that service's REST endpoint (as the Wikidata comparison does), or drop the
 feature. Do not widen the allowlist to make a feature fit.
 
+The research agent (`--agent`) does not weaken any of this. **The model is never
+handed a tool that can write anywhere.** Its only tool is Anthropic's
+server-side web search, and that is used for *discovery only*: URLs are read out
+of the structured result blocks and then fetched by `WebClient`, so every
+document a finding rests on is in our own cache, GET-fetched, robots-checked and
+checkable. The model never emits a URL and never sees a way to reach Wikipedia.
+
 ## 2. API etiquette is not optional
 
 - Every request carries a descriptive `User-Agent` with real contact
@@ -80,10 +87,25 @@ which is a real change worth seeing.
 Committing them is a decision with a cost, and it is worth naming rather than
 forgetting: a dossier in a public repository can be found and read as though it
 were authoritative. Nothing in the deterministic sections is *asserted* — every
-figure is a pointer with both sides linked — but that stops being true when the
-open-web stage lands. When it does, its findings section must say inside the
-section, not only in the file header, that every figure there is unverified
-until a human has opened the source.
+figure is a pointer with both sides linked — but that stops being true for the
+open-web stage. So its findings section says inside the section, not only in the
+file header, that every figure there is unverified until a human has opened the
+source. Do not move that notice to the header and do not shorten it: the header
+is read once by whoever opens the file, and the findings section is the part
+that gets scrolled to, screenshotted and pasted.
+
+The agent commits a second file, `research/<id>-<slug>.transcript.md`, holding
+every exchange — including the answers the gates threw away. It is subject to
+the same replay guarantee and to a **louder** header than the dossier, because a
+discarded model answer sitting in a public file must not read as a finding to
+somebody who arrives at it directly. Model calls are cached like every other
+response, so a rerun without `--refresh` reproduces both files byte for byte.
+
+Running out of the call budget is reported, never absorbed: a short findings
+list because the ceiling was hit is a different fact from a short findings list
+because there was little to find, and the dossier names every claim it never got
+to. That is the same rule as `_Nicht abgefragt._` versus `_Keine gefunden._`,
+applied one layer further out.
 
 ## Verifying API behaviour
 

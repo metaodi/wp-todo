@@ -27,6 +27,11 @@ on:
         type: boolean
         required: false
         default: true
+      agent:
+        description: "Also ask a language model (costs money; needs ANTHROPIC_API_KEY)"
+        type: boolean
+        required: false
+        default: false
 
 concurrency:
   # Keyed on the *title*, not just the branch. `cancel-in-progress: false`
@@ -57,7 +62,9 @@ jobs:
       - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
-      - run: uv sync --frozen --dev
+      # The Anthropic SDK is an optional extra: without --agent it is never
+      # imported, and installing it here costs a few seconds either way.
+      - run: uv sync --frozen --dev --extra agent
 
       # Shared with the weekly refresh, so a title already in the corpus costs
       # almost nothing to research.
@@ -76,6 +83,11 @@ jobs:
         env:
           TITLE: ${{ inputs.title }}
           REFRESH: ${{ inputs.refresh }}
+          AGENT: ${{ inputs.agent }}
+          # Only read when --agent is passed. An unset secret is an empty
+          # string, which the step below turns into a clear refusal rather
+          # than a run that quietly does less than was asked.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # The Wikimedia User-Agent policy accepts a project URL as contact
           # information; no personal address needs to leave the runner.
           WP_TODO_CONTACT: ${{ format('https://github.com/{0}', github.repository) }}
@@ -85,11 +97,20 @@ jobs:
           if [ "$REFRESH" = "true" ]; then
             args+=(--refresh)
           fi
+          if [ "$AGENT" = "true" ]; then
+            if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+              echo "::error::the agent was requested but ANTHROPIC_API_KEY is not set in this repository's secrets"
+              exit 1
+            fi
+            args+=(--agent)
+          fi
           uv run wp-todo research "$TITLE" "${args[@]}"
 
           # The CLI names the file it wrote; find it the same way rather than
           # re-deriving the slug here and risking a mismatch.
-          dossier=$(ls -t research/*.md 2>/dev/null | head -1)
+          # `*.transcript.md` also matches `*.md`, and it is written first,
+          # so exclude it explicitly rather than relying on mtime order.
+          dossier=$(ls -t research/*.md 2>/dev/null | grep -v '\.transcript\.md$' | head -1)
           if [ -z "$dossier" ]; then
             echo "::error::no dossier was produced"
             exit 1

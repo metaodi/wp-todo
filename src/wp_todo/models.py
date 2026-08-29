@@ -213,6 +213,100 @@ class SourceStanding(Strict):
     label: str = ""
 
 
+class Finding(Strict):
+    """One thing a model claims to have found, after the gates had their say.
+
+    A finding is the most dangerous object in this codebase: it is the only
+    place where something a language model said reaches a file that gets
+    committed and read. So it carries its own evidence rather than its own
+    conclusion - a verbatim quote that was mechanically checked to exist in a
+    document we fetched and stored, and the URL of that document.
+
+    `status` is what the model said. It is not a verdict, and nothing here is
+    true until a person has opened `url` and read it.
+    """
+
+    claim_id: str
+    #: What the claim was, repeated here so a finding reads on its own.
+    claim_text: str = ""
+    #: confirms_current | supersedes_with_newer_value | contradicts_current
+    status: str
+    current_value: str | None = None
+    as_of: int | None = None
+    #: Verbatim, and verified to appear in the stored text of `url`.
+    quote: str = ""
+    url: str = ""
+    host: str = ""
+    #: The host's tier and signals, rendered - so the reader can weigh it.
+    standing: str = ""
+    #: True when this came from a source the article already cites, which is a
+    #: different and cheaper kind of finding than one from an open web search.
+    from_reference: bool = False
+    #: Set when the recency gate demoted it: the source is not newer than the
+    #: article, so it is context rather than an update.
+    demoted: str = ""
+    #: The model's own confidence. Orders the list; never admits anything.
+    confidence: float = 0.0
+
+
+class DroppedFinding(Strict):
+    """Something the model said that a gate refused, and which gate.
+
+    Reported rather than swallowed. A run where the quote gate rejected six of
+    twenty answers is telling the reader something important about that run,
+    and hiding it would make the surviving findings look better than they are.
+    """
+
+    claim_id: str = ""
+    gate: str
+    detail: str = ""
+    url: str = ""
+
+
+class SectionNote(Strict):
+    """A couple of bullet points on a section this article does not have.
+
+    Grounded in what the other language edition's section actually says, not
+    in what a model knows about the subject: the bullets are a pointer at text
+    somebody can go and read, in the same way every other line of a dossier is.
+    """
+
+    heading: str
+    lang: str
+    source: str = ""
+    bullets: tuple[str, ...] = ()
+
+
+class AgentRun(Strict):
+    """What the model layer did, and what it did not get to.
+
+    Present only when `--agent` was passed. Its absence in a dossier means the
+    stage never ran, which is the normal case: the deterministic dossier costs
+    nothing and this one costs money.
+    """
+
+    model: str
+    effort: str
+    calls: int = 0
+    cached_calls: int = 0
+    budget: int = 0
+    #: True when a call was refused because the ceiling was reached. The
+    #: dossier says so loudly: a short findings list because the budget ran out
+    #: is a different fact from a short findings list because there was little
+    #: to find.
+    budget_exhausted: bool = False
+    #: Claims that were on the agenda and never examined, whatever the reason.
+    unexamined: tuple[str, ...] = ()
+    #: Documents fetched for verification, and how many were the article's own
+    #: references rather than search results.
+    documents: int = 0
+    reference_documents: int = 0
+    searched: bool = False
+    dropped: tuple[DroppedFinding, ...] = ()
+    #: Relative path of the committed transcript, so the dossier can link it.
+    transcript: str = ""
+
+
 class Dossier(Strict):
     """A briefing on one article, for a human to read before editing it.
 
@@ -254,6 +348,11 @@ class Dossier(Strict):
     #: compute - it needs no request - and it answers "how well sourced is this
     #: article" before any research happens.
     reference_standing: tuple[SourceStanding, ...] = ()
+    #: Set only when the research agent ran. `None` means it was not asked to,
+    #: which must never render as "it looked and found nothing".
+    agent: AgentRun | None = None
+    findings: tuple[Finding, ...] = ()
+    section_notes: tuple[SectionNote, ...] = ()
     edit_url: str = ""
 
 

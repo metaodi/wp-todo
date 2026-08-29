@@ -10,6 +10,12 @@ dependencies = [
     "typer>=0.15",
 ]
 
+[project.optional-dependencies]
+# Only needed for `wp-todo research --agent`. Everything else - the worklist,
+# and the deterministic half of a dossier - runs without it and costs nothing,
+# so the SDK is not a hard dependency of the tool.
+agent = ["anthropic>=1.2,<2"]
+
 [project.scripts]
 wp-todo = "wp_todo.cli:app"
 
@@ -43,6 +49,13 @@ select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
 python_version = "3.12"
 strict = true
 files = ["src", "tests"]
+
+# Optional extra, imported behind an ImportError guard in `llm.py`. A dev
+# install without `--extra agent` must still typecheck, or the checks stop
+# matching what a contributor runs.
+[[tool.mypy.overrides]]
+module = "anthropic.*"
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "tests.*"

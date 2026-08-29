@@ -86,14 +86,50 @@ edit, and adding that ability is out of scope for the project — see rule 1 in
 
 ## On the model layer
 
-Milestone 1 uses no language model at all: everything above is regex, template
-parsing and structured API comparison. The planned M2 adds open-web retrieval
-with a model reading the retrieved documents.
+The stage is **off by default**. Without `--agent` no model is consulted, no
+money is spent, and everything above is regex, template parsing and structured
+API comparison. With it, the order of work is deliberate and is where most of
+the value comes from:
 
-If and when that lands, it is subject to one non-negotiable rule: **the model
-never emits a URL, and every quoted sentence is mechanically checked to appear
-verbatim in a document that was actually fetched and stored.** A quote that
-fails the check is dropped and counted, and the count is shown. This makes a
-fabricated citation structurally impossible rather than merely discouraged,
-which is the only version of this worth shipping — a plausible-looking citation
-to a page that does not say what is claimed is worse than no dossier at all.
+1. **The article's own references are read first.** A page whose population
+   figure says "Stand 2018" very often already cites the statistical office
+   that has since published 2025. That is cheaper than searching, it produces a
+   finding an editor can act on immediately, and it cannot drag in a source
+   nobody has vetted.
+2. **The open web is asked only about what the references could not answer** -
+   one discovery call for the whole article, not one per claim.
+3. **Sections other editions have and this one does not** get a few bullet
+   points summarising what the other edition's section actually says, with a
+   link to it. Not what a model knows about the subject: what the linked text
+   says, so the summary can be checked like everything else here.
+
+It is subject to one non-negotiable rule: **the model never emits a URL, and
+every quoted sentence is mechanically checked to appear verbatim in a document
+that was actually fetched and stored.** URLs come out of the structured
+search-result blocks, never out of the model's prose. A quote that fails the
+check is dropped and counted, and the count is shown. This makes a fabricated
+citation structurally impossible rather than merely discouraged, which is the
+only version of this worth shipping - a plausible-looking citation to a page
+that does not say what is claimed is worse than no dossier at all.
+
+Three more things follow from the same reasoning:
+
+- **A `trust` verdict cannot override the circularity check.** Trusting a
+  Wikipedia mirror is always an error, and a perfect quote from a copy of the
+  article is the one failure a human check does not catch, because the text
+  looks right - it is the article's own text.
+- **Running out of budget is announced, never absorbed.** A short findings
+  list because the ceiling was hit is a different fact from a short findings
+  list because there was little to find, and the dossier names every claim it
+  never got to.
+- **The transcript is committed next to the dossier.** A findings section is a
+  summary of a conversation nobody else saw. `research/<id>-<slug>.transcript.md`
+  holds what was asked, what came back, and which gate refused what - including
+  the answers that were thrown away. It carries a louder header than the
+  dossier for exactly that reason: a rejected answer sitting in a file is not
+  a finding, and somebody who finds the file on its own has to be told so
+  before they read a word of it.
+
+Nothing the model produces is a source. The findings section says so inside
+itself, not only in the file header, because the header is read once by whoever
+opens the file and the section is the part that gets scrolled to and pasted.

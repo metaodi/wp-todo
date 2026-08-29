@@ -202,3 +202,19 @@ max_doc_bytes = 2_000_000
 respect_robots = true
 compare_wikidata = true
 compare_languages = ["en", "fr", "it"]
+
+# --- Der Recherche-Agent. Nur aktiv mit `--agent`; ohne das Flag wird kein
+# Modell befragt und der Lauf kostet nichts.
+#
+# Absichtlich knapp bemessen: der Nutzen kommt daher, dass die Belege des
+# Artikels selbst gelesen werden - das sind eine Handvoll Fragen, kein
+# Erkunden. Wenn das Budget nicht reicht, steht das im Dossier; es wird nichts
+# stillschweigend weggelassen.
+model = "claude-opus-5"
+effort = "medium"
+max_llm_calls = 10
+max_claims = 5
+max_reference_docs = 8
+max_search_docs = 6
+# Eine Angabe von letztem Jahr ist keine Neuigkeit.
+stale_after_years = 2
