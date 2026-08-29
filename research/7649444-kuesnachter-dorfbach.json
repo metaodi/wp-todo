@@ -1,0 +1,343 @@
+{
+  "claims": {
+    "claims": [
+      {
+        "as_of_year": 1960,
+        "asserted_value": null,
+        "field": null,
+        "id": "marker_derzeit-014245ea",
+        "kind": "marker:derzeit",
+        "line_no": 147,
+        "section": "Entstehung",
+        "text": "Die Entstehungsgeschichte des Tobels lässt sich zunächst an zahlreichen fossilen Funden ablesen: Muscheln, Schnecken, versteinerte Blätter von Zimt- und Lorbeergewächsen, ein als Palmast interpretiert"
+      }
+    ],
+    "infobox": "Infobox Fluss",
+    "pageid": 7649444,
+    "references": {
+      "external_urls": [
+        "http://data.rero.ch/01-R242105960/html",
+        "http://verschoenerungsverein-kuesnacht.ch/portraet-historischer-rueckblick/",
+        "http://verschoenerungsverein-kuesnacht.ch/waldlehrpfad-geologischer-lehrpfad/",
+        "http://www.erratiker.ch/zh-z%C3%BCrich/k%C3%BCsnacht-zh/",
+        "http://www.hywa-online.de/download/gesamtes-hywa-heft-3-2006/",
+        "http://www.zh.ch/internet/baudirektion/aln/de/fjv/fischerei/informationen/_jcr_content/contentPar/publication/publicationitems/management_seeforell/download.spooler.download.1292840925624.pdf/Seeforellenbewirtschaftungskonzept+2010-2018.pdf",
+        "https://aln.zh.ch/content/dam/baudirektion/aln/fjv/Fischerei/Vorschriften/Verfuegungen/Verfuegung_Zeitlich_begrenzte_Fischereiverbote_an_Bachmuendungen_des_Zuerichsees_20191025.pdf",
+        "https://api3.geo.admin.ch/rest/services/ech/MapServer/ch.bafu.mittlere-abfluesse/69067/extendedHtmlPopup?lang=de",
+        "https://api3.geo.admin.ch/rest/services/ech/MapServer/ch.bafu.wasser-teileinzugsgebiete_2/199233/extendedHtmlPopup?lang=de",
+        "https://web.archive.org/web/20150924002005/http://www.erratiker.ch/zh-z%C3%BCrich/k%C3%BCsnacht-zh/",
+        "https://web.archive.org/web/20170108013051/http://www.zh.ch/internet/baudirektion/aln/de/fjv/fischerei/informationen/_jcr_content/contentPar/publication/publicationitems/management_seeforell/download.spooler.download.1292840925624.pdf/Seeforellenbewirtschaftungskonzept+2010-2018.pdf",
+        "https://web.archive.org/web/20190826011917/http://verschoenerungsverein-kuesnacht.ch/waldlehrpfad-geologischer-lehrpfad/",
+        "https://web.archive.org/web/20200630181437/https://www.baublatt.ch/bauprojekte/haengebruecke-ueber-tobel-in-kuesnacht-neues-gutachten-noetig",
+        "https://www.bafu.admin.ch/bafu/de/home/themen/thema-biodiversitaet/biodiversitaet--fachinformationen/massnahmen-zur-erhaltung-und-foerderung-der-biodiversitaet/nachhaltige-nutzung-der-biodiversitaet/biodiversitaet-im-schweizer-wald.html",
+        "https://www.bar.admin.ch/bar/de/home/service---publikationen/publikationen/geschichte-aktuell/die-schweiz-bohrt-nach-erdoel--mai-1960.html",
+        "https://www.baublatt.ch/bauprojekte/haengebruecke-ueber-tobel-in-kuesnacht-neues-gutachten-noetig",
+        "https://www.birdlife-zuerich.ch/vogelfinder/atlas-nach-gemeinden/gemeinde/kuesnacht/",
+        "https://www.eglisau.ch/de/aktuelles-dossiers/neuigkeiten/news-in-der-einzelansicht/projekt-haengebruecke-toessegg-wird-nicht-weiterverfolgt/",
+        "https://www.friedlipartner.ch/referenzen/kuesnachter-tobel",
+        "https://www.hw.zh.ch/chemie/fg/432_L.pdf",
+        "https://www.hywa-online.de/download/gesamtes-hywa-heft-3-2006/?wpdmdl=2232",
+        "https://www.kuesnacht.ch/page/313/news/13662",
+        "https://www.naturnetz-pfannenstil.ch/wald/projekte/wulp-kuesnacht",
+        "https://www.nau.ch/ort/kusnacht-zh/kusnacht-offentliches-inventar-fur-gebaudebruter-66099776",
+        "https://www.nzz.ch/aktuell/zuerich/stadt_region/ein-weg-zu-den-laichplaetzen-1.11889915",
+        "https://www.nzz.ch/zuerich/felssturz-im-kuesnachter-tobel-1.18070318",
+        "https://www.srf.ch/news/regional/zuerich-schaffhausen/bleibt-der-fels-doch-im-kuesnachter-tobel-liegen",
+        "https://www.srf.ch/news/regional/zuerich-schaffhausen/schrecken-im-kuesnachter-tobel-ein-jahr-danach",
+        "https://www.tagesanzeiger.ch/zuerich/Findlinge-im-Kuesnachter-Tobel-mit-schwerem-Geraet-verschoben-/story/11946282",
+        "https://www.zsz.ch/als-kuesnacht-zum-katastrophengebiet-wurde-294142465030",
+        "https://www.zsz.ch/gemeinde-kuesnacht-tobel-wegen-steinschlags-gesperrt-624767600684",
+        "https://www.zsz.ch/kuesnachter-tobel-haengebruecke-wird-diesen-sommer-doch-nicht-gebaut-786942747016",
+        "https://www.zsz.ch/meilen/wasseramseln-verschwinden-aus-dem-kuesnachter-tobel/story/31076849"
+      ],
+      "newest_year": 2025,
+      "oldest_year": 1919,
+      "total": 75,
+      "with_year": 65
+    },
+    "sections": [
+      "Geographie",
+      "Verlauf",
+      "Einzugsgebiet",
+      "Zuflüsse",
+      "Küsnachter Tobel",
+      "Entstehung",
+      "Heute",
+      "Brückenprojekt",
+      "Erdrutsche und Gefahren",
+      "Hydrologie",
+      "Abflussdaten",
+      "Überschwemmungen",
+      "Überschwemmung 1778",
+      "Überschwemmung 1878",
+      "1946",
+      "Sage",
+      "Hochwasserschutz",
+      "Erste Etappe 1778",
+      "Zweite Etappe 1880–1890",
+      "Dritte Etappe 1895–1899",
+      "Vierte Etappe 1946",
+      "Lebewesen",
+      "Flora",
+      "Fauna",
+      "Sehenswürdigkeiten",
+      "Alexanderstein",
+      "Drachenhöhle",
+      "Drachenkopf",
+      "Ruine Wulp",
+      "Findlingsgarten",
+      "Siehe auch",
+      "Literatur",
+      "Weblinks",
+      "Einzelnachweise"
+    ],
+    "title": "Küsnachter Dorfbach"
+  },
+  "compared_languages": [
+    "en"
+  ],
+  "deltas": [
+    {
+      "agrees": false,
+      "article_as_of": null,
+      "article_value": null,
+      "claim_id": null,
+      "detail": "4 Abschnitt(e) ohne Entsprechung hier",
+      "external_as_of": null,
+      "external_value": "Geography; Attractions; Historical floods; Transportation",
+      "field": null,
+      "kind": "interwiki_section",
+      "label": "enwiki",
+      "source": "https://en.wikipedia.org/wiki/Küsnachter_Tobel"
+    }
+  ],
+  "edit_url": "https://de.wikipedia.org/w/index.php?title=Küsnachter_Dorfbach&action=edit",
+  "interwiki_checked": true,
+  "pageid": 7649444,
+  "reference_date": "2026-08-29",
+  "reference_standing": [
+    {
+      "decided": null,
+      "host": "api3.geo.admin.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 2,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "aln.zh.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.bafu.admin.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.bar.admin.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.hw.zh.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.zh.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.zsz.ch",
+      "label": "Presse/Wissenschaft",
+      "reason": "",
+      "references": 4,
+      "signals": [],
+      "tier": "press_academic",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.nzz.ch",
+      "label": "Presse/Wissenschaft",
+      "reason": "",
+      "references": 2,
+      "signals": [],
+      "tier": "press_academic",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.srf.ch",
+      "label": "Presse/Wissenschaft",
+      "reason": "",
+      "references": 2,
+      "signals": [],
+      "tier": "press_academic",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.tagesanzeiger.ch",
+      "label": "Presse/Wissenschaft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "press_academic",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "web.archive.org",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 4,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "verschoenerungsverein-kuesnacht.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 2,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.hywa-online.de",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 2,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "data.rero.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.baublatt.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.birdlife-zuerich.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.eglisau.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.erratiker.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.friedlipartner.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.kuesnacht.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.naturnetz-pfannenstil.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.nau.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    }
+  ],
+  "scope_label": "Recherche",
+  "title": "Küsnachter Dorfbach",
+  "wikidata_item": "Q18510869"
+}
