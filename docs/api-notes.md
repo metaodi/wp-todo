@@ -14,19 +14,27 @@ run 3 (probes P1–P7) and run 4 (P8) unless stated.
 | `LIVE` | Observed in a recorded response |
 | `OPEN` | Still unverified — do not build on it |
 
-Tally: **35 `LIVE`**, 5 `OPEN`.
+Tally: **41 `LIVE`**, 2 `OPEN`.
 
 ---
 
 ## Headline: five things in the brief that the API contradicts
 
 1. **`clshow=hidden` is not sufficient to harvest maintenance categories.**
-   `Kategorie:Wikipedia:Veraltet seit 2024` is **not a hidden category**
-   (`categoryinfo` reports no `hidden` flag; 149 members). Two sample pages
-   taken from it return *no* Veraltet category at all under `clshow=hidden`,
-   and the category only under an unfiltered `prop=categories`. Every other
-   maintenance category checked *is* hidden. Fetching hidden categories only
-   would silently drop the single most precise staleness signal we have.
+   The **entire `Veraltet seit YYYY` family is non-hidden** — every year from
+   2018 to 2025 reports no `hidden` flag, **2 107 articles in total** — while
+   `Veraltet in …` and `Veraltet nach Jahr …` *are* hidden. Sample pages taken
+   from `…seit 2024` return no Veraltet category at all under `clshow=hidden`,
+   and the category only under an unfiltered `prop=categories`. Filtering on
+   hidden would silently drop the single most precise staleness signal there is,
+   across two thousand articles.
+
+   | Family | Hidden | Members |
+   | --- | --- | --- |
+   | `Veraltet seit 2018…2025` | **no** | 357, 338, 394, 312, 250, 184, 149, 123 |
+   | `Veraltet in zwei bis drei Jahren` | yes | 525 |
+   | `Veraltet in über fünf Jahren` | yes | 614 |
+   | `Veraltet nach Jahr 2024` / `2026` | yes | 229 / 516 |
 2. **There is no bot flag on revisions.** Confirmed: over 50 revisions of
    *Thalwil* the union of keys is
    `anon, comment, minor, parentid, revid, size, tags, temp, timestamp, user, userid`.
@@ -156,13 +164,40 @@ recording the raw string as evidence when it does not.
 | `insource:/Stand: 201[0-9]/` (bare) | `LIVE` — completed in 4.3–5.0 s, 6 779 hits, no timeout |
 | `insource:/[Ss]tand:? *20[0-2][0-9]/` | `LIVE` — **timed out, HTTP 200, warning, partial results**, 18.9 s / 23.8 s, 24 175 → 20 029 hits across two runs |
 | `deepcat:` depth 5 / 256-category cap | `OPEN` — documented, not exercised |
-| Why `hastemplate:Veraltet` (7 804) ≫ `Kategorie:Wikipedia:Veraltet` (1 750) | `OPEN` |
+| Why `hastemplate:Veraltet` (7 803) ≫ `Kategorie:Wikipedia:Veraltet` (1 750) | `LIVE` (measured), explanation inferred — see below |
+| `deepcat:` silently truncates a wide tree, with only a warning | `LIVE` |
 
 Note on the first run: `hastemplate:"Veraltet" incategory:"Kanton Zürich"`
 returned 0, which looked like `hastemplate` failing. The control queries show
 `hastemplate` is fine — `incategory:"Kanton Zürich"` was the empty half. Worth
 remembering when writing scope config: **`incategory` is exact and shallow**,
 which is precisely what `deepcat` is for.
+
+### Why `hastemplate` counts four times the category
+
+Measured: `hastemplate:Veraltet` 7 803 (identical in ns0 and across all
+namespaces), `incategory:"Wikipedia:Veraltet"` 1 750, `insource:"{{Veraltet"`
+16 266, and **zero redirects** to `Vorlage:Veraltet`.
+
+The plain category does not hold every article carrying the template — it holds
+the ones with *no dated variant*. The rest are distributed across the dated
+families, and those add up: 1 750 + 2 107 (`seit` 2018-2025) + 745
+(`nach Jahr` 2024/2026) + 1 139 (`in …`) ≈ 5 741, before the year categories
+this probe did not enumerate. That accounts for the gap. Stated as an
+inference from the arithmetic, not as a verified mechanism.
+
+### `deepcat:` truncates quietly
+
+| Tree | Hits | Warning |
+| --- | --- | --- |
+| `deepcat:"Bezirk Horgen"` | 282 | none |
+| `deepcat:"Kanton Zürich"` | 13 176 | none |
+| `deepcat:"Schweiz"` | 67 250 | *"Deep category query returned too many categories. Only a subset of categories has been applied."* |
+
+The cap bites somewhere between a canton and a country, and when it does the
+result is a **warning attached to a successful response**, not an error. A
+client that ignores warnings gets a silently truncated result set. Another
+reason the category trees are walked with `list=categorymembers` here.
 
 **Recommendation:** use `deepcat:` / `hastemplate:` for *discovery* (widening
 scope), and run the signal-3 regexes **locally over fetched wikitext**. Local
@@ -202,7 +237,7 @@ single-page.
 | Both `YYYYMMDD` and `YYYYMMDDHH` accepted; timestamps come back as `YYYYMMDD00` | `LIVE` |
 | `agent=user` vs `all-agents` on *Thalwil* 2025: **13 232 vs 16 382** views — ~19 % non-human | `LIVE` |
 | AQS 2.0 on `api.wikimedia.org` | `OPEN` — both paths tried returned an HTML wiki page, not an API. `rest_v1` works; no reason to move |
-| How stale the most recent complete month is | `OPEN` |
+| The monthly endpoint returns the **current, incomplete month** (a `2026080100` point on 2026-08-29); daily data runs about one day behind | `LIVE` |
 
 Use `agent=user`, and compute the multiplier over a **fixed** window (the N
 complete calendar months before the run month) so the output does not churn.
@@ -226,22 +261,25 @@ an unfilled contact placeholder.
 
 ## Remaining `OPEN` items
 
-1. Is `Kategorie:Wikipedia:Veraltet seit 2025` also non-hidden? (Assume the
-   whole `seit` family may be visible; fetching unfiltered categories makes it
-   moot.)
-2. Why `hastemplate:Veraltet` reports 4× the members of the category.
-4. `deepcat:` depth/category caps in practice.
-5. AQS 2.0 base path (not needed while `rest_v1` works).
-6. Genuine-lag `maxlag` behaviour, and pageview data recency.
+1. AQS 2.0 base path. Not needed while `rest_v1` works; both hosts tried
+   returned a wiki portal page rather than an API.
+2. Whether *genuine* replication lag returns 503 + `Retry-After` as documented,
+   rather than the HTTP 200 seen with a forced threshold. Cannot be triggered on
+   demand; the client handles both.
 
-None blocks the first milestone. Items 1–2 are worth one more probe run before
-the scoring weights are finalised.
+Neither blocks anything. Everything else the notes previously listed as open has
+been measured.
 
-### Answered since
+### Answered since the first pass
 
 - **What dewiki uses instead of `Kategorie:Wikipedia:Zukunft`**: `{{Zukunft|YYYY|MM}}`,
   which populates the `Veraltet nach <Monat> <Jahr>` families. See headline 4.
   `wp-todo` parses the template directly and dates its overdue bonus from it.
+- **Is the whole `seit` family non-hidden?** Yes — all of 2018-2025. See
+  headline 1.
+- **Why `hastemplate` outcounts the category** — see §3.
+- **`deepcat:` caps in practice** — it truncates with a warning, see §3.
+- **Pageview recency** — the monthly endpoint serves the running month; see §5.
 
 ## Re-verifying
 
