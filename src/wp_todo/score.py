@@ -56,6 +56,26 @@ def score_corpus(result: FetchResult, config: ScopeConfig) -> ScoreResult:
     )
 
 
+def provisional_score(article: Article, reference: dt.date, scoring: ScoringConfig) -> float:
+    """A lower bound on the article's final score, from discovery data alone.
+
+    Uses only what one geosearch request already returned: the categories and
+    the latest revision. It is a lower bound because the true last *substantive*
+    edit is never newer than the latest revision, markers can only add, and the
+    attention multiplier is never below 1. So an article ranking low here can
+    still rank higher once detailed - which is why the detail cut is generous
+    and configurable.
+    """
+    ignored: list[Reason] = []
+    maintenance = _score_maintenance(article, scoring_reference(reference), scoring, ignored)
+    latest = article.latest_revision
+    if latest is None:
+        return maintenance
+    age_days = max((scoring_reference(reference) - latest.timestamp.date()).days, 0)
+    factor = 1.0 - math.pow(0.5, age_days / scoring.edit_age_half_life_days)
+    return maintenance + scoring.edit_age_weight * factor
+
+
 def _score_article(article: Article, result: FetchResult, scoring: ScoringConfig) -> ScoredArticle:
     reference = scoring_reference(result.reference_date)
     reasons: list[Reason] = []
@@ -67,6 +87,15 @@ def _score_article(article: Article, result: FetchResult, scoring: ScoringConfig
 
     base = maintenance + edit_age + markers
     total = base * attention
+
+    if not article.detailed:
+        reasons.append(
+            Reason(
+                code="provisional",
+                detail="ausserhalb des Detail-Budgets; Score ist eine Untergrenze",
+                points=0.0,
+            )
+        )
 
     latest = article.latest_revision
     reasons.sort(key=lambda r: (-r.points, r.code))
@@ -87,6 +116,7 @@ def _score_article(article: Article, result: FetchResult, scoring: ScoringConfig
         last_substantive_edit_days=age_days,
         last_edit=latest.timestamp.date() if latest else None,
         monthly_pageviews=monthly_views,
+        provisional=not article.detailed,
         edit_url=EDIT_URL.format(title=article.title.replace(" ", "_")),
     )
 

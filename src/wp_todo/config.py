@@ -136,6 +136,36 @@ class ScoringConfig(Frozen):
         return best
 
 
+class HttpConfig(Frozen):
+    """Politeness settings. Requests are serialised, so `delay_s` is the hard
+    ceiling on our request rate: 1.0 means at most one request per second."""
+
+    delay_s: float = Field(default=1.0, ge=0.0, le=60.0)
+    max_retries: int = Field(default=4, ge=1, le=10)
+    maxlag: int = Field(default=5, ge=1, le=30)
+    timeout_s: float = Field(default=60.0, gt=0.0)
+    #: Hard ceiling on requests per run; 0 disables. A scope change should not
+    #: be able to turn into an unbounded crawl by accident.
+    max_requests: int = Field(default=8000, ge=0)
+    progress_every: int = Field(default=250, ge=1)
+
+
+class FetchConfig(Frozen):
+    """How much of the corpus to fetch in full.
+
+    Discovery is cheap - one request per tile returns categories and the latest
+    revision for up to 500 articles. Everything after that costs about two
+    requests per article, which is where a region-sized scope turns into
+    thousands of requests.
+
+    So detail is spent where it can change the answer: articles are ranked by a
+    provisional score first, and only the top `detail_top_n` get their revision
+    history, wikitext and pageviews fetched. Set to 0 to fetch everything.
+    """
+
+    detail_top_n: int = Field(default=400, ge=0)
+
+
 class MetaConfig(Frozen):
     """Identity sent to Wikimedia on every request.
 
@@ -160,6 +190,8 @@ class MetaConfig(Frozen):
 
 class ScopeConfig(Frozen):
     meta: MetaConfig
+    http: HttpConfig = HttpConfig()
+    fetch: FetchConfig = FetchConfig()
     geo: tuple[GeoScope, ...] = ()
     category: tuple[CategoryScope, ...] = ()
     pages: tuple[str, ...] = ()

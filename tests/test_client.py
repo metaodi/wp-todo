@@ -208,3 +208,67 @@ def test_cache_roundtrip(tmp_path: Path) -> None:
     cache.put("k", {"a": [1, 2], "b": "ä"})
     assert cache.get("k") == {"a": [1, 2], "b": "ä"}
     assert json.loads(cache.path_for("k").read_text(encoding="utf-8"))["b"] == "ä"
+
+
+def test_pageviews_share_the_retry_path(meta: MetaConfig, tmp_path: Path) -> None:
+    """The pageviews endpoint is where most of the volume is, so it is the last
+    place that should be allowed to hammer on a 429."""
+    calls: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        if len(calls) == 1:
+            return httpx.Response(429, headers={"Retry-After": "1"}, json={"detail": "slow down"})
+        return httpx.Response(200, json={"items": [{"timestamp": "2025010100", "views": 7}]})
+
+    with make_client(meta, tmp_path, handler, max_retries=3) as client:
+        views = client.pageviews(
+            "Thalwil", access="all-access", agent="user", start="20250101", end="20251201"
+        )
+    assert len(calls) == 2
+    assert views == [{"timestamp": "2025010100", "views": 7}]
+
+
+def test_pageviews_are_counted_against_the_budget(meta: MetaConfig, tmp_path: Path) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"items": []})
+
+    with make_client(meta, tmp_path, handler) as client:
+        client.pageviews("A", access="all-access", agent="user", start="20250101", end="20251201")
+    assert client.stats.requests == 1
+
+
+def test_request_budget_stops_the_run(meta: MetaConfig, tmp_path: Path) -> None:
+    """A scope change must not be able to become an unbounded crawl."""
+    from wp_todo.client import RequestBudgetExceededError
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"batchcomplete": True, "query": {"pages": []}})
+
+    with make_client(meta, tmp_path, handler, max_requests=2) as client:
+        list(client.query(titles="A"))
+        list(client.query(titles="B"))
+        with pytest.raises(RequestBudgetExceededError, match="budget"):
+            list(client.query(titles="C"))
+
+
+def test_requests_are_spaced_by_the_configured_delay(meta: MetaConfig, tmp_path: Path) -> None:
+    """Serialised with a floor on the gap: delay_s is the ceiling on our rate."""
+    import time
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"batchcomplete": True, "query": {"pages": []}})
+
+    client = WikiClient(
+        meta=meta,
+        cache=ResponseCache(tmp_path / "http"),
+        delay_s=0.2,
+        transport=httpx.MockTransport(handler),
+    )
+    with client:
+        started = time.monotonic()
+        for title in ("A", "B", "C"):
+            list(client.query(titles=title))
+        elapsed = time.monotonic() - started
+    # Three requests, at least two full gaps between them.
+    assert elapsed >= 0.4

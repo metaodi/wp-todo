@@ -29,6 +29,13 @@ def render_markdown(result: ScoreResult, *, label_order: Sequence[str] = ()) -> 
         f"Insgesamt {len(result.articles)} Artikel in {len(ordered)} Bereichen.",
         "",
     ]
+    provisional = sum(1 for a in result.articles if a.provisional)
+    if provisional:
+        lines += [
+            f"Bei {provisional} Artikeln (mit `·`) wurden nur die Übersichtsdaten geholt; "
+            "ihr Score ist eine Untergrenze.",
+            "",
+        ]
 
     for label in ordered:
         articles = groups[label]
@@ -45,7 +52,7 @@ def render_markdown(result: ScoreResult, *, label_order: Sequence[str] = ()) -> 
             lines.append(
                 "| [{title}](https://de.wikipedia.org/wiki/{link}) | {score} | {reasons} "
                 "| {edit} | {views} | [bearbeiten]({url}) |".format(
-                    title=_escape(article.title),
+                    title=_escape(article.title) + ("&nbsp;·" if article.provisional else ""),
                     link=article.title.replace(" ", "_"),
                     score=_number(article.score),
                     reasons=_reasons(article),
@@ -72,6 +79,9 @@ def _reasons(article: ScoredArticle) -> str:
         parts.append(f"{reason.code}{detail} +{_number(reason.points)}")
     if article.subscores.attention != 1.0:
         parts.append(f"×{_number(article.subscores.attention)}")
+    if article.provisional:
+        # Only discovery data was fetched, so this score is a lower bound.
+        parts.append("_vorläufig_")
     return "; ".join(parts) if parts else "—"
 
 

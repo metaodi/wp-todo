@@ -6,6 +6,26 @@
 # Titles always checked, whatever the geographic or category scope says.
 pages = []
 
+# ----------------------------------------------------------------- politeness
+# Requests are serialised, one at a time, so delay_s is the hard ceiling on our
+# request rate: 1.0 means at most one request per second. Wikimedia sets no hard
+# limit on reads, but asks for serial requests and a real User-Agent.
+[http]
+delay_s = 1.0
+maxlag = 5
+max_retries = 4
+timeout_s = 60.0
+# Stops the run rather than letting a scope change become an unbounded crawl.
+max_requests = 8000
+progress_every = 250
+
+# Discovery is cheap: one request per tile returns categories and the latest
+# revision for up to 500 articles. Detail (history, wikitext, pageviews) costs
+# about two requests per article, which is the entire cost of a regional run,
+# so it is spent on the highest-ranking candidates only. 0 fetches everything.
+[fetch]
+detail_top_n = 400
+
 [meta]
 # Wikimedia's User-Agent policy requires real contact information: an email
 # address or a project URL. A placeholder is rejected at load time.

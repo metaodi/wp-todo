@@ -10,9 +10,10 @@ import datetime as dt
 import logging
 from collections.abc import Iterable, Iterator
 
-from .client import MAX_LIMIT, TITLES_PER_REQUEST, WikiClient
+from .client import MAX_LIMIT, WikiClient
 from .config import CategoryScope, GeoScope, ScopeConfig
 from .models import Article, FetchResult, Revision
+from .score import provisional_score
 
 log = logging.getLogger(__name__)
 
@@ -27,9 +28,20 @@ def fetch(config: ScopeConfig, client: WikiClient, *, limit: int | None = None) 
     articles = _apply_limit(_apply_excludes(candidates, config), limit)
 
     bots = _bot_accounts(client)
-    articles = _add_wikitext(articles, client)
-    articles = [_add_history(article, client, config) for article in articles]
-    articles = [_add_pageviews(article, client, config, start, end) for article in articles]
+    detailed, provisional = _split_by_detail_budget(articles, config, reference_date)
+    if provisional:
+        log.info(
+            "detailing %d of %d articles; %d stay at discovery detail (about %d requests saved)",
+            len(detailed),
+            len(articles),
+            len(provisional),
+            2 * len(provisional),
+        )
+
+    detailed = _add_wikitext(detailed, client)
+    detailed = [_add_history(article, client, config) for article in detailed]
+    detailed = [_add_pageviews(article, client, config, start, end) for article in detailed]
+    articles = detailed + [a.model_copy(update={"detailed": False}) for a in provisional]
 
     return FetchResult(
         reference_date=reference_date,
@@ -121,17 +133,17 @@ def _explicit_candidates(pages: Iterable[str], client: WikiClient) -> Iterator[A
 
 
 def _pages_by_title(titles: list[str], client: WikiClient, label: str, kind: str) -> Iterator[Article]:
-    for chunk in _chunks(titles, TITLES_PER_REQUEST):
-        pages = client.query_pages(
-            titles="|".join(chunk),
-            prop="categories|revisions",
-            cllimit="max",
-            rvprop=REVISION_PROPS,
-        )
-        for page in pages.values():
-            article = _article_from_page(page, label, kind)
-            if article is not None:
-                yield article
+    pages = client.query_by_titles(
+        titles,
+        cache_scope="discovery",
+        prop="categories|revisions",
+        cllimit="max",
+        rvprop=REVISION_PROPS,
+    )
+    for page in pages.values():
+        article = _article_from_page(page, label, kind)
+        if article is not None:
+            yield article
 
 
 def _article_from_page(page: dict[str, object], label: str, kind: str) -> Article | None:
@@ -175,6 +187,25 @@ def _apply_excludes(articles: Iterable[Article], config: ScopeConfig) -> list[Ar
     return kept
 
 
+def _split_by_detail_budget(
+    articles: list[Article], config: ScopeConfig, reference: dt.date
+) -> tuple[list[Article], list[Article]]:
+    """Spend the per-article request budget where it can change the answer.
+
+    Detail costs roughly two requests per article, which is the whole cost of a
+    region-sized run. Articles are ranked by a lower-bound score computed from
+    discovery data alone, and the budget goes to the top of that ranking.
+    """
+    budget = config.fetch.detail_top_n
+    if budget <= 0 or len(articles) <= budget:
+        return (articles, [])
+    ranked = sorted(
+        articles,
+        key=lambda a: (-provisional_score(a, reference, config.scoring), a.title),
+    )
+    return (ranked[:budget], ranked[budget:])
+
+
 def _apply_limit(articles: list[Article], limit: int | None) -> list[Article]:
     if limit is None:
         return articles
@@ -186,24 +217,24 @@ def _add_wikitext(articles: list[Article], client: WikiClient) -> list[Article]:
     """Latest-revision content, batched. rvprop=content takes many titles as
     long as rvlimit is not set."""
     by_title = {a.title: a for a in articles}
-    for chunk in _chunks(sorted(by_title), TITLES_PER_REQUEST):
-        pages = client.query_pages(
-            titles="|".join(chunk),
-            prop="revisions",
-            rvprop="content",
-            rvslots="main",
-        )
-        for page in pages.values():
-            article = by_title.get(str(page.get("title", "")))
-            if article is None:
-                continue
-            revisions = page.get("revisions")
-            if isinstance(revisions, list) and revisions:
-                slots = revisions[0].get("slots", {}) if isinstance(revisions[0], dict) else {}
-                main = slots.get("main", {}) if isinstance(slots, dict) else {}
-                content = main.get("content") if isinstance(main, dict) else None
-                if isinstance(content, str):
-                    by_title[article.title] = article.model_copy(update={"wikitext": content})
+    pages = client.query_by_titles(
+        sorted(by_title),
+        cache_scope="wikitext",
+        prop="revisions",
+        rvprop="content",
+        rvslots="main",
+    )
+    for title, page in pages.items():
+        article = by_title.get(title)
+        if article is None:
+            continue
+        revisions = page.get("revisions")
+        if isinstance(revisions, list) and revisions:
+            slots = revisions[0].get("slots", {}) if isinstance(revisions[0], dict) else {}
+            main = slots.get("main", {}) if isinstance(slots, dict) else {}
+            content = main.get("content") if isinstance(main, dict) else None
+            if isinstance(content, str):
+                by_title[title] = article.model_copy(update={"wikitext": content})
     return [by_title[a.title] for a in articles]
 
 
@@ -275,8 +306,3 @@ def pageview_window(reference: dt.date, months: int) -> tuple[str, str]:
     start_year, start_month = divmod(start_index, 12)
     start_month += 1
     return f"{start_year:04d}{start_month:02d}01", f"{end_year:04d}{end_month:02d}01"
-
-
-def _chunks(items: list[str], size: int) -> Iterator[list[str]]:
-    for start in range(0, len(items), size):
-        yield items[start : start + size]
