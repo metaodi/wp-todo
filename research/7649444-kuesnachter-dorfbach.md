@@ -30,6 +30,22 @@ sagt wenig - derselbe Inhalt steht hier oft unter anderem Namen.
 - **[enwiki](https://en.wikipedia.org/wiki/Küsnachter_Tobel)** — 2 Abschnitt(e) ohne Entsprechung hier
   - Historical floods; Transportation
 
+
+Worum es in diesen Abschnitten anderswo geht - zusammengefasst von einem
+Sprachmodell aus dem dortigen Text, nicht aus eigenem Wissen, und deshalb
+ebenso ungeprüft wie alles andere Maschinelle hier:
+
+- **[Historical floods](https://en.wikipedia.org/wiki/Küsnachter_Tobel#Historical_floods)** (enwiki)
+  - Thema: der Küsnachter Dorfbach im Küsnachter Tobel und seine früheren Hochwasserkatastrophen
+  - Erste dokumentierte Erwähnung eines grossen Hochwassers mit Todesopfern in einer Urkunde von 1678
+  - 1778: nach starken Regenfällen Überflutung von Küsnacht-Goldbach mit 63 Toten und grossen Sachschäden; danach Begradigung des vorher mäandrierenden Bachlaufs durch das Dorf
+  - Rund 100 Jahre später erneut Hochwasser durch Wasserstau an einer zu tief liegenden Brücke - hoher Sachschaden, keine Todesopfer
+- **[Transportation](https://en.wikipedia.org/wiki/Küsnachter_Tobel#Transportation)** (enwiki)
+  - Thema: Verkehrsanbindung von Küsnacht und Forch
+  - Forch: Forchbahn ab Zürich-Stadelhofen (Sechseläutenplatz) bzw. Esslingen
+  - Küsnacht: S-Bahn-Linien S6 und S16, Autobuslinie 910 sowie Ortsbusverkehr
+  - Im Sommer etwa halbstündliche Schiffsverbindungen der ZSG nach Zürich und entlang des Sees nach Rapperswil
+
 ## Angaben zum Prüfen
 
 2 Stelle(n), die veralten können - 2 davon mit einer Jahresangabe.
@@ -43,7 +59,7 @@ nicht falsch, nur ungeprüft.
 
 ## Belege dieses Artikels
 
-75 Einzelnachweis(e) · neuester datierter Beleg: 2025 · ältester: 1919 · 33 externe(r) Link(s)
+74 Einzelnachweis(e) · neuester datierter Beleg: 2025 · ältester: 1919 · 33 externe(r) Link(s) · 6 unter Weblinks/Literatur
 
 ## Einstufung der zitierten Quellen
 
@@ -79,7 +95,7 @@ Domain auf keiner Liste steht - nicht, dass mit ihr etwas nicht stimmt.
 
 Modell `claude-opus-5`, Effort `medium` · 6 Aufruf(e) (davon 0 aus dem Cache) von höchstens 10
 
-8 Dokument(e) gelesen, 4 davon Belege des Artikels selbst, danach Websuche
+9 Dokument(e) gelesen, 4 davon Belege des Artikels selbst, danach Websuche
 
 Von den Prüfungen verworfen — Kopie des Artikels: 1
 

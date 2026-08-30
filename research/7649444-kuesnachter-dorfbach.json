@@ -4,7 +4,7 @@
     "budget_exhausted": false,
     "cached_calls": 0,
     "calls": 6,
-    "documents": 8,
+    "documents": 9,
     "dropped": [
       {
         "claim_id": "marker_derzeit-014245ea",
@@ -14,6 +14,7 @@
       }
     ],
     "effort": "medium",
+    "failed": "",
     "model": "claude-opus-5",
     "reference_documents": 4,
     "searched": true,
@@ -84,9 +85,17 @@
         "https://www.zsz.ch/kuesnachter-tobel-haengebruecke-wird-diesen-sommer-doch-nicht-gebaut-786942747016",
         "https://www.zsz.ch/meilen/wasseramseln-verschwinden-aus-dem-kuesnachter-tobel/story/31076849"
       ],
+      "linked_urls": [
+        "http://www.ortsmuseum-kuesnacht.ch/index.php/doku/natur/kuesnachtertobel/wissenschaftlichereinstieg",
+        "https://are.zh.ch/internet/baudirektion/are/de/raumplanung/landschafts-und-ortsbildschutz/landschaftsschutz.html#title-content-internet-baudirektion-are-de-raumplanung-landschafts-und-ortsbildschutz-landschaftsschutz-jcr-content-contentPar-textimage_1",
+        "https://ku.geoweb.gossweiler.com/",
+        "https://maps.zh.ch/?offlayers=inv80-geologische-geomorphologische-objekte%2Cinv80-landschaftsschutzobjekt-heckenreiche-haenge%2Cinv80-landschaftsschutzobjekt-hecken%2Cinv80-landschaftsschutzobjekt-findlinge%2Cnatur-kultur%2Checken_l&scale=320000&srid=2056&topic=ARPkiloZH&x=2692500&y=1252500",
+        "https://www.journal21.ch/von-muehlen-raubrittern-und-einem-weihnachtsbaum",
+        "https://www.sl-fp.ch/de/stiftung-landschaftsschutz-schweiz-2.html"
+      ],
       "newest_year": 2025,
       "oldest_year": 1919,
-      "total": 75,
+      "total": 74,
       "with_year": 65
     },
     "sections": [
@@ -373,7 +382,30 @@
     }
   ],
   "scope_label": "Recherche",
-  "section_notes": [],
+  "section_notes": [
+    {
+      "bullets": [
+        "Thema: der Küsnachter Dorfbach im Küsnachter Tobel und seine früheren Hochwasserkatastrophen",
+        "Erste dokumentierte Erwähnung eines grossen Hochwassers mit Todesopfern in einer Urkunde von 1678",
+        "1778: nach starken Regenfällen Überflutung von Küsnacht-Goldbach mit 63 Toten und grossen Sachschäden; danach Begradigung des vorher mäandrierenden Bachlaufs durch das Dorf",
+        "Rund 100 Jahre später erneut Hochwasser durch Wasserstau an einer zu tief liegenden Brücke - hoher Sachschaden, keine Todesopfer"
+      ],
+      "heading": "Historical floods",
+      "lang": "en",
+      "source": "https://en.wikipedia.org/wiki/Küsnachter_Tobel#Historical_floods"
+    },
+    {
+      "bullets": [
+        "Thema: Verkehrsanbindung von Küsnacht und Forch",
+        "Forch: Forchbahn ab Zürich-Stadelhofen (Sechseläutenplatz) bzw. Esslingen",
+        "Küsnacht: S-Bahn-Linien S6 und S16, Autobuslinie 910 sowie Ortsbusverkehr",
+        "Im Sommer etwa halbstündliche Schiffsverbindungen der ZSG nach Zürich und entlang des Sees nach Rapperswil"
+      ],
+      "heading": "Transportation",
+      "lang": "en",
+      "source": "https://en.wikipedia.org/wiki/Küsnachter_Tobel#Transportation"
+    }
+  ],
   "title": "Küsnachter Dorfbach",
   "wikidata_checked": true,
   "wikidata_comparable": 0,
