@@ -171,11 +171,29 @@ the claims the references leave open trigger a single web-search call for the
 whole article; sections other editions have and this one does not get a few
 bullet points summarising what the *linked* text says.
 
-Roughly ten model calls per article at the shipped defaults, a few cents. Every
-one is cached, so a rerun without `--refresh` replays it for nothing. Running
-out of the budget is reported in the dossier, with every claim it never got to
-named — a short findings list because the ceiling was hit is a different fact
-from a short findings list because there was little to find.
+Up to sixteen model calls per article at the shipped defaults, a few cents.
+Every one is cached, so a rerun without `--refresh` replays it for nothing. The
+ceiling has to be able to pay for what the claim ceilings authorise, and a
+config where it cannot is refused at load time rather than silently doing less:
+at 10 against ceilings authorising 12 the section summaries — one call, and in
+practice the most substantial part of a dossier — were structurally the first
+thing starved. A call is now reserved for them before the per-claim loops
+start.
+
+Two more things go on the agenda besides dated claims. A **Wikidata
+disagreement** is the sharpest question the free stage produces — two values
+that cannot both be right, with a link on each side — and it used to be
+computed, rendered and never asked; it now gets a question of its own, ranked
+just behind an editor's own `{{Veraltet}}`. **Undated infobox values** ("the
+mayor is X", no date anywhere) are asked of the article's own references only:
+a web search cannot settle one cheaply, but the official website is fetched and
+paid for by then.
+
+Running out of the budget is reported in the dossier, and so is everything else
+that left a claim unreported. Those are not one fact: a claim the model
+answered `nothing_found`, a claim whose answer a gate refused, and a claim that
+was never asked each get their own line, because the middle one used to print
+as *"keine Quelle sagte etwas dazu"* — the opposite of what happened.
 
 Then the paranoid half. Everything the model says goes through five checks
 applied **in code, afterwards**:
@@ -187,6 +205,7 @@ applied **in code, afterwards**:
 | recency | a source older than the article — demoted to context, not sold as an update |
 | circularity | a copy of the article. `trust` cannot override this; trusting a mirror is always an error |
 | source standing | a host you blocked. Applied before the fetch, and always reported |
+| numeric containment | a figure the quote does not carry — demoted to "Schluss des Modells", never printed as "Laut Quelle" |
 
 Every rejection is counted and shown. A run where the quote check rejected six
 of twenty answers is telling you something about that run.
@@ -216,8 +235,18 @@ asked to be read by anybody's tool:
   allowance to hammer the next.
 - **Its own User-Agent.** Claiming the Wikimedia one at a cantonal statistics
   office would be a lie about who is calling.
-- **Size-capped and content-type filtered**; a skip is cached, so a rerun does
-  not re-ask a host for the same 404.
+- **Size-capped and content-type filtered**; a skip is cached *with its reason*,
+  so a rerun does not re-ask a host for the same 404 and the dossier can say
+  which documents it could not read. HTML, plain text and PDF are read; a
+  cantonal statistics office publishing PDF was the largest recall hole this
+  stage had. Needs `uv sync --extra pdf`.
+- **Fetched text is never part of the system prompt.** It goes to the model as
+  user content. Worth being exact about what that does and does not buy: a
+  hostile page can carry both an instruction and a sentence that satisfies the
+  quote gate, because the gate proves the sentence is *on the page*, not that
+  the page is honest. What it guarantees is that the quote really is at the URL
+  shown — which is what makes "check every finding at its source" something a
+  reader can carry out.
 
 The stage is opt-in per article and is **not** wired into `refresh.yml`. The
 weekly job stays Wikimedia-only.

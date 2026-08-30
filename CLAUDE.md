@@ -107,6 +107,23 @@ because there was little to find, and the dossier names every claim it never got
 to. That is the same rule as `_Nicht abgefragt._` versus `_Keine gefunden._`,
 applied one layer further out.
 
+It applies per claim, not per run. A claim the model answered `nothing_found`, a
+claim whose answer a gate refused, and a claim that was never asked are three
+different facts and get three different lines; picking one reason for the whole
+list is how the dossier came to report *"keine Quelle sagte etwas dazu"* about a
+source that had said something the machine then threw away. The same goes for
+documents: a 404, a robots refusal, a format we cannot read is reported with its
+reason, and the reason is cached with the skip so a replay says the same thing.
+
+And a quote that passes the containment gate proves the sentence is on the page
+— not that the page is honest, and not that the sentence supports the value
+printed beside it. A figure the quote does not carry is demoted and labelled as
+the model's inference, never rendered as "Laut Quelle". Fetched pages go to the
+model as user content, never in the system prompt: that does not solve prompt
+injection, and nothing here should be written as though it did. What the gates
+buy is that the quote really is at the URL shown, which is what makes "check
+every finding at its source" a thing a reader can carry out.
+
 The stage *failing* is reported the same way, and does not take the dossier with
 it. The deterministic half is finished and paid for in requests to Wikimedia by
 the time a model is ever called, so an error from the API — a bad key, a

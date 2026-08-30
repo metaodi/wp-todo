@@ -103,6 +103,15 @@ the value comes from:
    link to it. Not what a model knows about the subject: what the linked text
    says, so the summary can be checked like everything else here.
 
+Two of those three used to be computed and then thrown away. A Wikidata
+disagreement — the sharpest question the free stage produces, two values that
+cannot both be right — was rendered in the dossier and never put to the model.
+An undated infobox value ("the mayor is X") was excluded from the agenda
+altogether, which is right for a web search and wrong for the article's own
+official website, already fetched by the time the question is asked. Neither
+change moves the line on deciding: the contradiction prompt asks which value a
+*document* supports, and `nothing_found` stays the right answer when none does.
+
 It is subject to one non-negotiable rule: **the model never emits a URL, and
 every quoted sentence is mechanically checked to appear verbatim in a document
 that was actually fetched and stored.** URLs come out of the structured
@@ -111,6 +120,24 @@ check is dropped and counted, and the count is shown. This makes a fabricated
 citation structurally impossible rather than merely discouraged, which is the
 only version of this worth shipping - a plausible-looking citation to a page
 that does not say what is claimed is worse than no dossier at all.
+
+Being exact about what that rule buys matters as much as having it. The quote
+gate proves a sentence is **on the page**. It does not prove the page is
+honest, and it does not prove the sentence supports the value printed beside
+it — a live run reported "mindestens 31 Titel" under a quote containing no
+number at all. So:
+
+- **A figure the quote does not carry is demoted**, not printed as *"Laut
+  Quelle"*. The inference may well be right, which is why it is kept and
+  labelled rather than dropped.
+- **Fetched pages are sent as user content, never as part of the system
+  prompt.** A page nobody vetted does not belong in the highest-trust channel
+  of the request. This is not a claim that prompt injection is solved: a
+  hostile page can carry both an instruction and a verbatim sentence that
+  passes the quote gate. What the gate guarantees is that the quote is really
+  at the URL shown, which is precisely what makes rule 1 above — check every
+  finding at its source — something a reader can actually carry out. That rule
+  is the defence. The gates only make it possible to follow.
 
 Three more things follow from the same reasoning:
 
@@ -121,7 +148,14 @@ Three more things follow from the same reasoning:
 - **Running out of budget is announced, never absorbed.** A short findings
   list because the ceiling was hit is a different fact from a short findings
   list because there was little to find, and the dossier names every claim it
-  never got to.
+  never got to. It goes one step further than that now: a claim the model
+  answered `nothing_found`, a claim whose answer a gate refused, and a claim
+  never asked at all are three facts, and each gets its own line. The middle
+  one used to print as *"keine Quelle sagte etwas dazu"*, which is the opposite
+  of what happened — a source had spoken and the machine had thrown the answer
+  away. The same rule applies to documents: one that 404s, is refused by
+  robots.txt, or arrives in a format we cannot read is reported with its
+  reason, not quietly missing from the count.
 - **The transcript is committed next to the dossier.** A findings section is a
   summary of a conversation nobody else saw. `research/<id>-<slug>.transcript.md`
   holds what was asked, what came back, and which gate refused what - including
