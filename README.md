@@ -416,7 +416,8 @@ uv run python scripts/record_fixtures.py
 - `ci.yml` — ruff, mypy and pytest on every push and PR.
 - `refresh.yml` — weekly, plus manual. Runs the pipeline against the live API and
   commits `out/` if it changed. It fails loudly on an API error and refuses to
-  commit a suspiciously short list over a good one.
+  commit a suspiciously short list over a good one. Manual runs take a
+  `refresh` boolean input to bypass the response cache and re-fetch everything.
 - `verify.yml` — manual. Runs `scripts/phase0_probe.py` against the live API and
   records the answers in `docs/api-notes.md`; also re-records test fixtures.
 
