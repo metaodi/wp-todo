@@ -6,11 +6,22 @@
 
 [Artikel](https://de.wikipedia.org/wiki/Adliswil) · [bearbeiten](https://de.wikipedia.org/w/index.php?title=Adliswil&action=edit) · [Wikidata](https://www.wikidata.org/wiki/Q68210)
 
-Stand der Daten: 2026-08-29
+Stand der Daten: 2026-08-30
+
+## Wahrscheinlich veraltet
+
+_Nichts gefunden: in den Belegen des Artikels und der Websuche stand zu diesen Angaben nichts Neueres._
+
+_Nicht abschliessend geprüft (keine Quelle sagte etwas dazu): `marker_stand_year-5e6444d3`._
 
 ## Abweichungen gegenüber Wikidata
 
-_Keine Abweichungen gefunden._
+Wikidata ist nicht automatisch im Recht - oft ist es die Seite, die falsch
+liegt. Beide Angaben an der jeweiligen Quelle prüfen.
+
+| Angabe | Im Artikel | Laut Wikidata | Beleg |
+| --- | --- | --- | --- |
+| Fläche | 7.79 | 7.77 (Stand 2007) | [P2046](https://www.wikidata.org/wiki/Q68210#P2046) |
 
 ## Übereinstimmend mit Wikidata
 
@@ -18,7 +29,6 @@ Diese Angaben stimmen mit Wikidata überein - vermutlich aktuell.
 
 | Angabe | Im Artikel | Laut Wikidata | Beleg |
 | --- | --- | --- | --- |
-| Fläche | 7.79 | 7.77 (Stand 2007) | [P2046](https://www.wikidata.org/wiki/Q68210#P2046) |
 | offizielle Website | www.adliswil.ch | https://www.adliswil.ch | [P856](https://www.wikidata.org/wiki/Q68210#P856) |
 
 ## Möglicherweise fehlend
@@ -32,6 +42,21 @@ sagt wenig - derselbe Inhalt steht hier oft unter anderem Namen.
   - Culture et patrimoine
 - **[itwiki](https://it.wikipedia.org/wiki/Adliswil)** — 1 Abschnitt(e) ohne Entsprechung hier
   - Società
+
+
+Worum es in diesen Abschnitten anderswo geht - zusammengefasst von einem
+Sprachmodell aus dem dortigen Text, nicht aus eigenem Wissen, und deshalb
+ebenso ungeprüft wie alles andere Maschinelle hier:
+
+- **[Other private schools](https://en.wikipedia.org/wiki/Adliswil#Other_private_schools)** (enwiki)
+  - Die Zurich International School (ZIS) betreibt ihren Oberstufen-Campus (Upper School) in Adliswil
+  - Privatschule mit englischsprachigem Unterricht; kantonale Genehmigung bis zum Ende der Schulpflicht
+  - Programm für Schüler von 3 bis 18 Jahren, akkreditiert durch die Commission on International Education (NEASC); IB-Diplom von der International Baccalaureate Organisation anerkannt
+- **[Public schools](https://en.wikipedia.org/wiki/Adliswil#Public_schools)** (enwiki)
+  - Zuständigkeit für die öffentlichen Schulen (Primar- und Sekundarstufe) liegt bei der Schulpflege der Gemeinde, bestehend aus neun gewählten Mitgliedern
+  - Tabelle mit den öffentlichen Schulen Adliswils: Name, Schultyp (u.a. Sekundar A, Sekundar B/C, Aufnahmeklasse), Schulhaus/Standort, Zahl der Klassen, Lehrpersonen und Schüler
+  - Beispiele: Hofern (4 bzw. 5 Klassen, 9 Klassenlehrpersonen, 13 Fachlehrpersonen, 2 Logopäden, ca. 170 Schüler) sowie Zentrum Kronenwiese
+  - Belege überwiegend aus Webseiten der Stadt Adliswil und Kartenlinks (search.ch)
 
 ## Angaben zum Prüfen
 
@@ -48,7 +73,7 @@ nicht falsch, nur ungeprüft.
 
 ## Belege dieses Artikels
 
-19 Einzelnachweis(e) · neuester datierter Beleg: 2026 · ältester: 1911 · 13 externe(r) Link(s)
+18 Einzelnachweis(e) · neuester datierter Beleg: 2026 · ältester: 1911 · 13 externe(r) Link(s) · 4 unter Weblinks/Literatur
 
 ## Einstufung der zitierten Quellen
 
@@ -67,3 +92,11 @@ Domain auf keiner Liste steht - nicht, dass mit ihr etwas nicht stimmt.
 | `www.arasihltal.ch` | nicht eingestuft | 1 |
 | `www.football.ch` | nicht eingestuft | 1 |
 | `www.zeno.org` | nicht eingestuft | 1 |
+
+## Recherche-Metadaten
+
+Modell `claude-opus-5`, Effort `medium` · 4 Aufruf(e) (davon 0 aus dem Cache) von höchstens 10
+
+9 Dokument(e) gelesen, 4 davon Belege des Artikels selbst, danach Websuche
+
+[Vollständiges Protokoll](88742-adliswil.transcript.md)

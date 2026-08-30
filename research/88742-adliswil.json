@@ -1,4 +1,21 @@
 {
+  "agent": {
+    "budget": 10,
+    "budget_exhausted": false,
+    "cached_calls": 0,
+    "calls": 4,
+    "documents": 9,
+    "dropped": [],
+    "effort": "medium",
+    "failed": "",
+    "model": "claude-opus-5",
+    "reference_documents": 4,
+    "searched": true,
+    "transcript": "88742-adliswil.transcript.md",
+    "unexamined": [
+      "marker_stand_year-5e6444d3"
+    ]
+  },
   "claims": {
     "claims": [
       {
@@ -60,9 +77,15 @@
         "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=455&bfs=131",
         "https://www.zsz.ch/die-klaeranlage-im-sihltal-wird-modernisiert-493393496245"
       ],
+      "linked_urls": [
+        "https://www.adliswil.ch/",
+        "https://www.geschichtsverein.ch/",
+        "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=&bfs=131",
+        "https://www.youtube.com/watch?v=kZYfLiIMBu4"
+      ],
       "newest_year": 2026,
       "oldest_year": 1911,
-      "total": 19,
+      "total": 18,
       "with_year": 14
     },
     "sections": [
@@ -91,7 +114,7 @@
   ],
   "deltas": [
     {
-      "agrees": true,
+      "agrees": false,
       "article_as_of": null,
       "article_value": "7.79",
       "claim_id": "infobox_field-976fc0c9",
@@ -157,9 +180,10 @@
     }
   ],
   "edit_url": "https://de.wikipedia.org/w/index.php?title=Adliswil&action=edit",
+  "findings": [],
   "interwiki_checked": true,
   "pageid": 88742,
-  "reference_date": "2026-08-29",
+  "reference_date": "2026-08-30",
   "reference_standing": [
     {
       "decided": null,
@@ -265,7 +289,31 @@
     }
   ],
   "scope_label": "Recherche",
+  "section_notes": [
+    {
+      "bullets": [
+        "Die Zurich International School (ZIS) betreibt ihren Oberstufen-Campus (Upper School) in Adliswil",
+        "Privatschule mit englischsprachigem Unterricht; kantonale Genehmigung bis zum Ende der Schulpflicht",
+        "Programm für Schüler von 3 bis 18 Jahren, akkreditiert durch die Commission on International Education (NEASC); IB-Diplom von der International Baccalaureate Organisation anerkannt"
+      ],
+      "heading": "Other private schools",
+      "lang": "en",
+      "source": "https://en.wikipedia.org/wiki/Adliswil#Other_private_schools"
+    },
+    {
+      "bullets": [
+        "Zuständigkeit für die öffentlichen Schulen (Primar- und Sekundarstufe) liegt bei der Schulpflege der Gemeinde, bestehend aus neun gewählten Mitgliedern",
+        "Tabelle mit den öffentlichen Schulen Adliswils: Name, Schultyp (u.a. Sekundar A, Sekundar B/C, Aufnahmeklasse), Schulhaus/Standort, Zahl der Klassen, Lehrpersonen und Schüler",
+        "Beispiele: Hofern (4 bzw. 5 Klassen, 9 Klassenlehrpersonen, 13 Fachlehrpersonen, 2 Logopäden, ca. 170 Schüler) sowie Zentrum Kronenwiese",
+        "Belege überwiegend aus Webseiten der Stadt Adliswil und Kartenlinks (search.ch)"
+      ],
+      "heading": "Public schools",
+      "lang": "en",
+      "source": "https://en.wikipedia.org/wiki/Adliswil#Public_schools"
+    }
+  ],
   "title": "Adliswil",
   "wikidata_checked": true,
+  "wikidata_comparable": 3,
   "wikidata_item": "Q68210"
 }
