@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import datetime as dt
 import html
+import io
 import json
 import logging
 import re
@@ -51,12 +52,24 @@ log = logging.getLogger(__name__)
 
 #: Content types worth extracting text from. Anything else is recorded as
 #: skipped rather than fetched, so the dossier can say why a source is absent.
-TEXT_TYPES = ("text/html", "text/plain", "application/xhtml+xml")
+#:
+#: PDF is here because leaving it out was the largest recall hole in the
+#: research stage: the cantonal and federal statistical offices this scope
+#: leans on publish PDF, and the one reference behind Horgen's ARBEITSLOSE
+#: figure - exactly the kind of dated claim the agenda targets - was fetched,
+#: filtered out on its content type, cached as a skip, and never mentioned.
+PDF_TYPE = "application/pdf"
+TEXT_TYPES = ("text/html", "text/plain", "application/xhtml+xml", PDF_TYPE)
 JSON_TYPES = ("application/json", "application/sparql-results+json")
 
 #: Wikibase's REST read API. Not the action API, so no `action` parameter is
 #: involved and the frozen ALLOWED_ACTIONS allowlist is not implicated.
 WIKIDATA_REST = "https://www.wikidata.org/w/rest.php/wikibase/v1"
+
+#: The Internet Archive's availability API: one question about one URL, and
+#: the answer is a snapshot or nothing. Used only for links that failed the
+#: reachability check - a live link needs no archive copy.
+WAYBACK_AVAILABLE = "https://archive.org/wayback/available"
 
 #: Documented API endpoints, which robots.txt does not govern.
 #:
@@ -75,6 +88,11 @@ API_PREFIXES: tuple[str, ...] = (
     "https://www.wikidata.org/w/rest.php/",
     "https://www.wikidata.org/w/api.php",
     "https://wikimedia.org/api/rest_v1/",
+    # The Wayback availability API, on the same reasoning: a documented
+    # endpoint that answers one question about one URL, asked once per dead
+    # link. archive.org's robots.txt governs crawling the archive, which is
+    # not what this is.
+    WAYBACK_AVAILABLE,
 )
 
 _SCRIPT_STYLE = re.compile(r"<(script|style|noscript)\b.*?</\1>", re.IGNORECASE | re.DOTALL)
@@ -157,6 +175,10 @@ class WebClient:
     reference_date: dt.date = field(default_factory=dt.date.today)
     _client: httpx.Client | None = field(default=None, init=False, repr=False)
     stats: ClientStats = field(default_factory=ClientStats)
+    #: Why a URL produced no document, keyed by URL. Skipping is a normal
+    #: outcome here, but a silent one is not: the research stage reports every
+    #: document it could not read, and this is where it learns the reason.
+    skips: dict[str, str] = field(default_factory=dict, init=False, repr=False)
     _pacers: dict[str, RequestPacer] = field(default_factory=dict, init=False, repr=False)
     _robots: dict[str, RobotFileParser | None] = field(default_factory=dict, init=False, repr=False)
     _budget: RequestBudget = field(init=False, repr=False)
@@ -219,7 +241,15 @@ class WebClient:
         cached = self.cache.get(key)
         if cached is not None:
             self.stats.cache_hits += 1
-            return Document.from_cache(cached) if cached else None
+            if not cached or "skipped" in cached:
+                # A skip recorded by an earlier run. Replaying the *reason*
+                # matters as much as replaying the skip: a dossier built from
+                # the cache has to say the same thing as the run that paid for
+                # it. Envelopes written before the reason was stored replay as
+                # an empty dict, hence the fallback.
+                self.skips[url] = str(cached.get("skipped", "")) if cached else "übersprungen"
+                return None
+            return Document.from_cache(cached)
 
         if self.offline:
             raise OfflineCacheMissError(f"no recorded document for {url} {sorted(params.items())}")
@@ -230,17 +260,135 @@ class WebClient:
 
         if self.respect_robots and not self._robots_allow(url):
             log.info("robots.txt disallows %s", url)
-            self.cache.put(key, {})
+            self._skip(key, url, "robots.txt verbietet den Abruf")
             return None
 
-        document = self._get_with_retries(url, params, expect)
-        # A skip is cached as an empty envelope: it is a real answer about this
-        # URL, and re-asking the host on every rerun would be the rude thing.
-        self.cache.put(key, document.to_cache() if document else {})
+        document, reason = self._get_with_retries(url, params, expect)
+        if document is None:
+            # A skip is cached as an envelope carrying its reason: it is a real
+            # answer about this URL, and re-asking the host on every rerun
+            # would be the rude thing.
+            self._skip(key, url, reason)
+            return None
+        self.cache.put(key, document.to_cache())
         return document
 
+    def head_status(self, url: str) -> tuple[int | None, str, str]:
+        """Is this URL still there? Returns `(status, final_url, reason)`.
+
+        A **GET**, not a HEAD. This module's first line promises it is GET-only
+        by construction - "no other verb is implemented, so none can be called"
+        - which is the same kind of guarantee `ALLOWED_ACTIONS` gives on the
+        Wikimedia side. Adding a verb to save a few kilobytes would trade a
+        structural guarantee for an optimisation.
+
+        What it does instead is close the response once the headers are in,
+        without consuming the body, which is politer to the host than the full
+        fetch `fetch()` does.
+
+        Answers are reused rather than re-asked, in both directions: a document
+        already in the `WEB` cache is a completed check, and a recorded skip
+        replays its reason. Only a URL nothing knows about costs a request.
+        """
+        document = self.cache.get(cache_key("WEB", url, {}))
+        if document:
+            if "skipped" in document:
+                return None, "", str(document.get("skipped", ""))
+            self.stats.cache_hits += 1
+            return int(document.get("status", 200)), str(document.get("final_url", url)), ""
+
+        key = cache_key("LINK", url, {})
+        cached = self.cache.get(key)
+        if cached is not None:
+            self.stats.cache_hits += 1
+            status = cached.get("status")
+            return (
+                int(status) if isinstance(status, int) else None,
+                str(cached.get("final_url", "")),
+                str(cached.get("reason", "")),
+            )
+
+        if self.offline:
+            raise OfflineCacheMissError(f"no recorded link status for {url}")
+        if self.dry_run:
+            log.info("dry-run: would check %s", url)
+            return None, "", "dry run"
+        if self.respect_robots and not self._robots_allow(url):
+            log.info("robots.txt disallows %s", url)
+            answer = {"status": None, "final_url": "", "reason": "robots.txt verbietet den Abruf"}
+            self.cache.put(key, answer)
+            return None, "", str(answer["reason"])
+
+        answer = self._status_only(url)
+        self.cache.put(key, answer)
+        status = answer["status"]
+        return (
+            int(status) if isinstance(status, int) else None,
+            str(answer["final_url"]),
+            str(answer["reason"]),
+        )
+
+    def _status_only(self, url: str) -> dict[str, Any]:
+        """One paced, budgeted GET whose body is never read."""
+        if self._client is None:
+            raise RuntimeError("WebClient must be used as a context manager")
+
+        backoff = 1.0
+        for attempt in range(1, self.max_retries + 1):
+            self._budget.check(self.stats)
+            pacer = self._pacer_for(url)
+            pacer.wait(self.stats)
+            pacer.mark()
+            self.stats.requests += 1
+            log_progress(self.stats, self.progress_every)
+            try:
+                with self._client.stream("GET", url) as response:
+                    if response.status_code in (500, 502, 503, 504):
+                        log.info(
+                            "retriable %s from %s (%s/%s)",
+                            response.status_code,
+                            url,
+                            attempt,
+                            self.max_retries,
+                        )
+                        backoff = max(backoff, retry_after(response))
+                    else:
+                        # Closed here without iterating: the body is never
+                        # downloaded, which is the whole point of this path.
+                        return {
+                            "status": response.status_code,
+                            "final_url": str(response.url),
+                            "reason": "",
+                        }
+            except httpx.HTTPError as exc:
+                log.info("link check failed (%s/%s): %s", attempt, self.max_retries, exc)
+                backoff = max(backoff, 1.0)
+
+            if attempt < self.max_retries:
+                sleep_with_backoff(backoff, self.stats)
+                backoff *= 2
+
+        return {
+            "status": None,
+            "final_url": "",
+            "reason": f"nach {self.max_retries} Versuch(en) nicht erreichbar",
+        }
+
+    def _skip(self, key: str, url: str, reason: str) -> None:
+        self.skips[url] = reason
+        self.cache.put(key, {"skipped": reason})
+
     # ---------------------------------------------------------------- core
-    def _get_with_retries(self, url: str, params: dict[str, Any], expect: tuple[str, ...]) -> Document | None:
+    def _get_with_retries(
+        self, url: str, params: dict[str, Any], expect: tuple[str, ...]
+    ) -> tuple[Document | None, str]:
+        """The document, or None *and why*.
+
+        The reason travels with the None because the caller stores it: a
+        document the research stage never saw is reported in the dossier, and
+        "HTTP 404" and "Inhaltstyp application/pdf" send a reader to very
+        different next steps.
+        """
         if self._client is None:
             raise RuntimeError("WebClient must be used as a context manager")
 
@@ -265,7 +413,7 @@ class WebClient:
                         backoff = max(backoff, retry_after(response))
                     elif response.status_code >= 400:
                         log.info("skipping %s: HTTP %s", url, response.status_code)
-                        return None
+                        return None, f"HTTP {response.status_code}"
                     else:
                         return self._read(url, response, expect)
             except httpx.HTTPError as exc:
@@ -275,13 +423,15 @@ class WebClient:
             backoff *= 2
 
         log.warning("giving up on %s after %s attempts", url, self.max_retries)
-        return None
+        return None, f"nach {self.max_retries} Versuch(en) nicht erreichbar"
 
-    def _read(self, url: str, response: httpx.Response, expect: tuple[str, ...]) -> Document | None:
+    def _read(
+        self, url: str, response: httpx.Response, expect: tuple[str, ...]
+    ) -> tuple[Document | None, str]:
         content_type = response.headers.get("Content-Type", "").split(";")[0].strip().lower()
         if content_type and not content_type.startswith(expect):
             log.info("skipping %s: content-type %s", url, content_type)
-            return None
+            return None, f"Inhaltstyp {content_type} wird nicht gelesen"
 
         body = bytearray()
         truncated = False
@@ -294,16 +444,25 @@ class WebClient:
                 truncated = True
                 break
 
-        raw = bytes(body[: self.max_bytes]).decode(response.encoding or "utf-8", errors="replace")
-        text = extract_text(raw) if content_type.startswith(TEXT_TYPES) else raw
-        return Document(
-            url=url,
-            final_url=str(response.url),
-            status=response.status_code,
-            content_type=content_type,
-            text=text,
-            fetched_on=self.reference_date,
-            truncated=truncated,
+        payload = bytes(body[: self.max_bytes])
+        if content_type.startswith(PDF_TYPE):
+            text, reason = extract_pdf_text(payload)
+            if not text:
+                return None, reason
+        else:
+            raw = payload.decode(response.encoding or "utf-8", errors="replace")
+            text = extract_text(raw) if content_type.startswith(TEXT_TYPES) else raw
+        return (
+            Document(
+                url=url,
+                final_url=str(response.url),
+                status=response.status_code,
+                content_type=content_type,
+                text=text,
+                fetched_on=self.reference_date,
+                truncated=truncated,
+            ),
+            "",
         )
 
     def _pacer_for(self, url: str) -> RequestPacer:
@@ -340,7 +499,7 @@ class WebClient:
         if cached is None:
             if self.offline:
                 raise OfflineCacheMissError(f"no recorded robots.txt for {host}")
-            document = self._get_with_retries(url, {}, ("text/plain", "text/html"))
+            document, _ = self._get_with_retries(url, {}, ("text/plain", "text/html"))
             cached = {"text": document.text} if document else {}
             self.cache.put(key, cached)
         else:
@@ -352,6 +511,40 @@ class WebClient:
         parser = RobotFileParser()
         parser.parse(text.splitlines())
         return parser
+
+
+def extract_pdf_text(payload: bytes) -> tuple[str, str]:
+    """A PDF's text, or an empty string and the reason there is none.
+
+    Every guarantee the rest of this module makes is unchanged by this: the
+    bytes were fetched with GET, after robots.txt, under the size cap, and the
+    extracted text is stored in the cache exactly as an HTML rendition is - so
+    the quote gate checks a quote against a PDF the same way it checks one
+    against a page.
+
+    A malformed, encrypted or image-only PDF is a skip with a reason, never an
+    exception. `pypdf` is an optional dependency for the same reason
+    `anthropic` is: the worklist does not need it.
+    """
+    try:
+        from pypdf import PdfReader
+    except ImportError:  # pragma: no cover - exercised by operators, not CI
+        return "", "PDF nicht lesbar: `uv sync --extra pdf`"
+
+    try:
+        reader = PdfReader(io.BytesIO(payload))
+        pages = [page.extract_text() or "" for page in reader.pages]
+    except Exception as exc:  # pypdf raises a wide family on malformed input
+        log.info("unreadable PDF: %s", exc)
+        return "", f"PDF nicht lesbar ({type(exc).__name__})"
+
+    text = _BLANK_RUN.sub("\n\n", "\n\n".join(page.strip() for page in pages if page.strip())).strip()
+    if not text:
+        # A scan with no text layer. Saying which it is matters: "no text in
+        # the PDF" sends a reader to the document, "we cannot read PDF" sends
+        # them to the install instructions.
+        return "", "PDF ohne Textebene (vermutlich ein Scan)"
+    return text, ""
 
 
 def extract_text(raw: str) -> str:

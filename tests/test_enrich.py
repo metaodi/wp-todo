@@ -22,7 +22,7 @@ from wp_todo.cache import ResponseCache
 from wp_todo.claims import extract_claims
 from wp_todo.client import WikiClient
 from wp_todo.config import MetaConfig, ScopeConfig, load_scope
-from wp_todo.enrich import _heading_key, _same, langlinks, wikidata_deltas
+from wp_todo.enrich import _heading_key, langlinks, same_value, wikidata_deltas
 from wp_todo.models import Article
 from wp_todo.webclient import WebClient
 
@@ -204,14 +204,14 @@ class TestValueComparison:
         ],
     )
     def test_equivalent_values_agree(self, article_value: str, external_value: str) -> None:
-        assert _same(article_value, external_value) is True
+        assert same_value(article_value, external_value) is True
 
     @pytest.mark.parametrize(
         ("article_value", "external_value"),
         [("8500", "9240"), ("7.79", "8.12"), ("www.a.ch", "www.b.ch"), (None, "9240")],
     )
     def test_different_values_disagree(self, article_value: str | None, external_value: str) -> None:
-        assert _same(article_value, external_value) is False
+        assert same_value(article_value, external_value) is False
 
 
 class TestLanglinks:
@@ -413,7 +413,7 @@ class TestNumericPrecision:
         ],
     )
     def test_equivalent_at_the_articles_precision(self, article_value: str, external_value: str) -> None:
-        assert _same(article_value, external_value) is True
+        assert same_value(article_value, external_value) is True
 
     @pytest.mark.parametrize(
         ("article_value", "external_value"),
@@ -425,4 +425,4 @@ class TestNumericPrecision:
         ],
     )
     def test_a_real_difference_is_a_difference(self, article_value: str, external_value: str) -> None:
-        assert _same(article_value, external_value) is False
+        assert same_value(article_value, external_value) is False

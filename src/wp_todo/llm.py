@@ -82,11 +82,23 @@ class LlmBudget:
 
     def take(self, purpose: str = "") -> bool:
         if self.spent >= self.limit:
-            self.exhausted = True
-            log.warning("model budget of %d call(s) is spent; skipping %s", self.limit, purpose or "a call")
-            return False
+            return self.refuse(purpose)
         self.spent += 1
         return True
+
+    def refuse(self, purpose: str = "") -> bool:
+        """Record that the ceiling stopped a call that was going to be made.
+
+        A caller that checks `left` before building a request never reaches
+        `take`, so without this the run would do less work than the agenda
+        asked for and report `budget_exhausted = False` - a clean-looking run
+        that quietly skipped things, which is the failure this whole class
+        exists to prevent. Always returns False, so it reads as a refusal at
+        the call site.
+        """
+        self.exhausted = True
+        log.warning("model budget of %d call(s) is spent; skipping %s", self.limit, purpose or "a call")
+        return False
 
 
 @dataclass
@@ -146,9 +158,9 @@ class LlmClient:
         to report".
 
         `context` is the bulky, unchanging part - the document excerpts every
-        question in a run shares. It goes after `system` and carries the cache
-        breakpoint, because prompt caching is a prefix match and the volatile
-        half must come last.
+        question in a run shares. It is sent as the first block of the user
+        turn and carries the cache breakpoint, because prompt caching is a
+        prefix match and the volatile half must come last.
         """
         tools = self._tools(web_search)
         key = cache_key(
@@ -200,18 +212,34 @@ class LlmClient:
         schema: dict[str, Any],
         tools: list[dict[str, Any]],
     ) -> dict[str, Any]:
-        """The one place a request actually leaves the machine."""
+        """The one place a request actually leaves the machine.
+
+        `context` is text fetched from hosts nobody here controls, so it is
+        sent as user content and never as part of `system`. It used to go in
+        the system prompt, which is the highest-trust channel in the request -
+        the wrong place for an unvetted page, however narrow the blast radius
+        is with no tool the model can reach.
+
+        Narrow is not nil, and it is worth being exact about what the gates do
+        and do not cover: a hostile page can carry both an instruction and a
+        verbatim sentence that satisfies the quote gate, because the gate
+        checks the sentence is *on the page*, not that the page is honest.
+        What it guarantees is that the quote really is at the URL shown, which
+        is what makes rule 1 of docs/research-policy.md - check every finding
+        at its source - something a reader can actually carry out.
+        """
         client = self._sdk()
-        blocks: list[dict[str, Any]] = [{"type": "text", "text": system}]
+        content: list[dict[str, Any]] = []
         if context:
             # The breakpoint goes at the end of the stable half. Everything a
             # per-claim question varies lives in `prompt`, after it.
-            blocks.append({"type": "text", "text": context, "cache_control": {"type": "ephemeral"}})
+            content.append({"type": "text", "text": context, "cache_control": {"type": "ephemeral"}})
+        content.append({"type": "text", "text": prompt})
         kwargs: dict[str, Any] = {
             "model": self.model,
             "max_tokens": MAX_TOKENS,
-            "system": blocks,
-            "messages": [{"role": "user", "content": prompt}],
+            "system": [{"type": "text", "text": system}],
+            "messages": [{"role": "user", "content": content}],
             "thinking": {"type": "adaptive"},
             "output_config": {
                 "effort": self.effort,

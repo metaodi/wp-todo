@@ -20,7 +20,7 @@ import httpx
 import pytest
 
 from wp_todo._http import OfflineCacheMissError
-from wp_todo.agent import run_agent
+from wp_todo.agent import _agenda, _urls_beside, run_agent
 from wp_todo.cache import ResponseCache
 from wp_todo.config import ScopeConfig, load_scope
 from wp_todo.llm import LlmBudget, LlmClient
@@ -547,7 +547,7 @@ def test_a_recent_figure_is_not_worth_a_call_either(scope: ScopeConfig, tmp_path
     assert outcome.run.calls == 0
 
 
-def test_an_editors_own_veraltet_flag_goes_to_the_front(scope: ScopeConfig, tmp_path: Path) -> None:
+def test_an_editors_own_veraltet_flag_goes_to_the_front(scope: ScopeConfig) -> None:
     """Somebody wrote in the article that it is stale. That is the strongest
     signal the page carries, and it should not queue behind an infobox field."""
     from wp_todo.agent import _agenda
@@ -572,7 +572,8 @@ def test_an_editors_own_veraltet_flag_goes_to_the_front(scope: ScopeConfig, tmp_
             ),
         ),
     )
-    assert [c.id for c in _agenda(mixed, REFERENCE, 2)] == ["veraltet1", "infobox1"]
+    agenda = _agenda(mixed, (), REFERENCE, ScopeConfig.model_validate(scope.model_dump()).research)
+    assert [item.claim.id for item in agenda] == ["veraltet1", "infobox1"]
 
 
 # ------------------------------------------------------------------ excerpts
@@ -733,3 +734,578 @@ def test_a_dated_claim_is_asked_before_the_undated_sourcing_marker(
     assert outcome.run is not None
     assert outcome.run.calls == 1
     assert outcome.calls[0].subject == "abc12345", "the dated infobox claim went first"
+
+
+# ------------------------------------------------------- what became of a claim
+def outcome_for(outcome: Any, claim_id: str) -> str:
+    found = next((o for o in outcome.run.outcomes if o.claim_id == claim_id), None)
+    assert found is not None, f"{claim_id} is not accounted for at all"
+    return str(found.outcome)
+
+
+def test_a_refused_answer_is_not_reported_as_nothing_found(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The distinction the dossier used to lose.
+
+    A source said something and the quote gate threw it away. Reporting that as
+    "keine Quelle sagte etwas dazu" is not a rounding error - it is the
+    opposite of what happened, and it sends the reader away from a transcript
+    that is holding the answer.
+    """
+    outcome = execute(scope, tmp_path, [verdict(quote="So steht es nirgends im Dokument.")], budget=1)
+
+    assert outcome.findings == ()
+    assert outcome_for(outcome, "abc12345") == "dropped"
+    assert [drop.gate for drop in outcome.dropped] == ["quote"]
+
+
+def test_an_honest_no_is_not_confused_with_a_question_never_asked(scope: ScopeConfig, tmp_path: Path) -> None:
+    """`nothing_found` is a result. Silence is not, and they used to print the
+    same sentence."""
+    asked = execute(scope, tmp_path, [verdict(status="nothing_found")], budget=1)
+    assert outcome_for(asked, "abc12345") == "nothing_found"
+
+    # No fetchable reference at all, so nothing was ever put to the model.
+    unreachable = claims().model_copy(update={"references": ReferenceSummary(total=0)})
+    silent = execute(scope, tmp_path, [], article_claims=unreachable, budget=1)
+    assert outcome_for(silent, "abc12345") == "not_asked"
+    assert silent.run is not None and silent.run.calls == 0
+
+
+def test_the_budget_is_named_as_the_reason_it_was_the_reason(scope: ScopeConfig, tmp_path: Path) -> None:
+    """A claim skipped on the ceiling says so, rather than borrowing the
+    sentence meant for a claim that was asked and came back empty."""
+    many = claims().model_copy(
+        update={
+            "claims": tuple(
+                Claim(
+                    id=f"claim{n:04d}",
+                    kind="infobox_field",
+                    text=f"Angabe {n}",
+                    line_no=n + 10,
+                    field="EINWOHNER",
+                    asserted_value=str(n),
+                    as_of_year=2018,
+                )
+                for n in range(3)
+            )
+        }
+    )
+    outcome = execute(scope, tmp_path, [verdict(status="nothing_found")], article_claims=many, budget=1)
+
+    assert outcome_for(outcome, "claim0000") == "nothing_found", "the one that was asked"
+    assert outcome_for(outcome, "claim0001") == "budget"
+    assert outcome_for(outcome, "claim0002") == "budget"
+    assert outcome.run is not None and outcome.run.budget_exhausted
+
+
+# ------------------------------------------------------ the Wikidata contradiction
+def conflicted() -> tuple[ArticleClaims, Delta]:
+    """An undated infobox value that Wikidata disagrees with - the Horgen case."""
+    article = claims().model_copy(
+        update={
+            "claims": (
+                Claim(
+                    id="mayor001",
+                    kind="infobox_field",
+                    text="GEMEINDEPRAESIDENT = Beat Muster (FDP)",
+                    line_no=9,
+                    field="GEMEINDEPRAESIDENT",
+                    asserted_value="Beat Muster (FDP)",
+                ),
+            )
+        }
+    )
+    delta = Delta(
+        kind="wikidata",
+        claim_id="mayor001",
+        field="GEMEINDEPRAESIDENT",
+        label="Leitung der Verwaltung",
+        article_value="Beat Muster (FDP)",
+        external_value="Q114366642",
+        source="https://www.wikidata.org/wiki/Q1#P6",
+        agrees=False,
+    )
+    return article, delta
+
+
+def test_a_wikidata_disagreement_is_actually_put_to_the_model(scope: ScopeConfig, tmp_path: Path) -> None:
+    """It was computed, rendered, and never asked.
+
+    Both values were in hand and the article's own official website was already
+    fetched. The prompt has to carry the contradiction - an ordinary "is this
+    still current?" question throws away the sharpest signal the deterministic
+    half produces.
+    """
+    article, delta = conflicted()
+    model = ScriptedLlm(
+        [verdict(status="nothing_found")],
+        cache=ResponseCache(tmp_path / "llm"),
+        budget=LlmBudget(limit=1),
+    )
+    execute(scope, tmp_path, [], article_claims=article, deltas=(delta,), llm=model)
+
+    assert model.sent, "the conflict was not put to the model at all"
+    asked = model.sent[0]
+    assert "Beat Muster (FDP)" in asked and "Q114366642" in asked
+    assert "Wikidata sagt" in asked, "the question has to be the contradiction, not the date"
+
+
+def test_a_contradiction_outranks_a_merely_dated_figure(scope: ScopeConfig, tmp_path: Path) -> None:
+    """Something has already been shown to disagree with it. That is a sharper
+    question than "this carries an old Stand", and it should not queue behind
+    one."""
+    article, delta = conflicted()
+    both = article.model_copy(update={"claims": (*claims().claims, *article.claims)})
+    model = ScriptedLlm(
+        [verdict(status="nothing_found"), verdict(status="nothing_found")],
+        cache=ResponseCache(tmp_path / "llm"),
+        budget=LlmBudget(limit=2),
+    )
+    execute(scope, tmp_path, [], article_claims=both, deltas=(delta,), llm=model)
+
+    assert "Wikidata sagt" in model.sent[0], "the contradiction goes first"
+    assert "Einwohner: 8500" in model.sent[1]
+
+
+# --------------------------------------------------------- the undated infobox
+def test_an_undated_value_is_asked_of_the_references_and_never_of_a_search(
+    scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """The official website is fetched and paid for by the time phase 1 runs,
+    so asking it costs one call. A web search cannot settle "the mayor is X,
+    no date given" cheaply, which is why it is never asked one."""
+    article, _ = conflicted()
+    model = ScriptedLlm(
+        [verdict(status="nothing_found")],
+        cache=ResponseCache(tmp_path / "llm"),
+        budget=LlmBudget(limit=10),
+    )
+    outcome = execute(scope, tmp_path, [], article_claims=article, llm=model)
+
+    assert len(model.sent) == 1, "asked once, of the references"
+    assert "Die Dokumente sind die Belege" in model.sent[0]
+    assert outcome.run is not None
+    assert not outcome.run.searched, "an undated value must not reach the discovery call"
+
+
+def test_a_recent_dated_figure_is_still_left_alone(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The undated agenda must not become a back door for every infobox field:
+    a figure with a recent `Stand` is deliberately not worth a call, and it has
+    a date, so it is not undated either."""
+    fresh = claims().model_copy(
+        update={
+            "claims": (
+                claims().claims[0].model_copy(update={"as_of_year": REFERENCE.year, "id": "fresh001"}),
+            )
+        }
+    )
+    outcome = execute(scope, tmp_path, [], article_claims=fresh)
+    assert outcome.run is not None and outcome.run.calls == 0
+
+
+# ------------------------------------------------------------ the reserved call
+def test_the_sections_are_not_starved_by_the_claim_loop(scope: ScopeConfig, tmp_path: Path) -> None:
+    """One call, and the most substantial part of the committed dossiers - and
+    it ran last, so the per-claim loops ate it first and said nothing."""
+    many = claims().model_copy(
+        update={
+            "claims": tuple(
+                Claim(
+                    id=f"claim{n:04d}",
+                    kind="infobox_field",
+                    text=f"Angabe {n}",
+                    line_no=n + 10,
+                    field="EINWOHNER",
+                    asserted_value=str(n),
+                    as_of_year=2018,
+                )
+                for n in range(4)
+            )
+        }
+    )
+    sections = {
+        "json": {"sections": [{"section": 1, "bullets": ["Zwei Betriebe"]}]},
+        "urls": [],
+        "input_tokens": 300,
+        "output_tokens": 90,
+    }
+    outcome = execute(
+        scope,
+        tmp_path,
+        [verdict(status="nothing_found"), sections],
+        article_claims=many,
+        deltas=(
+            Delta(
+                kind="interwiki_section",
+                label="enwiki",
+                external_value="Economy",
+                source="https://en.wikipedia.org/wiki/Musterwil",
+            ),
+        ),
+        foreign_texts={"en": ("Musterwil", "== Economy ==\nTwo firms.\n")},
+        budget=2,
+    )
+
+    assert [n.heading for n in outcome.section_notes] == ["Economy"]
+    assert outcome.run is not None and outcome.run.budget_exhausted
+    assert not outcome.run.sections_skipped
+
+
+def test_a_summary_the_budget_refused_is_reported_not_silently_absent(
+    scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """ "Möglicherweise fehlend" still lists the headings, so an absent summary
+    otherwise reads as "nothing worth saying about them"."""
+    model = ScriptedLlm([], cache=ResponseCache(tmp_path / "llm"), budget=LlmBudget(limit=0))
+    outcome = execute(
+        scope,
+        tmp_path,
+        [],
+        deltas=(
+            Delta(
+                kind="interwiki_section",
+                label="enwiki",
+                external_value="Economy",
+                source="https://en.wikipedia.org/wiki/Musterwil",
+            ),
+        ),
+        foreign_texts={"en": ("Musterwil", "== Economy ==\nTwo firms.\n")},
+        llm=model,
+    )
+
+    assert outcome.section_notes == ()
+    assert outcome.run is not None and outcome.run.sections_skipped
+
+
+# ------------------------------------------------------- numbers, and the quote
+def test_a_figure_the_quote_does_not_contain_is_demoted(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The Horgen case. The quote gate proved a sentence was on the page; the
+    dossier then printed "mindestens 31 Titel" beside it, which the page did
+    not say anywhere. The inference may be right - so this demotes rather than
+    drops - but it must not print as "Laut Quelle"."""
+    outcome = execute(scope, tmp_path, [verdict(value="mindestens 44 Titel", as_of=None)])
+
+    assert len(outcome.findings) == 1, "kept: the pointer is still worth following"
+    finding = outcome.findings[0]
+    assert not finding.quote_supports_value
+    assert "44" in finding.demoted
+
+
+def test_a_thousands_separator_is_not_a_reason_to_doubt_a_figure(scope: ScopeConfig, tmp_path: Path) -> None:
+    """German sources write 9'240, 9.240 and 9 240 for the same number, and a
+    false rejection here would be exactly the failure the quote gate is careful
+    to avoid."""
+    outcome = execute(scope, tmp_path, [verdict(value="9'240 Personen", as_of=2025)])
+
+    assert len(outcome.findings) == 1
+    assert outcome.findings[0].quote_supports_value
+    assert outcome.findings[0].demoted == ""
+
+
+def test_a_value_with_no_digits_is_not_treated_as_unsupported(scope: ScopeConfig, tmp_path: Path) -> None:
+    """This gate only speaks about digits, because digits are the part it can
+    check. Plenty of true findings are names."""
+    outcome = execute(scope, tmp_path, [verdict(value="Wohnbevoelkerung", as_of=None, quote=QUOTE)])
+
+    assert len(outcome.findings) == 1
+    assert outcome.findings[0].quote_supports_value
+
+
+# ------------------------------------------------------- documents that failed
+def test_a_document_that_could_not_be_read_is_reported(scope: ScopeConfig, tmp_path: Path) -> None:
+    """A `block` was reported and everything else vanished with a bare
+    `continue`: "10 Dokument(e) gelesen" with no mention of the six that were
+    not."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404)
+
+    with WebClient(
+        meta=scope.meta,
+        cache=ResponseCache(tmp_path / "web"),
+        delay_s=0.0,
+        respect_robots=False,
+        transport=httpx.MockTransport(handler),
+        reference_date=REFERENCE,
+    ) as web:
+        outcome = run_agent(
+            claims=claims(),
+            wikitext="Die Gemeinde hat 8500 Einwohner.",
+            deltas=(),
+            foreign_texts={},
+            config=scope,
+            reference=REFERENCE,
+            web=web,
+            llm=ScriptedLlm([], cache=ResponseCache(tmp_path / "llm"), budget=LlmBudget(limit=1)),
+            ledger=SourceLedger(),
+        )
+
+    unreadable = [drop for drop in outcome.dropped if drop.gate == "unreadable"]
+    assert len(unreadable) == 1
+    assert unreadable[0].detail == "HTTP 404"
+    assert unreadable[0].url == "https://beispiel-gemeinde.example/zahlen"
+
+
+def test_the_reference_beside_the_claim_is_fetched_before_a_better_ranked_host(
+    scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """Standing alone would rank the official-suffix host first and the cap
+    would stop there. The source an editor put in the same sentence as the
+    stale figure is the one most likely to answer it."""
+    from wp_todo.agent import _ordered_references
+
+    beside = "https://verein-musterwil.example/titel"
+    article = claims().model_copy(
+        update={
+            "references": ReferenceSummary(
+                total=2, external_urls=("https://statistik.zh.ch/irgendwas", beside)
+            )
+        }
+    )
+    wikitext = "\n".join(["", "", "", f"Einwohner: 8500<ref>{beside}</ref>"])
+
+    ranked = _ordered_references(article, SourceLedger())
+    assert ranked[0].startswith("https://statistik.zh.ch"), "standing alone ranks the office first"
+
+    agenda = _agenda(article, (), REFERENCE, scope.research)
+    ranked = _ordered_references(article, SourceLedger(), _urls_beside(wikitext, agenda))
+    assert ranked[0] == beside
+
+
+# --------------------------------------------------------- the other editions
+#: An enwiki article as wikitext, with a newer figure that carries its own
+#: citation. The citation is the point: it is a document dewiki does not have.
+ENWIKI = """{{Infobox settlement
+| name = Musterwil
+| area_total_km2 = 31.2<ref>{{cite web |url=https://amt.example/flaeche.pdf |title=Fläche 2024}}</ref>
+| population_total = 9240
+| population_as_of = 2025
+}}
+Musterwil is a municipality. The population was 9240 in 2025.<ref>https://statistik.example/2025</ref>
+"""
+
+FOREIGN = {"en": ("Musterwil", ENWIKI)}
+
+
+def interwiki_reply(quote: str, *, value: str = "31.2", as_of: int | None = 2024) -> dict[str, Any]:
+    """A verdict pointing at document 2 - the foreign edition, after the one
+    reference the fixture article carries."""
+    return verdict(status="supersedes_with_newer_value", document=2, quote=quote, value=value, as_of=as_of)
+
+
+def test_another_edition_becomes_a_finding_that_names_its_language(
+    scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """The wikitext is already fetched for the section summaries and was then
+    used for nothing else."""
+    quote = "| population_total = 9240"
+    outcome = execute(
+        scope, tmp_path, [interwiki_reply(quote, value="9240", as_of=2025)], foreign_texts=FOREIGN
+    )
+
+    assert len(outcome.findings) == 1
+    assert outcome.findings[0].interwiki_lang == "en"
+    assert outcome.findings[0].url == "https://en.wikipedia.org/wiki/Musterwil"
+
+
+def test_the_citation_the_other_edition_gives_is_extracted(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The whole reason the comparison is worth making.
+
+    A Wikipedia is not a source; what an editor can act on is the document it
+    cites. And the URL is pulled out of the verified quote by code, never
+    named by the model, which is what keeps it from being invented.
+    """
+    quote = (
+        "| area_total_km2 = 31.2<ref>{{cite web |url=https://amt.example/flaeche.pdf "
+        "|title=Fläche 2024}}</ref>"
+    )
+    outcome = execute(scope, tmp_path, [interwiki_reply(quote)], foreign_texts=FOREIGN)
+
+    assert outcome.findings[0].cited_sources == ("https://amt.example/flaeche.pdf",)
+
+
+def test_a_citation_at_the_end_of_the_sentence_is_still_found(scope: ScopeConfig, tmp_path: Path) -> None:
+    """An editor may put the ref after the sentence rather than beside the
+    number, so the search widens from the quote to the line around it."""
+    quote = "The population was 9240 in 2025."
+    outcome = execute(
+        scope, tmp_path, [interwiki_reply(quote, value="9240", as_of=2025)], foreign_texts=FOREIGN
+    )
+
+    assert outcome.findings[0].cited_sources == ("https://statistik.example/2025",)
+
+
+def test_a_link_back_into_wikipedia_is_not_offered_as_a_citation(scope: ScopeConfig, tmp_path: Path) -> None:
+    circular = {"en": ("Musterwil", "| population_total = 9240<ref>https://de.wikipedia.org/wiki/X</ref>\n")}
+    outcome = execute(
+        scope,
+        tmp_path,
+        [interwiki_reply("| population_total = 9240", value="9240", as_of=2025)],
+        foreign_texts=circular,
+    )
+
+    assert outcome.findings[0].cited_sources == (), "a wiki citing a wiki is not a source"
+
+
+def test_the_quote_gate_applies_to_another_edition_too(scope: ScopeConfig, tmp_path: Path) -> None:
+    """Nothing softens because the document is a wiki. A paraphrase is a
+    paraphrase."""
+    outcome = execute(
+        scope,
+        tmp_path,
+        [interwiki_reply("The population of Musterwil reached 9240 people in 2025.")],
+        foreign_texts=FOREIGN,
+        budget=1,
+    )
+
+    assert outcome.findings == ()
+    assert [drop.gate for drop in outcome.dropped] == ["quote"]
+
+
+def test_a_figure_wikidata_already_carries_is_marked_as_not_independent(
+    scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """Foreign infobox figures are frequently bot-imported. Two wikis agreeing
+    because one copied the other is not a second opinion."""
+    delta = Delta(
+        kind="wikidata",
+        claim_id="abc12345",
+        field="EINWOHNER",
+        label="Einwohnerzahl",
+        article_value="8500",
+        external_value="9240",
+        agrees=False,
+    )
+    outcome = execute(
+        scope,
+        tmp_path,
+        [interwiki_reply("| population_total = 9240", value="9240", as_of=2025)],
+        foreign_texts=FOREIGN,
+        deltas=(delta,),
+    )
+
+    assert outcome.findings[0].matches_wikidata
+
+
+def test_a_figure_wikidata_does_not_carry_is_not_marked(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The guard on the test above: the label must mean something."""
+    delta = Delta(
+        kind="wikidata",
+        claim_id="abc12345",
+        field="EINWOHNER",
+        label="Einwohnerzahl",
+        article_value="8500",
+        external_value="8500",
+        agrees=True,
+    )
+    outcome = execute(
+        scope,
+        tmp_path,
+        [interwiki_reply("| population_total = 9240", value="9240", as_of=2025)],
+        foreign_texts=FOREIGN,
+        deltas=(delta,),
+    )
+
+    assert not outcome.findings[0].matches_wikidata
+
+
+def test_a_cited_document_outranks_another_wiki_saying_the_same(scope: ScopeConfig, tmp_path: Path) -> None:
+    """A source that answers the question is worth more than a wiki asserting
+    it, and the ordering should say so rather than leaving the standing label
+    to carry it."""
+    # Textually distinct on purpose: two claims with identical text produce
+    # identical prompts, and the second call would be a cache hit on the first.
+    two_claims = claims().model_copy(
+        update={
+            "claims": (
+                claims().claims[0],
+                Claim(
+                    id="def67890",
+                    kind="infobox_field",
+                    text="FLÄCHE = 30.84",
+                    line_no=9,
+                    field="FLÄCHE",
+                    asserted_value="30.84",
+                    as_of_year=2018,
+                ),
+            )
+        }
+    )
+    outcome = execute(
+        scope,
+        tmp_path,
+        [
+            verdict(document=1),
+            interwiki_reply("| population_total = 9240", value="9240", as_of=2025),
+        ],
+        article_claims=two_claims,
+        foreign_texts=FOREIGN,
+    )
+
+    assert len(outcome.findings) == 2
+    assert outcome.findings[0].interwiki_lang == "", "the cited document leads"
+    assert outcome.findings[1].interwiki_lang == "en"
+
+
+def test_the_other_editions_cost_no_request_and_no_extra_call(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The claim the whole feature rests on: the wikitext is already in hand,
+    and the documents join a question that was going to be asked anyway."""
+    without = ScriptedLlm(
+        [verdict(status="nothing_found")],
+        cache=ResponseCache(tmp_path / "a"),
+        budget=LlmBudget(limit=1),
+    )
+    execute(scope, tmp_path, [], llm=without)
+
+    with_foreign = ScriptedLlm(
+        [verdict(status="nothing_found")],
+        cache=ResponseCache(tmp_path / "b"),
+        budget=LlmBudget(limit=1),
+    )
+    outcome = execute(scope, tmp_path, [], foreign_texts=FOREIGN, llm=with_foreign)
+
+    assert len(with_foreign.calls) == len(without.calls) == 1
+    assert outcome.run is not None
+    assert outcome.run.documents == 2, "one reference, one foreign edition"
+
+
+def test_the_other_editions_can_be_turned_off(scope: ScopeConfig, tmp_path: Path) -> None:
+    off = scope.model_copy(update={"research": scope.research.model_copy(update={"max_interwiki_docs": 0})})
+    model = ScriptedLlm(
+        [verdict(status="nothing_found")],
+        cache=ResponseCache(tmp_path / "llm"),
+        budget=LlmBudget(limit=1),
+    )
+    outcome = execute(off, tmp_path, [], foreign_texts=FOREIGN, llm=model)
+
+    assert outcome.run is not None and outcome.run.documents == 1
+    assert "en.wikipedia.org" not in model.sent[0]
+
+
+def test_an_edition_that_is_a_straight_copy_is_still_dropped(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The guard on the circularity exemption.
+
+    A foreign edition is openly a wiki, so the "secretly Wikipedia" heuristics
+    are switched off for it - otherwise every edition would be dropped, since
+    every Wikipedia article mentions Wikipedia. The verbatim-span check is not
+    switched off, and this is what proves it: an edition that is a straight
+    copy of this article is exactly as circular as any mirror.
+    """
+    copied = (
+        "Die Gemeinde Musterwil liegt am See und zaehlte im Jahr 2018 rund 8500 Einwohner, "
+        "verteilt auf mehrere Ortsteile entlang der Seestrasse und der alten Landstrasse "
+        "hinauf zum Waldrand, wo die Gemeindegrenze verlaeuft und der Wanderweg beginnt."
+    )
+    assert len(copied) > scope.research.circularity_span
+
+    outcome = execute(
+        scope,
+        tmp_path,
+        [interwiki_reply(copied[:120], value="8500", as_of=None)],
+        wikitext=copied,
+        foreign_texts={"en": ("Musterwil", copied)},
+        budget=1,
+    )
+
+    assert outcome.findings == ()
+    assert [drop.gate for drop in outcome.dropped] == ["circularity"]

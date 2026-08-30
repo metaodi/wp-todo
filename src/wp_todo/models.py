@@ -140,6 +140,62 @@ class ArticleClaims(Strict):
     references: ReferenceSummary = Field(default_factory=ReferenceSummary)
 
 
+class LinkStatus(Strict):
+    """Whether one of the article's links still resolves, and how sure we are.
+
+    Deliberately not a boolean. A checker that reports "dead" for a host that
+    merely refused *us* causes real damage: an editor acting on it replaces a
+    working link with an archive copy. That is the failure mode dewiki has
+    already lived through with bot-driven dead-link tagging, which is why
+    `scope.toml` weights those maintenance categories near zero.
+
+    So `verdict` distinguishes "the document is gone" from "the host refused
+    us", from "not reachable right now", from "we did not look". Only `tot`
+    says the document is gone.
+    """
+
+    url: str
+    #: tot | gesperrt | nicht erreichbar | umgeleitet | erreichbar | nicht geprüft
+    verdict: str
+    #: The HTTP status, when there was one. None for a refusal or a timeout.
+    status: int | None = None
+    #: Set only when it differs materially from `url` - a redirect to a
+    #: different host, or one that dropped the path. The soft-404 shape.
+    final_url: str = ""
+    #: True for a URL inside a `<ref>`; False for one under Weblinks/Literatur.
+    #: The split matters here for the same reason it does in ReferenceSummary.
+    cited: bool = True
+    #: The article already carries an archive link or a dead-link marker for
+    #: this URL. Still checked - a marker can be stale and an archive link can
+    #: be wrong - but it is not new work for the editor.
+    archived_in_article: bool = False
+    #: A Wayback snapshot, when one was found. A *candidate*, never a verified
+    #: replacement: the snapshot may itself have captured a soft 404.
+    snapshot_url: str = ""
+    snapshot_date: str = ""
+    #: The reason, when the verdict alone does not carry it.
+    detail: str = ""
+
+
+class LinkSummary(Strict):
+    """Counts for the link check, and whether it got to finish.
+
+    `checked` versus `total` is the load-bearing pair: a short dead-link list
+    because the ceiling stopped the run is a different fact from a short list
+    because the links are fine.
+    """
+
+    total: int = 0
+    checked: int = 0
+    dead: int = 0
+    blocked: int = 0
+    unreachable: int = 0
+    redirected: int = 0
+    reachable: int = 0
+    #: True when the request ceiling stopped the check before it was done.
+    budget_exhausted: bool = False
+
+
 class Delta(Strict):
     """A comparison against an already-structured source.
 
@@ -250,6 +306,25 @@ class Finding(Strict):
     #: Set when the recency gate demoted it: the source is not newer than the
     #: article, so it is context rather than an update.
     demoted: str = ""
+    #: False when a number in `current_value` is not in the quote. The quote
+    #: gate proves the sentence is on the page; only this says whether the
+    #: sentence carries the figure printed beside it, which is what decides
+    #: whether the dossier may write "Laut Quelle".
+    quote_supports_value: bool = True
+    #: Set when the finding rests on another language edition, and which one.
+    #: A Wikipedia is **not a source** - the useful part of such a finding is
+    #: `cited_sources`, not the value - so the renderer has to be able to tell
+    #: these apart and say so.
+    interwiki_lang: str = ""
+    #: What that other edition cites for the quoted value. Extracted from the
+    #: wikitext around the verified quote, never named by the model: this is
+    #: the citable document dewiki does not have yet, which is the whole
+    #: reason the comparison is worth making.
+    cited_sources: tuple[str, ...] = ()
+    #: True when the value is the same one Wikidata already carries. Foreign
+    #: infobox figures are frequently bot-imported from it, and two wikis
+    #: agreeing because one copied the other is not corroboration.
+    matches_wikidata: bool = False
     #: The model's own confidence. Orders the list; never admits anything.
     confidence: float = 0.0
 
@@ -266,6 +341,29 @@ class DroppedFinding(Strict):
     gate: str
     detail: str = ""
     url: str = ""
+
+
+class ClaimOutcome(Strict):
+    """What became of one claim on the agenda, and where.
+
+    The dossier used to say one thing about every claim it could not report a
+    finding for, chosen from a single run-level flag. Three different facts
+    were printed as the same sentence - and for a claim whose answer a gate
+    refused, that sentence said the opposite of what happened: *"keine Quelle
+    sagte etwas dazu"* about a source that had said something the machine then
+    threw away.
+
+    So the outcome is recorded per claim, at the point the decision is made.
+    It is the `_Nicht abgefragt._` versus `_Keine gefunden._` rule from
+    CLAUDE.md, applied to the agent's own agenda.
+    """
+
+    claim_id: str
+    #: found | dropped | nothing_found | budget | not_asked
+    outcome: str
+    #: Which phase the outcome came from: `reference`, `web`, or empty when the
+    #: claim was never put to the model at all.
+    phase: str = ""
 
 
 class SectionNote(Strict):
@@ -301,7 +399,16 @@ class AgentRun(Strict):
     #: to find.
     budget_exhausted: bool = False
     #: Claims that were on the agenda and never examined, whatever the reason.
+    #: Derived from `outcomes`, and kept because `todo.json` consumers read it.
     unexamined: tuple[str, ...] = ()
+    #: One entry per agenda claim, saying what became of it. Empty on a dossier
+    #: written before this existed, which is why the renderer still handles
+    #: `unexamined` on its own.
+    outcomes: tuple[ClaimOutcome, ...] = ()
+    #: True when there were sections to summarise and the budget refused the
+    #: call. Without it an empty summary block is indistinguishable from one
+    #: the model had nothing to say about.
+    sections_skipped: bool = False
     #: Documents fetched for verification, and how many were the article's own
     #: references rather than search results.
     documents: int = 0
@@ -360,6 +467,11 @@ class Dossier(Strict):
     reference_standing: tuple[SourceStanding, ...] = ()
     #: Set only when the research agent ran. `None` means it was not asked to,
     #: which must never render as "it looked and found nothing".
+    #: Reachability of the article's own links. Empty when the check was
+    #: turned off (`research.max_link_checks = 0`), which the renderer has to
+    #: tell apart from "checked and everything resolves".
+    links: tuple[LinkStatus, ...] = ()
+    link_summary: LinkSummary | None = None
     agent: AgentRun | None = None
     findings: tuple[Finding, ...] = ()
     section_notes: tuple[SectionNote, ...] = ()

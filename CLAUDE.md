@@ -46,6 +46,23 @@ checkable. The model never emits a URL and never sees a way to reach Wikipedia.
   unless `--refresh` is passed. Batched title queries are cached per title, so
   changing the scope does not invalidate whole batches.
 
+The link check is the one part of the research stage that reads non-Wikimedia
+hosts without a model being involved at all, and it reads *every* link the
+article carries rather than a handful. It is a GET like everything else here -
+`webclient.py` implements no other verb and that guarantee is not traded for a
+HEAD - closed once the headers are in. `research.max_link_checks` caps it and
+`0` turns it off, which is the way back to a run that asks nothing of anybody
+outside Wikimedia.
+
+What it concludes is deliberately narrower than what it observes. Only 404 and
+410 mean the document is gone; a host refusing *us* is `gesperrt` and is never
+counted as dead, because an editor who replaces a live reference with an
+archive copy on that basis has made the article worse. A soft 404 answering
+HTTP 200 is not detected, and the section says so inside itself rather than
+letting `erreichbar` be read as more than it is. An archive snapshot is a
+candidate with a date to open, never a `{{Webarchiv}}` call - writing the
+template would be drafting article text, which rule 1 forbids.
+
 Hosts outside Wikimedia never asked to be read by anybody's tool, so the
 research stage is stricter, not looser: `robots.txt` is consulted and honoured
 per host, hosts are paced independently, responses are size-capped and
@@ -106,6 +123,36 @@ list because the ceiling was hit is a different fact from a short findings list
 because there was little to find, and the dossier names every claim it never got
 to. That is the same rule as `_Nicht abgefragt._` versus `_Keine gefunden._`,
 applied one layer further out.
+
+It applies per claim, not per run. A claim the model answered `nothing_found`, a
+claim whose answer a gate refused, and a claim that was never asked are three
+different facts and get three different lines; picking one reason for the whole
+list is how the dossier came to report *"keine Quelle sagte etwas dazu"* about a
+source that had said something the machine then threw away. The same goes for
+documents: a 404, a robots refusal, a format we cannot read is reported with its
+reason, and the reason is cached with the skip so a replay says the same thing.
+
+The other language editions are read as documents too, and they are the one
+place where "what the gates buy" needs saying twice. A Wikipedia is not a
+source: it may be unsourced, wrong, or a translation of this very article. So
+such a finding is never rendered as a `Beleg`, sorts below anything resting on
+a cited document, and what it offers is the citation *that* edition gives -
+extracted from the verified quote in code, never named by the model. A figure
+matching Wikidata is labelled as not independent, because a bot-imported number
+coming back is not corroboration. The circularity gate skips its "secretly
+Wikipedia" heuristics for a document declared to be another edition - they are
+proxies for a deception nobody is attempting, and every Wikipedia article
+mentions Wikipedia - but the verbatim-span check still runs, so an edition that
+is a straight copy of the article is dropped like any mirror.
+
+And a quote that passes the containment gate proves the sentence is on the page
+— not that the page is honest, and not that the sentence supports the value
+printed beside it. A figure the quote does not carry is demoted and labelled as
+the model's inference, never rendered as "Laut Quelle". Fetched pages go to the
+model as user content, never in the system prompt: that does not solve prompt
+injection, and nothing here should be written as though it did. What the gates
+buy is that the quote really is at the URL shown, which is what makes "check
+every finding at its source" a thing a reader can carry out.
 
 The stage *failing* is reported the same way, and does not take the dossier with
 it. The deterministic half is finished and paid for in requests to Wikimedia by

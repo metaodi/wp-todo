@@ -152,6 +152,34 @@ source classification below:
 - **Belege dieses Artikels** — how many references, and how old. "The newest
   source on this page is from 2011" is often the most informative line in the
   file.
+- **Erreichbarkeit der Belege** — which of the article's links still resolve.
+  No model, no inference: an HTTP status is a fact. The verdict is deliberately
+  not a boolean, because a checker that is confidently wrong is worse than
+  none — an editor acting on a false "dead" replaces a working reference with
+  an archive copy, which is the damage bot-driven dead-link tagging has already
+  done on dewiki.
+
+  | verdict | means |
+  | --- | --- |
+  | `tot` | 404 or 410. The only one that says the document is gone. |
+  | `nicht erreichbar` | 5xx, a timeout, a refused connection. Not now — not "never". |
+  | `gesperrt` | 401/403/429: the host refused **us**. Says nothing about whether the page is there. |
+  | `umgeleitet` | 200, but it landed on another host or on the root. The quiet shape of a soft 404. |
+  | `nicht geprüft` | robots.txt, or the ceiling was reached. Not a verdict — we did not look. |
+  | `erreichbar` | it resolves. A fact about the URL, not about the content. |
+
+  A **soft 404 that answers 200 with a "Seite nicht gefunden" body is not
+  detected**, and the section says so inside itself. Dead and unreachable links
+  get a Wayback snapshot looked up — printed as a URL and a date to open, never
+  as a ready-to-paste `{{Webarchiv}}`, because the tool does not draft article
+  text. Links the article already archived are checked anyway and labelled, so
+  what is new work is visible at a glance.
+
+  It costs one GET per link — a GET, not a HEAD, because `webclient.py`
+  promises it is GET-only by construction and a verb is not worth trading that
+  for; the response is closed once the headers are in. `research.max_link_checks`
+  caps it (40), and **`0` turns it off**, which is how to get back a run that
+  asks nothing of anybody outside Wikimedia.
 
 Three things it deliberately does not do: draft article prose, post anywhere, or
 decide who is right. Wikidata is frequently the side that is out of date, and
@@ -171,11 +199,42 @@ the claims the references leave open trigger a single web-search call for the
 whole article; sections other editions have and this one does not get a few
 bullet points summarising what the *linked* text says.
 
-Roughly ten model calls per article at the shipped defaults, a few cents. Every
-one is cached, so a rerun without `--refresh` replays it for nothing. Running
-out of the budget is reported in the dossier, with every claim it never got to
-named — a short findings list because the ceiling was hit is a different fact
-from a short findings list because there was little to find.
+Up to sixteen model calls per article at the shipped defaults, a few cents.
+Every one is cached, so a rerun without `--refresh` replays it for nothing. The
+ceiling has to be able to pay for what the claim ceilings authorise, and a
+config where it cannot is refused at load time rather than silently doing less:
+at 10 against ceilings authorising 12 the section summaries — one call, and in
+practice the most substantial part of a dossier — were structurally the first
+thing starved. A call is now reserved for them before the per-claim loops
+start.
+
+Two more things go on the agenda besides dated claims. A **Wikidata
+disagreement** is the sharpest question the free stage produces — two values
+that cannot both be right, with a link on each side — and it used to be
+computed, rendered and never asked; it now gets a question of its own, ranked
+just behind an editor's own `{{Veraltet}}`. **Undated infobox values** ("the
+mayor is X", no date anywhere) are asked of the article's own references only:
+a web search cannot settle one cheaply, but the official website is fetched and
+paid for by then.
+
+**The other language editions join the same document list.** They cost nothing
+in either currency: the wikitext is already fetched for the section summaries,
+and they ride along on questions that were going to be asked anyway. But a
+Wikipedia is *not a source*, so the finding is shaped accordingly — it says so
+on its own row, it is headed *Fundstelle* rather than *Beleg*, it sorts below
+anything resting on a document the article actually cites, and what it offers
+as useful is **the citation the other edition gives**, pulled out of the
+verified quote by code rather than named by the model. A figure that merely
+matches what Wikidata already carries is labelled as not independent: foreign
+infobox numbers are frequently bot-imported, and two wikis agreeing because one
+copied the other is not corroboration. `research.max_interwiki_docs` caps it
+(3); `0` turns it off.
+
+Running out of the budget is reported in the dossier, and so is everything else
+that left a claim unreported. Those are not one fact: a claim the model
+answered `nothing_found`, a claim whose answer a gate refused, and a claim that
+was never asked each get their own line, because the middle one used to print
+as *"keine Quelle sagte etwas dazu"* — the opposite of what happened.
 
 Then the paranoid half. Everything the model says goes through five checks
 applied **in code, afterwards**:
@@ -187,6 +246,15 @@ applied **in code, afterwards**:
 | recency | a source older than the article — demoted to context, not sold as an update |
 | circularity | a copy of the article. `trust` cannot override this; trusting a mirror is always an error |
 | source standing | a host you blocked. Applied before the fetch, and always reported |
+| numeric containment | a figure the quote does not carry — demoted to "Schluss des Modells", never printed as "Laut Quelle" |
+
+Circularity has one scoped exemption, and it is worth knowing about: a document
+*declared* to be another language edition skips the "secretly Wikipedia"
+heuristics, because they are proxies for a deception that is not being
+attempted — and every Wikipedia article's wikitext mentions Wikipedia, so
+applying them there would drop all of them. The verbatim-span check still runs,
+so an edition that is a straight copy of the article is dropped exactly like
+any mirror.
 
 Every rejection is counted and shown. A run where the quote check rejected six
 of twenty answers is telling you something about that run.
@@ -216,8 +284,18 @@ asked to be read by anybody's tool:
   allowance to hammer the next.
 - **Its own User-Agent.** Claiming the Wikimedia one at a cantonal statistics
   office would be a lie about who is calling.
-- **Size-capped and content-type filtered**; a skip is cached, so a rerun does
-  not re-ask a host for the same 404.
+- **Size-capped and content-type filtered**; a skip is cached *with its reason*,
+  so a rerun does not re-ask a host for the same 404 and the dossier can say
+  which documents it could not read. HTML, plain text and PDF are read; a
+  cantonal statistics office publishing PDF was the largest recall hole this
+  stage had. Needs `uv sync --extra pdf`.
+- **Fetched text is never part of the system prompt.** It goes to the model as
+  user content. Worth being exact about what that does and does not buy: a
+  hostile page can carry both an instruction and a sentence that satisfies the
+  quote gate, because the gate proves the sentence is *on the page*, not that
+  the page is honest. What it guarantees is that the quote really is at the URL
+  shown — which is what makes "check every finding at its source" something a
+  reader can carry out.
 
 The stage is opt-in per article and is **not** wired into `refresh.yml`. The
 weekly job stays Wikimedia-only.

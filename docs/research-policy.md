@@ -19,6 +19,8 @@ source.
 - Compares the ones it can compare mechanically against Wikidata.
 - Reports which sections other language editions have that this one does not.
 - Summarises how old the article's own sourcing is.
+- Checks whether the article's own links still resolve, and looks up an
+  archived copy of the ones that do not.
 
 ## What the tool does not do
 
@@ -34,6 +36,30 @@ source.
   raises it, in their own words, having checked it.
 - **It does not decide who is right.** A Wikidata delta is a pair of values and
   two links. Wikidata is frequently the one that is out of date or wrong.
+
+## On the link check
+
+It reports six verdicts rather than dead/alive, and the reason is the same one
+that governs everything else here: **a tool that is confidently wrong costs
+more than a tool that says less.** A host that refuses our request tells us
+nothing about whether its page is still there, and an editor who replaces a
+live reference with an archive copy on the strength of that has made the
+article worse. So `gesperrt` is its own verdict and is never counted as dead,
+`nicht erreichbar` is not "gone", and `nicht geprüft` says plainly that nobody
+looked.
+
+Two limits are printed in the section, not buried here:
+
+- a soft 404 — HTTP 200 with an error page in the body — is **not** detected;
+  only the redirect-to-homepage shape is;
+- `erreichbar` is a fact about the URL. The page may have been rewritten since
+  it was cited, and the link check has no opinion about that.
+
+An archive snapshot is a **candidate**. It may itself have captured a soft 404,
+or predate what was cited. So the dossier gives its URL and its date and sends
+you to open it — and deliberately does not write the `{{Webarchiv}}` call,
+because a ready-to-paste template is exactly what invites pasting it unread.
+Rules 1 and 3 above apply to it like everything else.
 
 ## On the source list
 
@@ -102,6 +128,33 @@ the value comes from:
    points summarising what the other edition's section actually says, with a
    link to it. Not what a model knows about the subject: what the linked text
    says, so the summary can be checked like everything else here.
+4. **The other editions are also read for the claims themselves** — they often
+   carry the same figure with a newer date. This costs no request and no extra
+   call: the wikitext is already there, and the editions ride along on
+   questions that were going to be asked anyway.
+
+On that last one, the thing to keep hold of: **another language edition is not
+a source.** It may be unsourced, wrong, or translated from this very article.
+So the dossier says so on the row itself, calls it a *Fundstelle* rather than a
+*Beleg*, sorts it below anything resting on a document the article actually
+cites, and offers as the useful part **the citation that edition gives** — a
+document you can go and read, which is the only thing here that can become a
+reference. That citation is extracted from the verified quote by code, never
+named by the model, for the same reason no URL anywhere in this stage comes
+from a model.
+
+A foreign figure that matches what Wikidata already carries is labelled as not
+independent. Those numbers are frequently bot-imported, and two wikis agreeing
+because one copied the other is not a second opinion.
+
+Two of those three used to be computed and then thrown away. A Wikidata
+disagreement — the sharpest question the free stage produces, two values that
+cannot both be right — was rendered in the dossier and never put to the model.
+An undated infobox value ("the mayor is X") was excluded from the agenda
+altogether, which is right for a web search and wrong for the article's own
+official website, already fetched by the time the question is asked. Neither
+change moves the line on deciding: the contradiction prompt asks which value a
+*document* supports, and `nothing_found` stays the right answer when none does.
 
 It is subject to one non-negotiable rule: **the model never emits a URL, and
 every quoted sentence is mechanically checked to appear verbatim in a document
@@ -112,6 +165,24 @@ citation structurally impossible rather than merely discouraged, which is the
 only version of this worth shipping - a plausible-looking citation to a page
 that does not say what is claimed is worse than no dossier at all.
 
+Being exact about what that rule buys matters as much as having it. The quote
+gate proves a sentence is **on the page**. It does not prove the page is
+honest, and it does not prove the sentence supports the value printed beside
+it — a live run reported "mindestens 31 Titel" under a quote containing no
+number at all. So:
+
+- **A figure the quote does not carry is demoted**, not printed as *"Laut
+  Quelle"*. The inference may well be right, which is why it is kept and
+  labelled rather than dropped.
+- **Fetched pages are sent as user content, never as part of the system
+  prompt.** A page nobody vetted does not belong in the highest-trust channel
+  of the request. This is not a claim that prompt injection is solved: a
+  hostile page can carry both an instruction and a verbatim sentence that
+  passes the quote gate. What the gate guarantees is that the quote is really
+  at the URL shown, which is precisely what makes rule 1 above — check every
+  finding at its source — something a reader can actually carry out. That rule
+  is the defence. The gates only make it possible to follow.
+
 Three more things follow from the same reasoning:
 
 - **A `trust` verdict cannot override the circularity check.** Trusting a
@@ -121,7 +192,14 @@ Three more things follow from the same reasoning:
 - **Running out of budget is announced, never absorbed.** A short findings
   list because the ceiling was hit is a different fact from a short findings
   list because there was little to find, and the dossier names every claim it
-  never got to.
+  never got to. It goes one step further than that now: a claim the model
+  answered `nothing_found`, a claim whose answer a gate refused, and a claim
+  never asked at all are three facts, and each gets its own line. The middle
+  one used to print as *"keine Quelle sagte etwas dazu"*, which is the opposite
+  of what happened — a source had spoken and the machine had thrown the answer
+  away. The same rule applies to documents: one that 404s, is refused by
+  robots.txt, or arrives in a format we cannot read is reported with its
+  reason, not quietly missing from the count.
 - **The transcript is committed next to the dossier.** A findings section is a
   summary of a conversation nobody else saw. `research/<id>-<slug>.transcript.md`
   holds what was asked, what came back, and which gate refused what - including

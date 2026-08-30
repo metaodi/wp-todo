@@ -206,11 +206,19 @@ agent = "user"
 # absichtlich nicht Teil des wöchentlichen Laufs - er liest Hosts ausserhalb
 # von Wikimedia, die niemand darum gebeten hat.
 [research]
-# Anfragen an Hosts ausserhalb von Wikimedia, pro Lauf. Harte Grenze.
-max_fetches = 60
+# Anfragen an Hosts ausserhalb von Wikimedia, pro Lauf. Harte Grenze. Muss die
+# Linkprüfung, deren Archiv-Abfragen und die Dokumente des Agenten abdecken.
+max_fetches = 150
+# Belege und Weblinks, deren Erreichbarkeit geprüft wird. 0 schaltet die Prüfung
+# ab - und damit zurück auf einen Lauf, der nur Wikimedia anfragt.
+max_link_checks = 40
+# Zu toten Links einen Schnappschuss im Internet Archive suchen. Nur zu toten:
+# ein erreichbarer Link braucht keine Archivkopie.
+suggest_archives = true
 # Sekunden zwischen zwei Anfragen *an denselben Host*. Hosts werden getrennt
 # getaktet: die Höflichkeitspause bei einem ist kein Freibrief beim nächsten.
 delay_s = 2.0
+max_retries = 3
 timeout_s = 20.0
 max_doc_bytes = 2_000_000
 # robots.txt zu beachten ist die Voreinstellung; das Abschalten muss jemand
@@ -228,9 +236,16 @@ compare_languages = ["en", "fr", "it"]
 # stillschweigend weggelassen.
 model = "claude-opus-5"
 effort = "medium"
-max_llm_calls = 10
+max_llm_calls = 16
 max_claims = 5
+# Undatierte Infobox-Werte - nur gegen die Belege des Artikels, nie gegen eine
+# Websuche. Siehe ResearchConfig.max_undated_claims.
+max_undated_claims = 3
 max_reference_docs = 8
 max_search_docs = 6
+# Andere Sprachversionen, die dem Modell als Dokumente vorgelegt werden. Kostet
+# weder eine Anfrage noch einen zusätzlichen Aufruf - der Wikitext ist für die
+# Abschnitts-Zusammenfassungen ohnehin geholt. 0 schaltet es ab.
+max_interwiki_docs = 3
 # Eine Angabe von letztem Jahr ist keine Neuigkeit.
 stale_after_years = 2

@@ -488,3 +488,278 @@ def test_an_unusable_agent_still_stops_the_run(
     anything else, and keeps its clean exit rather than becoming a footnote."""
     with pytest.raises(LlmUnavailableError):
         build(corpus, scope, tmp_path, llm=broken(tmp_path, LlmUnavailableError("no credentials")))
+
+
+# ------------------------------------------------- what the dossier says it did
+def briefing(**agent: Any) -> Dossier:
+    """A dossier carrying only what the agent reported, for the rendering."""
+    from wp_todo.models import AgentRun, ArticleClaims
+
+    return Dossier(
+        pageid=1,
+        title="Musterwil",
+        reference_date=dt.date(2026, 8, 1),
+        claims=ArticleClaims(pageid=1, title="Musterwil"),
+        agent=AgentRun(model="claude-opus-5", effort="medium", **agent),
+    )
+
+
+def test_each_reason_a_claim_went_unreported_gets_its_own_line(tmp_path: Path) -> None:
+    """Three different facts used to print as one sentence, and for a claim
+    whose answer a gate refused that sentence was the opposite of the truth."""
+    from wp_todo.models import ClaimOutcome
+
+    markdown = render_markdown(
+        briefing(
+            outcomes=(
+                ClaimOutcome(claim_id="a1", outcome="nothing_found", phase="web"),
+                ClaimOutcome(claim_id="b2", outcome="dropped", phase="reference"),
+                ClaimOutcome(claim_id="c3", outcome="budget"),
+            ),
+            budget_exhausted=True,
+        )
+    )
+
+    assert "keine der gelesenen Quellen sagte etwas dazu): `a1`" in markdown
+    assert "von den Prüfungen verworfen" in markdown and "`b2`" in markdown
+    assert "Budget war aufgebraucht): `c3`" in markdown
+    # And the refused answer is not swept in with the honest "nothing found".
+    nothing = next(line for line in markdown.splitlines() if "keine der gelesenen" in line)
+    assert "b2" not in nothing
+
+
+def test_an_older_dossier_still_renders_its_coarser_sentence(tmp_path: Path) -> None:
+    """`outcomes` did not exist when the committed dossiers were written. The
+    old sentence is the only honest thing left to say about them."""
+    markdown = render_markdown(briefing(unexamined=("a1",), budget_exhausted=False))
+    assert "keine Quelle sagte etwas dazu): `a1`" in markdown
+
+
+def test_laut_quelle_is_only_written_when_the_quote_carries_the_figure(tmp_path: Path) -> None:
+    """The Horgen case: "mindestens 31 Titel" printed under a quote that
+    contained no number at all."""
+    from wp_todo.models import AgentRun, ArticleClaims, Finding
+
+    def rendered(*, supports: bool) -> str:
+        return render_markdown(
+            Dossier(
+                pageid=1,
+                title="Musterwil",
+                reference_date=dt.date(2026, 8, 1),
+                claims=ArticleClaims(pageid=1, title="Musterwil"),
+                agent=AgentRun(model="claude-opus-5", effort="medium"),
+                findings=(
+                    Finding(
+                        claim_id="a1",
+                        claim_text="30-facher Meister",
+                        status="supersedes_with_newer_value",
+                        current_value="mindestens 31 Titel",
+                        quote="Die Durststrecke hat ein Ende",
+                        url="https://example.org/x",
+                        quote_supports_value=supports,
+                    ),
+                ),
+            )
+        )
+
+    assert "**Laut Quelle:**" in rendered(supports=True)
+    grounded = rendered(supports=False)
+    assert "**Laut Quelle:**" not in grounded
+    assert "Schluss des Modells (nicht im Zitat)" in grounded
+
+
+def test_a_summary_the_budget_refused_is_said_out_loud(tmp_path: Path) -> None:
+    """The headings are still listed above it, so silence there reads as
+    "nothing worth saying about them"."""
+    from wp_todo.models import Delta
+
+    gap = Delta(
+        kind="interwiki_section",
+        label="enwiki",
+        external_value="Economy",
+        source="https://en.wikipedia.org/wiki/Musterwil",
+        detail="1 Abschnitt(e) ohne Entsprechung hier",
+    )
+    listed = briefing(sections_skipped=True, budget_exhausted=True).model_copy(
+        update={"deltas": (gap,), "interwiki_checked": True, "compared_languages": ("en",)}
+    )
+    markdown = render_markdown(listed)
+
+    assert "Economy" in markdown, "the heading is listed"
+    assert "keine Zusammenfassung erstellt" in markdown, "and its missing summary is explained"
+
+
+# --------------------------------------------------------- reachability
+def with_links(**kwargs: Any) -> Dossier:
+    from wp_todo.models import ArticleClaims
+
+    return Dossier(
+        pageid=1,
+        title="Musterwil",
+        reference_date=dt.date(2026, 8, 1),
+        claims=ArticleClaims(pageid=1, title="Musterwil"),
+        **kwargs,
+    )
+
+
+def test_a_check_that_never_ran_renders_nothing_at_all(tmp_path: Path) -> None:
+    """The same distinction `wikidata_checked` draws: an absent section must
+    never be read as "checked, and everything resolves"."""
+    assert "Erreichbarkeit" not in render_markdown(with_links())
+
+
+def test_a_blocked_host_is_not_presented_to_the_reader_as_dead(tmp_path: Path) -> None:
+    """The rendering half of the rule the checker enforces. An editor skimming
+    this table must not come away thinking a 403 is a dead link."""
+    from wp_todo.models import LinkStatus, LinkSummary
+
+    markdown = render_markdown(
+        with_links(
+            link_summary=LinkSummary(total=1, checked=1, blocked=1),
+            links=(
+                LinkStatus(
+                    url="https://zeitung.example/x",
+                    verdict="gesperrt",
+                    status=403,
+                    detail="der Host hat die Anfrage abgelehnt, die Seite kann trotzdem existieren",
+                ),
+            ),
+        )
+    )
+
+    assert "**gesperrt**" in markdown
+    assert "0 tot" in markdown
+    assert "im Browser oft trotzdem da" in markdown, "the glossary spells out what it is not"
+
+
+def test_the_snapshot_is_offered_as_something_to_check_not_as_wikitext(tmp_path: Path) -> None:
+    """`docs/research-policy.md`: the tool does not draft article text. A
+    ready-to-paste {{Webarchiv}} is exactly what invites pasting it without
+    opening the snapshot first."""
+    from wp_todo.models import LinkStatus, LinkSummary
+
+    markdown = render_markdown(
+        with_links(
+            link_summary=LinkSummary(total=1, checked=1, dead=1),
+            links=(
+                LinkStatus(
+                    url="https://amt.example/weg",
+                    verdict="tot",
+                    status=404,
+                    snapshot_url="http://web.archive.org/web/20190302/https://amt.example/weg",
+                    snapshot_date="2019-03-02",
+                ),
+            ),
+        )
+    )
+
+    assert "2019-03-02" in markdown
+    assert "selbst prüfen" in markdown
+    assert "{{Webarchiv" not in markdown, "no article text is drafted, here or anywhere"
+
+
+def test_an_interrupted_check_says_so_rather_than_looking_complete(tmp_path: Path) -> None:
+    from wp_todo.models import LinkStatus, LinkSummary
+
+    markdown = render_markdown(
+        with_links(
+            link_summary=LinkSummary(total=9, checked=2, dead=1, budget_exhausted=True),
+            links=(
+                LinkStatus(url="https://amt.example/weg", verdict="tot", status=404),
+                LinkStatus(
+                    url="https://amt.example/spaeter",
+                    verdict="nicht geprüft",
+                    detail="das Anfrage-Budget war aufgebraucht",
+                ),
+            ),
+        )
+    )
+
+    assert "2 von 9 Link(s) geprüft" in markdown
+    assert "Anfrage-Budget war aufgebraucht" in markdown
+    assert "**kein** Hinweis" in markdown
+
+
+def test_the_section_says_which_dead_links_it_cannot_see(tmp_path: Path) -> None:
+    """A reader who believes the list is exhaustive trusts `erreichbar` further
+    than it has earned."""
+    from wp_todo.models import LinkStatus, LinkSummary
+
+    markdown = render_markdown(
+        with_links(
+            link_summary=LinkSummary(total=1, checked=1, reachable=1),
+            links=(LinkStatus(url="https://amt.example/ok", verdict="erreichbar", status=200),),
+        )
+    )
+
+    assert "wird **nicht** erkannt" in markdown, "the soft-404 blind spot is named"
+    assert "Alle geprüften Links lösen auf." in markdown
+
+
+def test_the_link_check_runs_in_the_real_pipeline(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """End to end through `research_article`, with no model anywhere: the
+    reachability section is the part of a dossier that costs nothing and works
+    without `--agent`."""
+    built = build(corpus, scope, tmp_path)
+
+    assert built.link_summary is not None
+    assert built.link_summary.total == len(built.claims.references.external_urls) + len(
+        built.claims.references.linked_urls
+    )
+    assert built.link_summary.checked == built.link_summary.total
+    assert "## Erreichbarkeit der Belege" in render_markdown(built)
+
+
+# ------------------------------------------------------ the other editions
+def interwiki_finding(**kwargs: Any) -> Dossier:
+    from wp_todo.models import AgentRun, ArticleClaims, Finding
+
+    defaults: dict[str, Any] = {
+        "claim_id": "a1",
+        "claim_text": "FLÄCHE = 30.84",
+        "status": "supersedes_with_newer_value",
+        "current_value": "31.2",
+        "as_of": 2024,
+        "quote": "| area_total_km2 = 31.2",
+        "url": "https://en.wikipedia.org/wiki/Musterwil",
+        "standing": "andere Sprachversion dieses Artikels - kein Beleg, sondern ein Hinweis",
+        "interwiki_lang": "en",
+    }
+    return Dossier(
+        pageid=1,
+        title="Musterwil",
+        reference_date=dt.date(2026, 8, 1),
+        claims=ArticleClaims(pageid=1, title="Musterwil"),
+        agent=AgentRun(model="claude-opus-5", effort="medium"),
+        findings=(Finding(**{**defaults, **kwargs}),),
+    )
+
+
+def test_another_edition_is_never_presented_as_a_source(tmp_path: Path) -> None:
+    """Said on the row, not only in the section notice: a reader arriving from
+    a link or a screenshot has to be told before they read the number."""
+    markdown = render_markdown(interwiki_finding())
+
+    assert "**Kein Beleg:**" in markdown
+    assert "ist selbst Wikipedia" in markdown
+    assert "**Beleg:** <https://en.wikipedia.org" not in markdown, "it is a Fundstelle, not a Beleg"
+    assert "**Laut Quelle:**" not in markdown, "the source is enwiki, and it says so"
+    assert "**Laut enwiki:**" in markdown
+
+
+def test_what_the_other_edition_cites_is_the_part_offered_as_useful(tmp_path: Path) -> None:
+    """The whole point of the comparison: a citable document dewiki lacks."""
+    markdown = render_markdown(interwiki_finding(cited_sources=("https://amt.example/flaeche.pdf",)))
+
+    assert "**Dort zitiert**" in markdown
+    assert "https://amt.example/flaeche.pdf" in markdown
+    assert "ungeprüft" in markdown
+
+
+def test_a_bot_imported_figure_is_not_offered_as_a_second_opinion(tmp_path: Path) -> None:
+    markdown = render_markdown(interwiki_finding(matches_wikidata=True))
+
+    assert "**Nicht unabhängig:**" in markdown
+    assert "keine zweite Bestätigung" in markdown

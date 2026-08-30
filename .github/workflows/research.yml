@@ -62,8 +62,12 @@ jobs:
       - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
-      # The Anthropic SDK is an optional extra: without --agent it is never
-      # imported, and installing it here costs a few seconds either way.
+      # The Anthropic SDK and the PDF extractor are optional extras: without
+      # --agent neither is imported, and installing them here costs a few
+      # seconds either way. `agent` pulls in `pypdf`, so a run with the flag
+      # can read the statistical offices' PDF references rather than skipping
+      # them - which is the only place PDF matters, since nothing outside the
+      # agent fetches a document.
       - run: uv sync --frozen --dev --extra agent
 
       # Shared with the weekly refresh, so a title already in the corpus costs

@@ -14,7 +14,12 @@ dependencies = [
 # Only needed for `wp-todo research --agent`. Everything else - the worklist,
 # and the deterministic half of a dossier - runs without it and costs nothing,
 # so the SDK is not a hard dependency of the tool.
-agent = ["anthropic>=1.2,<2"]
+agent = ["anthropic>=1.2,<2", "pypdf>=5.1"]
+
+# Text extraction from PDF references. Its own extra because it is useful
+# without a model: the Swiss statistical offices this scope leans on publish
+# PDF, and a reference that cannot be read is a finding nobody gets to make.
+pdf = ["pypdf>=5.1"]
 
 [project.scripts]
 wp-todo = "wp_todo.cli:app"

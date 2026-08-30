@@ -18,8 +18,18 @@ from .claims import extract_claims
 from .client import WikiClient
 from .config import ScopeConfig
 from .enrich import foreign_wikitexts, interwiki_deltas, langlinks, wikibase_items, wikidata_deltas
+from .links import check_links
 from .llm import LlmClient, LlmUnavailableError
-from .models import Article, ArticleClaims, Delta, Dossier, FetchResult, SourceStanding
+from .models import (
+    Article,
+    ArticleClaims,
+    Delta,
+    Dossier,
+    FetchResult,
+    LinkStatus,
+    LinkSummary,
+    SourceStanding,
+)
 from .score import EDIT_URL
 from .sources import TIERS, SourceLedger, Standing, host_of, standing
 from .webclient import WebClient
@@ -78,6 +88,21 @@ def research_article(
         compared = tuple(lang for lang in config.research.compare_languages if lang in links)
         log.info("%s: compared against %s", article.title, ", ".join(compared) or "no other edition")
 
+    # Before the agent, and without needing it: whether the article's own links
+    # still resolve is a fact, not an inference, and it is the one thing here
+    # that costs no model call at all.
+    link_status: tuple[LinkStatus, ...] = ()
+    link_summary: LinkSummary | None = None
+    if config.research.max_link_checks:
+        link_status, link_summary = check_links(claims, article.wikitext or "", web, config.research)
+        log.info(
+            "%s: %d of %d link(s) checked, %d dead",
+            article.title,
+            link_summary.checked,
+            link_summary.total,
+            link_summary.dead,
+        )
+
     outcome: AgentOutcome | None = None
     if llm is not None:
         try:
@@ -116,6 +141,8 @@ def research_article(
         interwiki_checked=bool(foreign),
         compared_languages=compared,
         reference_standing=reference_standing(claims, ledger or SourceLedger()),
+        links=link_status,
+        link_summary=link_summary,
         agent=outcome.run if outcome else None,
         findings=outcome.findings if outcome else (),
         section_notes=outcome.section_notes if outcome else (),

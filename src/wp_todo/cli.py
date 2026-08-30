@@ -71,6 +71,7 @@ def _web_client(scope: ScopeConfig, cache: ResponseCache, dry_run: bool, referen
         cache=cache,
         dry_run=dry_run,
         delay_s=scope.research.delay_s,
+        max_retries=scope.research.max_retries,
         timeout_s=scope.research.timeout_s,
         max_requests=scope.research.max_fetches,
         max_bytes=scope.research.max_doc_bytes,
@@ -308,6 +309,19 @@ def research(
         f"wrote {out / f'{stem}.md'} — {len(built.claims.claims)} dated claim(s), "
         f"{len(built.deltas)} comparison(s), {requests} request(s)"
     )
+    if built.link_summary is not None and built.link_summary.total:
+        summary = built.link_summary
+        typer.echo(
+            f"links: {summary.checked} of {summary.total} checked — {summary.dead} dead, "
+            f"{summary.unreachable} unreachable, {summary.blocked} blocked (blocked is not dead)"
+        )
+        if summary.budget_exhausted:
+            typer.secho(
+                "the request budget ran out before every link was checked; the dossier says "
+                "which ones, and --config can raise research.max_fetches",
+                fg="yellow",
+                err=True,
+            )
     if built.agent is not None:
         run = built.agent
         typer.echo(

@@ -175,10 +175,24 @@ class ResearchConfig(Frozen):
     asked to be crawled, so it runs when somebody asks for it.
     """
 
-    #: Requests to hosts outside Wikimedia, per run.
-    max_fetches: int = Field(default=60, ge=0)
+    #: Requests to hosts outside Wikimedia, per run. Has to cover the link
+    #: check, its archive lookups *and* the agent's document fetches - see
+    #: `_check_fetches_fit`.
+    max_fetches: int = Field(default=150, ge=0)
+    #: Links whose reachability is checked, per article. 0 turns the check off,
+    #: which is the way to get back the Wikimedia-only run this command used to
+    #: be: with the check on, a plain `research` GETs every reference.
+    max_link_checks: int = Field(default=40, ge=0)
+    #: Ask the Internet Archive for a snapshot of the links that failed. Only
+    #: for those - a live link needs no archive copy, and it halves the
+    #: requests.
+    suggest_archives: bool = True
     #: Seconds between requests *to the same host*.
     delay_s: float = Field(default=2.0, ge=0.0)
+    #: Its own, not `http.max_retries`: a cantonal website is not the action
+    #: API, and the CLI is meant to be the one place any client's politeness
+    #: settings are decided. It was silently using the WebClient default.
+    max_retries: int = Field(default=3, ge=1, le=10)
     timeout_s: float = Field(default=20.0, gt=0.0)
     max_doc_bytes: int = Field(default=2_000_000, ge=1_000)
     #: Honouring robots.txt is the default and turning it off is a decision
@@ -221,24 +235,95 @@ class ResearchConfig(Frozen):
     #: Model calls per article. Deliberately tight: the stage earns its keep by
     #: reading the article's own references, which is a handful of questions,
     #: not by exploring. Running out is reported, never silently truncated.
-    max_llm_calls: int = Field(default=10, ge=1, le=100)
+    #:
+    #: It has to be large enough to pay for what the other ceilings authorise,
+    #: which at 10 it was not: five claims asked twice, one discovery call and
+    #: one section summary is twelve, so the section summaries - one call, and
+    #: the most substantial part of the dossier in practice - were starved
+    #: first and silently. `_check_budget_fits` below is what stops that
+    #: arithmetic from drifting apart again.
+    max_llm_calls: int = Field(default=16, ge=1, le=100)
     #: Claims put to the model, most overdue first. The rest are named in the
     #: dossier as unexamined rather than left to look answered.
     max_claims: int = Field(default=5, ge=1, le=40)
+    #: Undated infobox fields asked *only* of the article's own references.
+    #: "The mayor is X, no date given" is not a question a web search settles
+    #: cheaply, but the official website is fetched and paid for by then, so
+    #: asking it there costs one call and frequently answers. Kept small so it
+    #: cannot crowd out the dated agenda. 0 turns it off.
+    max_undated_claims: int = Field(default=3, ge=0, le=20)
     #: References fetched and shown, best standing first. What was left unread
     #: is in the transcript.
     max_reference_docs: int = Field(default=8, ge=1, le=40)
     #: Search results fetched, when the references answered nothing.
     max_search_docs: int = Field(default=6, ge=1, le=40)
+    #: Other language editions shown to the model as documents, alongside the
+    #: article's own references. Costs no request and no extra call - the
+    #: wikitext is already fetched for the section summaries - so the ceiling
+    #: is about how much context to spend, not about politeness. 0 disables.
+    max_interwiki_docs: int = Field(default=3, ge=0, le=10)
     #: How stale a dated claim has to be before it is worth a call. A figure
     #: from last year is not news.
     stale_after_years: int = Field(default=2, ge=0, le=50)
+
+    @property
+    def fetches_needed(self) -> int:
+        """Worst case requests to non-Wikimedia hosts for one article: every
+        link checked, every one of them archived-looked-up, and the agent's
+        own documents on top."""
+        archives = self.max_link_checks if self.suggest_archives else 0
+        return self.max_link_checks + archives + self.max_reference_docs + self.max_search_docs
+
+    @property
+    def calls_needed(self) -> int:
+        """What a full agenda costs: every claim asked of the references, the
+        dated ones asked again of the web, one discovery call, one for the
+        sections."""
+        return self.max_claims * 2 + self.max_undated_claims + 2
 
     @model_validator(mode="after")
     def _check_effort(self) -> Self:
         allowed = ("low", "medium", "high", "xhigh", "max")
         if self.effort not in allowed:
             raise ValueError(f"research.effort must be one of {', '.join(allowed)}")
+        return self
+
+    @model_validator(mode="after")
+    def _check_fetches_fit(self) -> Self:
+        """The request ceiling has to be able to pay for what it authorises.
+
+        `RequestBudget` raises when it is hit, and the link check degrades
+        rather than propagating it - but a ceiling that cannot cover its own
+        settings means the agent stage reliably runs out of documents partway,
+        which is the same silent-shortfall trap `_check_budget_fits` exists to
+        close on the model side.
+        """
+        if self.max_fetches and self.max_fetches < self.fetches_needed:
+            raise ValueError(
+                f"research.max_fetches is {self.max_fetches}, but max_link_checks="
+                f"{self.max_link_checks}, max_reference_docs={self.max_reference_docs} and "
+                f"max_search_docs={self.max_search_docs} authorise up to "
+                f"{self.fetches_needed} requests. Raise max_fetches to {self.fetches_needed}, "
+                f"or lower the ceilings above it."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _check_budget_fits(self) -> Self:
+        """Two ceilings that cannot both be honoured is a trap, not a policy.
+
+        `max_llm_calls` below what the claim ceilings authorise does not mean
+        "spend less" - it means the last stage in the run silently does not
+        happen. Refusing the config is better than a dossier that quietly
+        omits its section summaries.
+        """
+        if self.max_llm_calls < self.calls_needed:
+            raise ValueError(
+                f"research.max_llm_calls is {self.max_llm_calls}, but max_claims="
+                f"{self.max_claims} and max_undated_claims={self.max_undated_claims} "
+                f"authorise up to {self.calls_needed} calls. Raise max_llm_calls to "
+                f"{self.calls_needed}, or lower the claim ceilings."
+            )
         return self
 
 
