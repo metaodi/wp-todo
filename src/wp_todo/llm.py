@@ -82,11 +82,23 @@ class LlmBudget:
 
     def take(self, purpose: str = "") -> bool:
         if self.spent >= self.limit:
-            self.exhausted = True
-            log.warning("model budget of %d call(s) is spent; skipping %s", self.limit, purpose or "a call")
-            return False
+            return self.refuse(purpose)
         self.spent += 1
         return True
+
+    def refuse(self, purpose: str = "") -> bool:
+        """Record that the ceiling stopped a call that was going to be made.
+
+        A caller that checks `left` before building a request never reaches
+        `take`, so without this the run would do less work than the agenda
+        asked for and report `budget_exhausted = False` - a clean-looking run
+        that quietly skipped things, which is the failure this whole class
+        exists to prevent. Always returns False, so it reads as a refusal at
+        the call site.
+        """
+        self.exhausted = True
+        log.warning("model budget of %d call(s) is spent; skipping %s", self.limit, purpose or "a call")
+        return False
 
 
 @dataclass

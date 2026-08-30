@@ -378,7 +378,12 @@ def _finding(dossier: Dossier, finding: Finding) -> list[str]:
         lines += [f"- **Kein Update:** {_escape(finding.demoted)}"]
     if finding.current_value:
         value = _value(finding.current_value, finding.as_of)
-        lines += [f"- **Laut Quelle:** {value}"]
+        # "Laut Quelle" is a claim about the document, so it is only written
+        # when the document carries the figure. Where the model reached the
+        # number by inference the label says so: the pointer is still worth
+        # following, it is just not what the source says.
+        label = "Laut Quelle" if finding.quote_supports_value else "Schluss des Modells (nicht im Zitat)"
+        lines += [f"- **{label}:** {value}"]
     lines += [
         f"- **Beleg:** <{finding.url}> — {_escape(finding.standing)}",
         f"- **Zitat:** „{_escape(finding.quote)}“",
@@ -416,19 +421,53 @@ def _no_findings(dossier: Dossier) -> str:
     return f"_Nichts gefunden: in {where} stand zu diesen Angaben nichts Neueres._"
 
 
-def _unexamined(dossier: Dossier) -> list[str]:
-    """The claims that were on the agenda and never got asked about.
+#: Why a claim on the agenda produced no finding. One line per reason, because
+#: they are not the same fact and used to be printed as if they were: a claim
+#: whose answer a gate refused was reported as "keine Quelle sagte etwas dazu",
+#: which is the opposite of what happened.
+OUTCOME_REASONS = {
+    "nothing_found": "keine der gelesenen Quellen sagte etwas dazu",
+    "dropped": "eine Antwort kam, wurde aber von den Prüfungen verworfen - siehe Protokoll",
+    "budget": "das Aufruf-Budget war aufgebraucht",
+    "not_asked": "es wurde gar nicht gefragt",
+}
 
-    Without this line a short findings section reads as "little to find" when
-    it may mean "we stopped early". They are named by id, which is what the
+
+def _unexamined(dossier: Dossier) -> list[str]:
+    """The claims that produced no finding, grouped by *why*.
+
+    Without these lines a short findings section reads as "little to find"
+    when it may mean "we stopped early" - or, worse, "a source said something
+    and the machine threw it away". They are named by id, which is what the
     Angaben zum Prüfen table is keyed on.
     """
     run = dossier.agent
-    if run is None or not run.unexamined:
+    if run is None:
         return []
-    ids = ", ".join(f"`{claim_id}`" for claim_id in run.unexamined)
-    reason = "das Budget war aufgebraucht" if run.budget_exhausted else "keine Quelle sagte etwas dazu"
-    return [f"_Nicht abschliessend geprüft ({reason}): {ids}._", ""]
+
+    if not run.outcomes:
+        # A dossier written before outcomes were recorded. The old, coarser
+        # sentence is still the honest one for it: there is nothing finer in
+        # the file to say.
+        if not run.unexamined:
+            return []
+        legacy = ", ".join(f"`{claim_id}`" for claim_id in run.unexamined)
+        why = "das Budget war aufgebraucht" if run.budget_exhausted else "keine Quelle sagte etwas dazu"
+        return [f"_Nicht abschliessend geprüft ({why}): {legacy}._", ""]
+
+    grouped: dict[str, list[str]] = {}
+    for outcome in run.outcomes:
+        if outcome.outcome == "found":
+            continue
+        grouped.setdefault(outcome.outcome, []).append(outcome.claim_id)
+
+    lines: list[str] = []
+    for key, reason in OUTCOME_REASONS.items():
+        ids = sorted(grouped.get(key, []))
+        if ids:
+            named = ", ".join(f"`{claim_id}`" for claim_id in ids)
+            lines.append(f"_Nicht abschliessend geprüft ({reason}): {named}._")
+    return [*lines, ""] if lines else []
 
 
 def _agent_section(dossier: Dossier) -> list[str]:
@@ -465,6 +504,7 @@ def _agent_section(dossier: Dossier) -> list[str]:
             "schema": "unbrauchbare Antwort",
             "section_provenance": "Abschnitt gibt es nicht",
             "section_empty": "Abschnitt ohne Stichpunkte",
+            "unreadable": "Dokument nicht lesbar",
         }
         parts = [f"{labels.get(gate, gate)}: {count}" for gate, count in sorted(counts.items())]
         lines += ["Von den Prüfungen verworfen — " + " · ".join(parts), ""]
@@ -482,6 +522,17 @@ def _section_notes_block(dossier: Dossier) -> list[str]:
     checked the same way everything else here can.
     """
     if not dossier.section_notes:
+        if dossier.agent is not None and dossier.agent.sections_skipped:
+            # There were sections to summarise and the budget refused the call.
+            # The headings above are still listed, so without this line their
+            # missing summaries read as "nothing worth saying about them".
+            return [
+                "",
+                "_Zu diesen Abschnitten wurde keine Zusammenfassung erstellt: das "
+                "Aufruf-Budget war aufgebraucht. Das heisst **nicht**, dass dort "
+                "nichts steht._",
+                "",
+            ]
         return []
     lines = [
         "",

@@ -157,6 +157,10 @@ class WebClient:
     reference_date: dt.date = field(default_factory=dt.date.today)
     _client: httpx.Client | None = field(default=None, init=False, repr=False)
     stats: ClientStats = field(default_factory=ClientStats)
+    #: Why a URL produced no document, keyed by URL. Skipping is a normal
+    #: outcome here, but a silent one is not: the research stage reports every
+    #: document it could not read, and this is where it learns the reason.
+    skips: dict[str, str] = field(default_factory=dict, init=False, repr=False)
     _pacers: dict[str, RequestPacer] = field(default_factory=dict, init=False, repr=False)
     _robots: dict[str, RobotFileParser | None] = field(default_factory=dict, init=False, repr=False)
     _budget: RequestBudget = field(init=False, repr=False)
@@ -219,7 +223,15 @@ class WebClient:
         cached = self.cache.get(key)
         if cached is not None:
             self.stats.cache_hits += 1
-            return Document.from_cache(cached) if cached else None
+            if not cached or "skipped" in cached:
+                # A skip recorded by an earlier run. Replaying the *reason*
+                # matters as much as replaying the skip: a dossier built from
+                # the cache has to say the same thing as the run that paid for
+                # it. Envelopes written before the reason was stored replay as
+                # an empty dict, hence the fallback.
+                self.skips[url] = str(cached.get("skipped", "")) if cached else "übersprungen"
+                return None
+            return Document.from_cache(cached)
 
         if self.offline:
             raise OfflineCacheMissError(f"no recorded document for {url} {sorted(params.items())}")
@@ -230,17 +242,34 @@ class WebClient:
 
         if self.respect_robots and not self._robots_allow(url):
             log.info("robots.txt disallows %s", url)
-            self.cache.put(key, {})
+            self._skip(key, url, "robots.txt verbietet den Abruf")
             return None
 
-        document = self._get_with_retries(url, params, expect)
-        # A skip is cached as an empty envelope: it is a real answer about this
-        # URL, and re-asking the host on every rerun would be the rude thing.
-        self.cache.put(key, document.to_cache() if document else {})
+        document, reason = self._get_with_retries(url, params, expect)
+        if document is None:
+            # A skip is cached as an envelope carrying its reason: it is a real
+            # answer about this URL, and re-asking the host on every rerun
+            # would be the rude thing.
+            self._skip(key, url, reason)
+            return None
+        self.cache.put(key, document.to_cache())
         return document
 
+    def _skip(self, key: str, url: str, reason: str) -> None:
+        self.skips[url] = reason
+        self.cache.put(key, {"skipped": reason})
+
     # ---------------------------------------------------------------- core
-    def _get_with_retries(self, url: str, params: dict[str, Any], expect: tuple[str, ...]) -> Document | None:
+    def _get_with_retries(
+        self, url: str, params: dict[str, Any], expect: tuple[str, ...]
+    ) -> tuple[Document | None, str]:
+        """The document, or None *and why*.
+
+        The reason travels with the None because the caller stores it: a
+        document the research stage never saw is reported in the dossier, and
+        "HTTP 404" and "Inhaltstyp application/pdf" send a reader to very
+        different next steps.
+        """
         if self._client is None:
             raise RuntimeError("WebClient must be used as a context manager")
 
@@ -265,7 +294,7 @@ class WebClient:
                         backoff = max(backoff, retry_after(response))
                     elif response.status_code >= 400:
                         log.info("skipping %s: HTTP %s", url, response.status_code)
-                        return None
+                        return None, f"HTTP {response.status_code}"
                     else:
                         return self._read(url, response, expect)
             except httpx.HTTPError as exc:
@@ -275,13 +304,15 @@ class WebClient:
             backoff *= 2
 
         log.warning("giving up on %s after %s attempts", url, self.max_retries)
-        return None
+        return None, f"nach {self.max_retries} Versuch(en) nicht erreichbar"
 
-    def _read(self, url: str, response: httpx.Response, expect: tuple[str, ...]) -> Document | None:
+    def _read(
+        self, url: str, response: httpx.Response, expect: tuple[str, ...]
+    ) -> tuple[Document | None, str]:
         content_type = response.headers.get("Content-Type", "").split(";")[0].strip().lower()
         if content_type and not content_type.startswith(expect):
             log.info("skipping %s: content-type %s", url, content_type)
-            return None
+            return None, f"Inhaltstyp {content_type} wird nicht gelesen"
 
         body = bytearray()
         truncated = False
@@ -296,14 +327,17 @@ class WebClient:
 
         raw = bytes(body[: self.max_bytes]).decode(response.encoding or "utf-8", errors="replace")
         text = extract_text(raw) if content_type.startswith(TEXT_TYPES) else raw
-        return Document(
-            url=url,
-            final_url=str(response.url),
-            status=response.status_code,
-            content_type=content_type,
-            text=text,
-            fetched_on=self.reference_date,
-            truncated=truncated,
+        return (
+            Document(
+                url=url,
+                final_url=str(response.url),
+                status=response.status_code,
+                content_type=content_type,
+                text=text,
+                fetched_on=self.reference_date,
+                truncated=truncated,
+            ),
+            "",
         )
 
     def _pacer_for(self, url: str) -> RequestPacer:
@@ -340,7 +374,7 @@ class WebClient:
         if cached is None:
             if self.offline:
                 raise OfflineCacheMissError(f"no recorded robots.txt for {host}")
-            document = self._get_with_retries(url, {}, ("text/plain", "text/html"))
+            document, _ = self._get_with_retries(url, {}, ("text/plain", "text/html"))
             cached = {"text": document.text} if document else {}
             self.cache.put(key, cached)
         else:

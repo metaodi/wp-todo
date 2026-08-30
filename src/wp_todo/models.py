@@ -250,6 +250,11 @@ class Finding(Strict):
     #: Set when the recency gate demoted it: the source is not newer than the
     #: article, so it is context rather than an update.
     demoted: str = ""
+    #: False when a number in `current_value` is not in the quote. The quote
+    #: gate proves the sentence is on the page; only this says whether the
+    #: sentence carries the figure printed beside it, which is what decides
+    #: whether the dossier may write "Laut Quelle".
+    quote_supports_value: bool = True
     #: The model's own confidence. Orders the list; never admits anything.
     confidence: float = 0.0
 
@@ -266,6 +271,29 @@ class DroppedFinding(Strict):
     gate: str
     detail: str = ""
     url: str = ""
+
+
+class ClaimOutcome(Strict):
+    """What became of one claim on the agenda, and where.
+
+    The dossier used to say one thing about every claim it could not report a
+    finding for, chosen from a single run-level flag. Three different facts
+    were printed as the same sentence - and for a claim whose answer a gate
+    refused, that sentence said the opposite of what happened: *"keine Quelle
+    sagte etwas dazu"* about a source that had said something the machine then
+    threw away.
+
+    So the outcome is recorded per claim, at the point the decision is made.
+    It is the `_Nicht abgefragt._` versus `_Keine gefunden._` rule from
+    CLAUDE.md, applied to the agent's own agenda.
+    """
+
+    claim_id: str
+    #: found | dropped | nothing_found | budget | not_asked
+    outcome: str
+    #: Which phase the outcome came from: `reference`, `web`, or empty when the
+    #: claim was never put to the model at all.
+    phase: str = ""
 
 
 class SectionNote(Strict):
@@ -301,7 +329,16 @@ class AgentRun(Strict):
     #: to find.
     budget_exhausted: bool = False
     #: Claims that were on the agenda and never examined, whatever the reason.
+    #: Derived from `outcomes`, and kept because `todo.json` consumers read it.
     unexamined: tuple[str, ...] = ()
+    #: One entry per agenda claim, saying what became of it. Empty on a dossier
+    #: written before this existed, which is why the renderer still handles
+    #: `unexamined` on its own.
+    outcomes: tuple[ClaimOutcome, ...] = ()
+    #: True when there were sections to summarise and the budget refused the
+    #: call. Without it an empty summary block is indistinguishable from one
+    #: the model had nothing to say about.
+    sections_skipped: bool = False
     #: Documents fetched for verification, and how many were the article's own
     #: references rather than search results.
     documents: int = 0

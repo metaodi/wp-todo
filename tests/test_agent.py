@@ -547,7 +547,7 @@ def test_a_recent_figure_is_not_worth_a_call_either(scope: ScopeConfig, tmp_path
     assert outcome.run.calls == 0
 
 
-def test_an_editors_own_veraltet_flag_goes_to_the_front(scope: ScopeConfig, tmp_path: Path) -> None:
+def test_an_editors_own_veraltet_flag_goes_to_the_front(scope: ScopeConfig) -> None:
     """Somebody wrote in the article that it is stale. That is the strongest
     signal the page carries, and it should not queue behind an infobox field."""
     from wp_todo.agent import _agenda
@@ -572,7 +572,8 @@ def test_an_editors_own_veraltet_flag_goes_to_the_front(scope: ScopeConfig, tmp_
             ),
         ),
     )
-    assert [c.id for c in _agenda(mixed, REFERENCE, 2)] == ["veraltet1", "infobox1"]
+    agenda = _agenda(mixed, (), REFERENCE, ScopeConfig.model_validate(scope.model_dump()).research)
+    assert [item.claim.id for item in agenda] == ["veraltet1", "infobox1"]
 
 
 # ------------------------------------------------------------------ excerpts

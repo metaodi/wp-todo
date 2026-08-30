@@ -52,9 +52,18 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from .config import ScopeConfig
+from .config import ResearchConfig, ScopeConfig
 from .llm import LlmCall, LlmClient
-from .models import AgentRun, ArticleClaims, Claim, Delta, DroppedFinding, Finding, SectionNote
+from .models import (
+    AgentRun,
+    ArticleClaims,
+    Claim,
+    ClaimOutcome,
+    Delta,
+    DroppedFinding,
+    Finding,
+    SectionNote,
+)
 from .sources import SourceLedger, circularity, host_of, standing
 from .webclient import Document, WebClient
 
@@ -161,6 +170,43 @@ _WHITESPACE = re.compile(r"\s+")
 _YEAR = re.compile(r"\b(?:19|20)\d{2}\b")
 _PARAGRAPH = re.compile(r"\n\s*\n")
 
+#: Outcomes for one agenda claim, most informative first.
+#:
+#: Two phases can disagree about the same claim - the article's references
+#: produced an answer a gate refused, and the web search then found nothing at
+#: all. The reader needs the first of those, because "an answer was thrown
+#: away, look in the transcript" is actionable and "nothing found" is not.
+OUTCOMES = ("found", "dropped", "nothing_found", "budget", "not_asked")
+
+
+def _keep(current: ClaimOutcome | None, candidate: ClaimOutcome) -> ClaimOutcome:
+    """The more informative of two outcomes for the same claim.
+
+    Ties go to `candidate`, which is the later phase: when both phases found
+    nothing, the reader should be told about the search that ran last.
+    """
+    if current is None:
+        return candidate
+    return min(candidate, current, key=lambda outcome: OUTCOMES.index(outcome.outcome))
+
+
+@dataclass
+class AgendaItem:
+    """One question the agent means to ask, and what makes it worth asking.
+
+    A claim on its own does not carry enough to prompt well: whether a
+    Wikidata statement contradicts it changes the question, and whether it
+    carries a date decides whether the open web may be asked about it at all.
+    """
+
+    claim: Claim
+    #: The Wikidata statement that disagrees with this claim, when one does.
+    conflict: Delta | None = None
+    #: False for undated claims: they are asked of the article's own
+    #: references, where the documents are already fetched, and never of a web
+    #: search, which cannot settle them cheaply.
+    searchable: bool = True
+
 
 @dataclass
 class SourceDoc:
@@ -229,39 +275,67 @@ def run_agent(
     """Work the agenda within the budget, and report what was left undone."""
     research = config.research
     dropped: list[DroppedFinding] = []
+    outcomes: dict[str, ClaimOutcome] = {}
 
-    agenda = _agenda(claims, reference, research.stale_after_years)[: research.max_claims]
+    def record(claim_id: str, outcome: str, phase: str = "") -> None:
+        outcomes[claim_id] = _keep(
+            outcomes.get(claim_id), ClaimOutcome(claim_id=claim_id, outcome=outcome, phase=phase)
+        )
+
+    agenda = _agenda(claims, deltas, reference, research)
     log.info("%s: %d claim(s) on the agenda", claims.title, len(agenda))
+
+    # A section summary costs exactly one call and was, in the runs this was
+    # written against, the most substantial thing in the dossier. Running last
+    # meant it was the first thing the per-claim loops starved, silently. So a
+    # call is held back for it before either loop starts.
+    sections_pending = _sections_pending(deltas, foreign_texts)
+    reserve = 1 if sections_pending else 0
 
     docs = _reference_documents(claims, web, ledger, config, dropped)
     findings: list[Finding] = []
     answered: set[str] = set()
+    # Built once: it is the same for every claim, and it is the half the
+    # prompt cache is keyed on.
+    reference_context = _context(docs) if docs else ""
 
     # 1 - the article's own references, which are free of both search cost and
     #     the risk of dragging in a host nobody has vetted.
-    if docs:
-        context = _context(docs)
-        for claim in agenda:
-            call = llm.ask(
-                purpose="reference_check",
-                subject=claim.id,
-                system=SYSTEM,
-                context=context,
-                prompt=_claim_prompt(claims, claim, searched=False),
-                schema=VERIFY_SCHEMA,
-            )
-            found = _gate(call, claim, docs, wikitext, config, dropped)
-            if found is not None:
-                findings.append(found)
-                answered.add(claim.id)
+    for item in agenda:
+        if not docs:
+            record(item.claim.id, "not_asked")
+            continue
+        if llm.budget.left <= reserve:
+            llm.budget.refuse(f"reference_check/{item.claim.id}")
+            record(item.claim.id, "budget")
+            continue
+        call = llm.ask(
+            purpose="reference_check",
+            subject=item.claim.id,
+            system=SYSTEM,
+            context=reference_context,
+            prompt=_claim_prompt(claims, item, searched=False),
+            schema=VERIFY_SCHEMA,
+        )
+        if call is None:
+            record(item.claim.id, "budget" if llm.budget.exhausted else "not_asked")
+            continue
+        found, reason = _gate(call, item.claim, docs, wikitext, config, dropped)
+        record(item.claim.id, reason, "reference")
+        if found is not None:
+            findings.append(found)
+            answered.add(item.claim.id)
 
     # 2 - the open web, and only for what the references could not answer. Two
     #     calls minimum (discover, then verify at least one claim), so the stage
     #     does not spend the budget on a search whose results it cannot read.
-    unanswered = [c for c in agenda if c.id not in answered]
+    #     Undated claims never come here: settling "the mayor is X, no date
+    #     given" from a search is exactly how a budget turns into "I could not
+    #     tell".
+    unanswered = [i for i in agenda if i.claim.id not in answered and i.searchable]
     search_docs: list[SourceDoc] = []
     searched = False
-    if unanswered and llm.budget.left >= 2:
+    if unanswered and llm.budget.left >= 2 + reserve:
         searched = True
         urls = _discover(claims, unanswered, llm)
         search_docs = _fetch_urls(
@@ -274,26 +348,34 @@ def run_agent(
         )
         if search_docs:
             context = _context(search_docs)
-            for claim in unanswered:
-                if llm.budget.left <= 0:
+            for position, item in enumerate(unanswered):
+                if llm.budget.left <= reserve:
+                    llm.budget.refuse(f"web_check/{item.claim.id}")
+                    for rest in unanswered[position:]:
+                        record(rest.claim.id, "budget")
                     break
                 call = llm.ask(
                     purpose="web_check",
-                    subject=claim.id,
+                    subject=item.claim.id,
                     system=SYSTEM,
                     context=context,
-                    prompt=_claim_prompt(claims, claim, searched=True),
+                    prompt=_claim_prompt(claims, item, searched=True),
                     schema=VERIFY_SCHEMA,
                 )
-                found = _gate(call, claim, search_docs, wikitext, config, dropped)
+                if call is None:
+                    record(item.claim.id, "budget" if llm.budget.exhausted else "not_asked")
+                    continue
+                found, reason = _gate(call, item.claim, search_docs, wikitext, config, dropped)
+                record(item.claim.id, reason, "web")
                 if found is not None:
                     findings.append(found)
-                    answered.add(claim.id)
+                    answered.add(item.claim.id)
 
     # 3 - what the article does not have. Grounded in the other edition's own
     #     text, so the bullets point at something a person can go and read.
-    notes = _section_notes(deltas, foreign_texts, llm, dropped)
+    notes, sections_skipped = _section_notes(deltas, foreign_texts, llm, dropped)
 
+    ordered = tuple(sorted(outcomes.values(), key=lambda outcome: outcome.claim_id))
     run = AgentRun(
         model=llm.model,
         effort=llm.effort,
@@ -301,7 +383,9 @@ def run_agent(
         cached_calls=sum(1 for call in llm.calls if call.cached),
         budget=llm.budget.limit,
         budget_exhausted=llm.budget.exhausted,
-        unexamined=tuple(sorted(c.id for c in agenda if c.id not in answered)),
+        unexamined=tuple(sorted(i.claim.id for i in agenda if i.claim.id not in answered)),
+        outcomes=ordered,
+        sections_skipped=sections_skipped,
         documents=len(docs) + len(search_docs),
         reference_documents=len(docs),
         searched=searched,
@@ -317,31 +401,97 @@ def run_agent(
 
 
 # ------------------------------------------------------------------- agenda
-def _agenda(claims: ArticleClaims, reference: dt.date, stale_after: int) -> list[Claim]:
-    """Claims worth spending a call on, most overdue first.
+def _agenda(
+    claims: ArticleClaims,
+    deltas: tuple[Delta, ...],
+    reference: dt.date,
+    research: ResearchConfig,
+) -> list[AgendaItem]:
+    """What is worth spending a call on, most overdue first.
 
-    A claim with no year is not on the agenda. That is deliberate: "the article
-    says the mayor is X, with no date" is a question the open web cannot settle
-    cheaply, and asking it anyway is how a budget disappears into answers of
-    the form "I could not tell".
+    Three kinds of question end up here, and they are not interchangeable:
+
+    * **dated claims** - the original agenda. A figure with a `Stand` old
+      enough to have moved. These are asked of the references and, if that
+      comes back empty, of the open web.
+    * **Wikidata disagreements** - the deterministic half already found two
+      values that contradict each other, with a property and a link on each
+      side. That is the sharpest question on the page and it used to be
+      computed, rendered, and then never asked. It goes near the front:
+      only an editor's own `{{Veraltet}}` outranks a contradiction somebody
+      can already see.
+    * **undated infobox fields** - "the mayor is X", with no date anywhere.
+      These are `searchable=False` and that is the whole point. Settling one
+      from a web search is how a budget disappears into answers of the form
+      "I could not tell"; but the article's official website is already
+      fetched and already paid for by the time phase 1 runs, so asking it
+      there costs one call and frequently answers.
     """
-    worth: list[Claim] = []
+    conflicts = {
+        delta.claim_id: delta
+        for delta in deltas
+        if delta.kind == "wikidata" and not delta.agrees and delta.claim_id
+    }
+
+    dated: list[AgendaItem] = []
+    undated: list[AgendaItem] = []
     for claim in claims.claims:
+        conflict = conflicts.get(claim.id)
         if claim.kind in ("veraltet_template", "zukunft_template", "belege_fehlen"):
             # An editor has already said in the article that this is stale.
             # That is the strongest signal on the page; it goes first.
-            worth.append(claim)
-        elif claim.as_of_year is not None and reference.year - claim.as_of_year >= stale_after:
-            worth.append(claim)
-    return sorted(worth, key=lambda c: (_agenda_rank(c), c.as_of_year or 0, c.line_no, c.id))
+            dated.append(AgendaItem(claim=claim))
+        elif conflict is not None:
+            # A contradiction is worth asking about whatever the date says -
+            # including when there is none, and including when the figure is
+            # recent. Something has already been shown to disagree with it.
+            dated.append(AgendaItem(claim=claim, conflict=conflict))
+        elif claim.as_of_year is not None:
+            # Dated, so `stale_after_years` decides. A figure from last year is
+            # not news, and a recent one is deliberately left alone.
+            if reference.year - claim.as_of_year >= research.stale_after_years:
+                dated.append(AgendaItem(claim=claim))
+        elif claim.kind == "infobox_field" and claim.asserted_value:
+            undated.append(AgendaItem(claim=claim, searchable=False))
+
+    dated.sort(key=_agenda_order)
+    undated.sort(key=_agenda_order)
+    return dated[: research.max_claims] + undated[: research.max_undated_claims]
 
 
-def _agenda_rank(claim: Claim) -> int:
+def _agenda_order(item: AgendaItem) -> tuple[int, int, int, str]:
+    """Stable, and with an explicit tail: equal ranks never reorder."""
+    claim = item.claim
+    return (_agenda_rank(item), claim.as_of_year or 0, claim.line_no, claim.id)
+
+
+def _agenda_rank(item: AgendaItem) -> int:
     # `belege_fehlen` sorts last on purpose. It is a whole-article signal with
     # no date, so it is the least specific question here; a dated infobox
     # figure should get the budget first, and this one gets whatever is left.
-    order = {"veraltet_template": 0, "zukunft_template": 0, "infobox_field": 1, "belege_fehlen": 3}
-    return order.get(claim.kind, 2)
+    #
+    # A Wikidata contradiction sits just behind an editor's own flag: it is
+    # more specific than "this figure carries an old Stand", because something
+    # has already been shown to disagree with it.
+    if item.conflict is not None:
+        return 1
+    if not item.searchable:
+        return 5
+    order = {"veraltet_template": 0, "zukunft_template": 0, "infobox_field": 2, "belege_fehlen": 4}
+    return order.get(item.claim.kind, 3)
+
+
+def _sections_pending(deltas: tuple[Delta, ...], foreign_texts: dict[str, tuple[str, str]]) -> bool:
+    """Whether a section summary is going to be wanted, before any call is made.
+
+    Asked up front so a call can be held back for it. The precise check of what
+    can actually be summarised needs the foreign wikitext parsed, which
+    `_section_notes` does; this is the cheap upper bound, and reserving a call
+    that turns out not to be needed costs nothing.
+    """
+    if not foreign_texts:
+        return False
+    return any(d.kind == "interwiki_section" and d.external_value for d in deltas)
 
 
 # ---------------------------------------------------------------- documents
@@ -430,6 +580,13 @@ def _fetch_urls(
             continue
         document = web.fetch(url)
         if document is None or not document.text.strip():
+            # A `block` was already reported above; everything else that
+            # shortens the source list - a 404, a robots refusal, a content
+            # type we cannot read - used to vanish here. "10 Dokument(e)
+            # gelesen" with no mention of the six that were not is the same
+            # silence the rest of this project spends effort avoiding.
+            reason = web.skips.get(url, "") if document is None else "kein lesbarer Text"
+            dropped.append(DroppedFinding(gate="unreadable", detail=reason or "nicht abrufbar", url=url))
             continue
         docs.append(
             SourceDoc(
@@ -491,7 +648,10 @@ def _excerpt(text: str) -> str:
 
 
 # ----------------------------------------------------------------- prompting
-def _claim_prompt(claims: ArticleClaims, claim: Claim, *, searched: bool) -> str:
+def _claim_prompt(claims: ArticleClaims, item: AgendaItem, *, searched: bool) -> str:
+    claim = item.claim
+    if item.conflict is not None:
+        return _conflict_prompt(claims, item, searched=searched)
     if claim.kind == "belege_fehlen":
         return _sourcing_prompt(claims, claim, searched=searched)
 
@@ -510,6 +670,47 @@ def _claim_prompt(claims: ArticleClaims, claim: Claim, *, searched: bool) -> str
         f"{origin}\n"
         "Sagt eines der Dokumente etwas Neueres oder Abweichendes zu genau "
         "dieser Angabe? Wenn nicht: status = nothing_found."
+    )
+
+
+def _conflict_prompt(claims: ArticleClaims, item: AgendaItem, *, searched: bool) -> str:
+    """A different question again, because a contradiction is not a date.
+
+    Every other claim asks "is this still true?". This one already has two
+    answers that cannot both be right - the article's and Wikidata's - and the
+    useful result is a third document that settles which. Asking the dated
+    question here would waste the sharpest signal the deterministic half
+    produces.
+
+    What it must not do is decide. `docs/research-policy.md` is explicit that
+    Wikidata is frequently the side that is wrong, so the prompt asks which
+    value the *document* supports, and `nothing_found` stays the right answer
+    when no document supports either. The gates are unchanged: the quote must
+    still be verbatim, the document must still be one we fetched.
+    """
+    conflict = item.conflict
+    assert conflict is not None  # guarded by the caller
+    claim = item.claim
+    origin = (
+        "Die Dokumente stammen aus einer Websuche."
+        if searched
+        else "Die Dokumente sind die Belege und Weblinks des Artikels."
+    )
+    article_value = claim.asserted_value or claim.text
+    article_stand = f" (Stand {conflict.article_as_of})" if conflict.article_as_of else ""
+    external_stand = f" (Stand {conflict.external_as_of})" if conflict.external_as_of else ""
+    return (
+        f"Artikel: {claims.title}\n"
+        f"Angabe: {conflict.label}\n\n"
+        f"Der Artikel sagt: {article_value}{article_stand}\n"
+        f"Wikidata sagt: {conflict.external_value}{external_stand}\n\n"
+        f"{origin}\n"
+        "Diese beiden Angaben widersprechen sich. Stützt eines der Dokumente "
+        "die eine oder die andere - oder nennt es einen dritten, neueren Wert? "
+        "current_value = der Wert, den das Dokument belegt, quote = wörtlich "
+        "aus dem Dokument. Wenn keines der Dokumente die Frage entscheidet: "
+        "status = nothing_found. Rate nicht, und entscheide nicht danach, "
+        "welche Seite plausibler wirkt."
     )
 
 
@@ -545,7 +746,7 @@ def _sourcing_prompt(claims: ArticleClaims, claim: Claim, *, searched: bool) -> 
     )
 
 
-def _discover(claims: ArticleClaims, unanswered: list[Claim], llm: LlmClient) -> tuple[str, ...]:
+def _discover(claims: ArticleClaims, unanswered: list[AgendaItem], llm: LlmClient) -> tuple[str, ...]:
     """One search call for the whole article. URLs come from the tool result.
 
     The model's prose is not read for URLs at all - only the structured
@@ -554,8 +755,8 @@ def _discover(claims: ArticleClaims, unanswered: list[Claim], llm: LlmClient) ->
     """
     lines = [f"Artikel: {claims.title}", "", "Diese Angaben konnten die Belege des Artikels nicht klären:"]
     lines += [
-        f"- {claim.text}" + (f" (Stand {claim.as_of_year})" if claim.as_of_year else "")
-        for claim in unanswered
+        f"- {item.claim.text}" + (f" (Stand {item.claim.as_of_year})" if item.claim.as_of_year else "")
+        for item in unanswered
     ]
     lines += [
         "",
@@ -578,7 +779,7 @@ def _section_notes(
     foreign_texts: dict[str, tuple[str, str]],
     llm: LlmClient,
     dropped: list[DroppedFinding],
-) -> tuple[SectionNote, ...]:
+) -> tuple[tuple[SectionNote, ...], bool]:
     """Bullet points for the sections this article does not have.
 
     Provenance works by number here, exactly as it does for documents, and for
@@ -595,7 +796,7 @@ def _section_notes(
     """
     gaps = [d for d in deltas if d.kind == "interwiki_section" and d.external_value]
     if not gaps or not foreign_texts:
-        return ()
+        return (), False
 
     wanted: dict[str, list[str]] = {}
     for delta in gaps:
@@ -617,7 +818,7 @@ def _section_notes(
             context_parts += [f"### Abschnitt {len(offered)} - {lang}wiki: {heading}", body[:2_000], ""]
 
     if not offered:
-        return ()
+        return (), False
 
     call = llm.ask(
         purpose="sections",
@@ -633,7 +834,11 @@ def _section_notes(
         schema=SECTIONS_SCHEMA,
     )
     if call is None:
-        return ()
+        # There were sections to summarise and none were. Said out loud,
+        # because "Möglicherweise fehlend" still lists the headings and an
+        # absent summary block otherwise reads as "nothing to say about them".
+        log.warning("no section summaries: the model was not asked")
+        return (), True
 
     notes: list[SectionNote] = []
     for raw in call.reply.get("sections", []) or []:
@@ -661,7 +866,7 @@ def _section_notes(
                 bullets=bullets[:4],
             )
         )
-    return tuple(sorted(notes, key=lambda n: (n.lang, n.heading)))
+    return tuple(sorted(notes, key=lambda n: (n.lang, n.heading))), False
 
 
 def _section_url(lang: str, title: str, heading: str) -> str:
@@ -681,23 +886,27 @@ def _section_body(wikitext: str, heading: str) -> str:
 
 # -------------------------------------------------------------------- gates
 def _gate(
-    call: LlmCall | None,
+    call: LlmCall,
     claim: Claim,
     docs: list[SourceDoc],
     wikitext: str,
     config: ScopeConfig,
     dropped: list[DroppedFinding],
-) -> Finding | None:
-    """Every check that stands between what the model said and the dossier."""
-    if call is None:
-        return None
+) -> tuple[Finding | None, str]:
+    """Every check that stands between what the model said and the dossier.
 
+    Returns the finding, if one survived, *and why there is none if there is
+    none*. That second half is the point: "the model said nothing_found" and
+    "the model said something and a gate refused it" are different facts about
+    a claim, and the dossier used to print the first sentence for both.
+    """
     reply = call.reply
     status = str(reply.get("status", ""))
     if status not in REPORTABLE:
         if status not in STATUSES:
             dropped.append(DroppedFinding(claim_id=claim.id, gate="schema", detail=status or "leer"))
-        return None
+            return None, "dropped"
+        return None, "nothing_found"
 
     # Gate 2 - provenance. The model chose a number; if it does not resolve to
     # a document this run fetched, there is nothing to check the quote against.
@@ -707,7 +916,7 @@ def _gate(
         dropped.append(
             DroppedFinding(claim_id=claim.id, gate="provenance", detail=f"Dokument {index!r} gibt es nicht")
         )
-        return None
+        return None, "dropped"
 
     # Gate 1 - quote containment. The one that makes a fabricated source
     # structurally impossible rather than merely discouraged.
@@ -721,7 +930,7 @@ def _gate(
                 url=doc.url,
             )
         )
-        return None
+        return None, "dropped"
 
     # Gate 4 - circularity. Deliberately after the quote gate and deliberately
     # not overridable by `trust`: a perfect quote from a copy of the article is
@@ -735,7 +944,7 @@ def _gate(
     )
     if copied:
         dropped.append(DroppedFinding(claim_id=claim.id, gate="circularity", detail=copied, url=doc.url))
-        return None
+        return None, "dropped"
 
     # Gate 3 - recency. Not a drop: a source that is not newer is still worth
     # knowing about, it just is not an update.
@@ -746,12 +955,24 @@ def _gate(
         demoted = f"Quelle von {as_of_year} ist älter als die Angabe im Artikel ({claim.as_of_year})"
 
     value = reply.get("current_value")
+    reported = str(value) if isinstance(value, str) and value.strip() else None
+
+    # Gate 6 - numeric containment. The quote gate proves the sentence is on
+    # the page. It does not prove the sentence says what is printed beside it,
+    # and the difference is not academic: a live run reported "mindestens 31
+    # Titel" under a quote that contained no number at all, because the model
+    # had inferred it. An inference may well be right, so this demotes rather
+    # than drops - but it must not print as "Laut Quelle".
+    unsupported = _unsupported_numbers(reported, as_of_year, quote)
+    if unsupported and not demoted:
+        demoted = f"nicht im Zitat belegt: {unsupported}"
+
     confidence = reply.get("confidence")
     return Finding(
         claim_id=claim.id,
         claim_text=claim.text,
         status=status,
-        current_value=str(value) if isinstance(value, str) and value.strip() else None,
+        current_value=reported,
         as_of=as_of_year,
         quote=quote,
         url=doc.url,
@@ -759,8 +980,49 @@ def _gate(
         standing=doc.standing_label,
         from_reference=doc.from_reference,
         demoted=demoted,
+        quote_supports_value=not unsupported,
         confidence=float(confidence) if isinstance(confidence, int | float) else 0.0,
-    )
+    ), "found"
+
+
+_NUMBER = re.compile(r"\d[\d'.,\u202f\u00a0]*")
+
+
+def _unsupported_numbers(value: str | None, as_of: int | None, quote: str) -> str:
+    """Numbers the model reported that the quote does not carry.
+
+    Digits are compared after stripping the separators German-language sources
+    disagree about - `8'500`, `8.500`, `8 500` and `8500` are the same figure,
+    and rejecting a finding over a thousands separator would be a false
+    rejection of exactly the kind the quote gate is careful to avoid.
+
+    A value with no numbers in it is not "unsupported": plenty of true findings
+    are names and dates in words. This gate only speaks about digits, because
+    digits are the part it can actually check.
+    """
+    wanted: list[str] = []
+    if value:
+        wanted += [m.group(0) for m in _NUMBER.finditer(value)]
+    if as_of is not None:
+        wanted.append(str(as_of))
+    if not wanted:
+        return ""
+
+    available = {_digits(m.group(0)) for m in _NUMBER.finditer(quote)}
+    # Deduplicated, order preserved: the reader wants the figure, not a tally.
+    seen: set[str] = set()
+    unique: list[str] = []
+    for raw in wanted:
+        if _digits(raw) in available or raw in seen:
+            continue
+        seen.add(raw)
+        unique.append(raw)
+    return ", ".join(unique)
+
+
+def _digits(number: str) -> str:
+    """A number reduced to what a thousands separator cannot change."""
+    return re.sub(r"[^0-9]", "", number).lstrip("0") or "0"
 
 
 def _contains(document_text: str, quote: str) -> bool:

@@ -221,10 +221,23 @@ class ResearchConfig(Frozen):
     #: Model calls per article. Deliberately tight: the stage earns its keep by
     #: reading the article's own references, which is a handful of questions,
     #: not by exploring. Running out is reported, never silently truncated.
-    max_llm_calls: int = Field(default=10, ge=1, le=100)
+    #:
+    #: It has to be large enough to pay for what the other ceilings authorise,
+    #: which at 10 it was not: five claims asked twice, one discovery call and
+    #: one section summary is twelve, so the section summaries - one call, and
+    #: the most substantial part of the dossier in practice - were starved
+    #: first and silently. `_check_budget_fits` below is what stops that
+    #: arithmetic from drifting apart again.
+    max_llm_calls: int = Field(default=16, ge=1, le=100)
     #: Claims put to the model, most overdue first. The rest are named in the
     #: dossier as unexamined rather than left to look answered.
     max_claims: int = Field(default=5, ge=1, le=40)
+    #: Undated infobox fields asked *only* of the article's own references.
+    #: "The mayor is X, no date given" is not a question a web search settles
+    #: cheaply, but the official website is fetched and paid for by then, so
+    #: asking it there costs one call and frequently answers. Kept small so it
+    #: cannot crowd out the dated agenda. 0 turns it off.
+    max_undated_claims: int = Field(default=3, ge=0, le=20)
     #: References fetched and shown, best standing first. What was left unread
     #: is in the transcript.
     max_reference_docs: int = Field(default=8, ge=1, le=40)
@@ -234,11 +247,36 @@ class ResearchConfig(Frozen):
     #: from last year is not news.
     stale_after_years: int = Field(default=2, ge=0, le=50)
 
+    @property
+    def calls_needed(self) -> int:
+        """What a full agenda costs: every claim asked of the references, the
+        dated ones asked again of the web, one discovery call, one for the
+        sections."""
+        return self.max_claims * 2 + self.max_undated_claims + 2
+
     @model_validator(mode="after")
     def _check_effort(self) -> Self:
         allowed = ("low", "medium", "high", "xhigh", "max")
         if self.effort not in allowed:
             raise ValueError(f"research.effort must be one of {', '.join(allowed)}")
+        return self
+
+    @model_validator(mode="after")
+    def _check_budget_fits(self) -> Self:
+        """Two ceilings that cannot both be honoured is a trap, not a policy.
+
+        `max_llm_calls` below what the claim ceilings authorise does not mean
+        "spend less" - it means the last stage in the run silently does not
+        happen. Refusing the config is better than a dossier that quietly
+        omits its section summaries.
+        """
+        if self.max_llm_calls < self.calls_needed:
+            raise ValueError(
+                f"research.max_llm_calls is {self.max_llm_calls}, but max_claims="
+                f"{self.max_claims} and max_undated_claims={self.max_undated_claims} "
+                f"authorise up to {self.calls_needed} calls. Raise max_llm_calls to "
+                f"{self.calls_needed}, or lower the claim ceilings."
+            )
         return self
 
 
