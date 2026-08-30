@@ -463,6 +463,8 @@ def _agent_section(dossier: Dossier) -> list[str]:
             "circularity": "Kopie des Artikels",
             "source_standing": "Quelle ausgeschlossen",
             "schema": "unbrauchbare Antwort",
+            "section_provenance": "Abschnitt gibt es nicht",
+            "section_empty": "Abschnitt ohne Stichpunkte",
         }
         parts = [f"{labels.get(gate, gate)}: {count}" for gate, count in sorted(counts.items())]
         lines += ["Von den Prüfungen verworfen — " + " · ".join(parts), ""]

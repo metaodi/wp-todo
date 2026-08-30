@@ -420,8 +420,8 @@ def test_a_section_the_agent_did_not_find_cannot_be_summarised(scope: ScopeConfi
     reply = {
         "json": {
             "sections": [
-                {"heading": "Economy", "lang": "en", "bullets": ["Zwei Betriebe", "Pendleranteil"]},
-                {"heading": "Erfundener Abschnitt", "lang": "en", "bullets": ["nichts davon"]},
+                {"section": 1, "bullets": ["Zwei Betriebe", "Pendleranteil"]},
+                {"section": 7, "bullets": ["nichts davon"]},
             ]
         },
         "urls": [],
@@ -441,6 +441,44 @@ def test_a_section_the_agent_did_not_find_cannot_be_summarised(scope: ScopeConfi
     assert headings == ["Economy"]
     assert outcome.section_notes[0].bullets == ("Zwei Betriebe", "Pendleranteil")
     assert outcome.section_notes[0].source.endswith("#Economy")
+    # And the invented one is reported, not quietly forgotten.
+    assert [drop.gate for drop in outcome.dropped] == ["section_provenance"]
+
+
+def test_a_translated_heading_does_not_lose_the_summary(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The Küsnachter Dorfbach regression. Every prompt in this stage is in
+    German, so the model translated `Historical floods` to `Historische
+    Hochwasser`; matching on the heading dropped both summaries in silence and
+    left the dossier showing bare English headings. A number survives that."""
+    deltas = (
+        Delta(
+            kind="interwiki_section",
+            label="enwiki",
+            external_value="Historical floods",
+            source="https://en.wikipedia.org/wiki/Musterwil",
+            detail="1 Abschnitt(e) ohne Entsprechung hier",
+        ),
+    )
+    reply = {
+        "json": {"sections": [{"section": 1, "bullets": ["1778: 63 Todesopfer", "Danach begradigt"]}]},
+        "urls": [],
+        "input_tokens": 300,
+        "output_tokens": 90,
+    }
+    outcome = execute(
+        scope,
+        tmp_path,
+        [verdict(status="nothing_found"), reply],
+        deltas=deltas,
+        foreign_texts={"en": ("Musterwil", "== Historical floods ==\nIn 1778 a flood killed 63.\n")},
+        budget=2,
+    )
+
+    assert len(outcome.section_notes) == 1
+    note = outcome.section_notes[0]
+    assert note.heading == "Historical floods", "the heading comes from our list, not from the model"
+    assert note.bullets == ("1778: 63 Todesopfer", "Danach begradigt")
+    assert not outcome.dropped
 
 
 # ------------------------------------------------------------------- replay

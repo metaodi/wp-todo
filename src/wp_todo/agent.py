@@ -113,11 +113,13 @@ SECTIONS_SCHEMA: dict[str, Any] = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "heading": {"type": "string"},
-                    "lang": {"type": "string"},
+                    "section": {
+                        "type": "integer",
+                        "description": "1-based number of the section, exactly as listed.",
+                    },
                     "bullets": {"type": "array", "items": {"type": "string"}},
                 },
-                "required": ["heading", "lang", "bullets"],
+                "required": ["section", "bullets"],
                 "additionalProperties": False,
             },
         }
@@ -144,7 +146,10 @@ SECTIONS_SYSTEM = (
     "Sprachversion geht - in wenigen Stichpunkten, damit eine Person "
     "entscheiden kann, ob sich das Übersetzen lohnt. Keine Wertung, kein "
     "Artikeltext, nur worüber der Abschnitt handelt. Ausschliesslich aus dem "
-    "vorgelegten Text, nie aus eigenem Wissen."
+    "vorgelegten Text, nie aus eigenem Wissen.\n\n"
+    "Wähle jeden Abschnitt über seine Nummer aus der vorgelegten Liste. Die "
+    "Überschrift schreibst du nicht ab - die Stichpunkte selbst gehören auf Deutsch, "
+    "und eine übersetzte Überschrift wäre nicht mehr wiederzuerkennen."
 )
 
 #: Characters of one document put in front of the model. The quote gate checks
@@ -287,7 +292,7 @@ def run_agent(
 
     # 3 - what the article does not have. Grounded in the other edition's own
     #     text, so the bullets point at something a person can go and read.
-    notes = _section_notes(deltas, foreign_texts, llm)
+    notes = _section_notes(deltas, foreign_texts, llm, dropped)
 
     run = AgentRun(
         model=llm.model,
@@ -569,9 +574,25 @@ def _discover(claims: ArticleClaims, unanswered: list[Claim], llm: LlmClient) ->
 
 
 def _section_notes(
-    deltas: tuple[Delta, ...], foreign_texts: dict[str, tuple[str, str]], llm: LlmClient
+    deltas: tuple[Delta, ...],
+    foreign_texts: dict[str, tuple[str, str]],
+    llm: LlmClient,
+    dropped: list[DroppedFinding],
 ) -> tuple[SectionNote, ...]:
-    """Bullet points for the sections this article does not have."""
+    """Bullet points for the sections this article does not have.
+
+    Provenance works by number here, exactly as it does for documents, and for
+    a reason paid for in a live run. It used to work by heading, compared with
+    string equality against the heading we asked about - and since every prompt
+    in this stage is in German, the model translated them. `Historical floods`
+    came back as `Historische Hochwasser`, missed the match, and *both*
+    summaries in the Küsnachter Dorfbach run were discarded without a word: the
+    dossier showed the bare English headings, the good bullets sat in the
+    transcript, and nothing anywhere said they had been thrown away.
+
+    A number cannot be translated. What the model can still get wrong - a
+    number that is not on the list - is reported rather than dropped quietly.
+    """
     gaps = [d for d in deltas if d.kind == "interwiki_section" and d.external_value]
     if not gaps or not foreign_texts:
         return ()
@@ -582,7 +603,7 @@ def _section_notes(
         wanted[lang] = [h.strip() for h in (delta.external_value or "").split(";") if h.strip()]
 
     context_parts: list[str] = []
-    known: set[tuple[str, str]] = set()
+    offered: list[tuple[str, str]] = []
     for lang, headings in sorted(wanted.items()):
         entry = foreign_texts.get(lang)
         if entry is None:
@@ -592,10 +613,10 @@ def _section_notes(
             body = _section_body(wikitext, heading)
             if not body:
                 continue
-            known.add((lang, heading))
-            context_parts += [f"### {lang} / {heading}", body[:2_000], ""]
+            offered.append((lang, heading))
+            context_parts += [f"### Abschnitt {len(offered)} - {lang}wiki: {heading}", body[:2_000], ""]
 
-    if not context_parts:
+    if not offered:
         return ()
 
     call = llm.ask(
@@ -606,7 +627,8 @@ def _section_notes(
         prompt=(
             "Fasse jeden Abschnitt in zwei bis vier Stichpunkten zusammen: "
             "worüber er handelt, welche Zahlen oder Ereignisse darin "
-            "vorkommen. Kein Fliesstext, keine Wertung."
+            "vorkommen. Kein Fliesstext, keine Wertung. Gib zu jedem "
+            "Abschnitt seine Nummer aus der Liste an."
         ),
         schema=SECTIONS_SCHEMA,
     )
@@ -617,15 +639,20 @@ def _section_notes(
     for raw in call.reply.get("sections", []) or []:
         if not isinstance(raw, dict):
             continue
-        lang = str(raw.get("lang", "")).strip()
-        heading = str(raw.get("heading", "")).strip()
-        # Provenance again: a section the model invented is not one we found.
-        if (lang, heading) not in known:
+        # Provenance again, by number: a section the model invented has no
+        # number, and one it renamed still carries the right one.
+        index = raw.get("section")
+        if not isinstance(index, int) or isinstance(index, bool) or not 1 <= index <= len(offered):
+            dropped.append(
+                DroppedFinding(gate="section_provenance", detail=f"Abschnitt {index!r} gibt es nicht")
+            )
             continue
-        entry = foreign_texts.get(lang)
+        lang, heading = offered[index - 1]
         bullets = tuple(str(b).strip() for b in raw.get("bullets", []) or [] if str(b).strip())
         if not bullets:
+            dropped.append(DroppedFinding(gate="section_empty", detail=f"{lang}wiki: {heading}"))
             continue
+        entry = foreign_texts.get(lang)
         notes.append(
             SectionNote(
                 heading=heading,

@@ -146,6 +146,8 @@ def _dropped_section(outcome: AgentOutcome) -> list[str]:
         "circularity": "Zirkelbezug: das Dokument ist eine Kopie des Artikels",
         "source_standing": "Quelle ausgeschlossen (von dir, früher)",
         "schema": "unbrauchbare Antwort",
+        "section_provenance": "Herkunft: den genannten Abschnitt gab es nicht",
+        "section_empty": "Abschnitt ohne verwertbare Stichpunkte",
     }
     lines += ["| Prüfung | Angabe | Detail | Dokument |", "| --- | --- | --- | --- |"]
     for drop in outcome.dropped:
