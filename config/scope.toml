@@ -89,6 +89,18 @@ lat = 47.2260
 lon = 8.8180
 radius_m = 7000
 
+[[geo]]
+label = "Richterswil"
+lat = 47.2080
+lon  8.7058
+radius_m = 5000
+
+[[geo]]
+label = "Embrachertal"
+lat = 47.5056
+lon = 8.5941
+radius_m = 7000
+
 # ------------------------------------------------------------------ category
 # Walked with list=categorymembers, depth levels down. Keep depth small: the
 # tree widens fast and every level costs requests.
