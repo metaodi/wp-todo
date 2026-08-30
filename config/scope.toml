@@ -227,5 +227,9 @@ max_claims = 5
 max_undated_claims = 3
 max_reference_docs = 8
 max_search_docs = 6
+# Andere Sprachversionen, die dem Modell als Dokumente vorgelegt werden. Kostet
+# weder eine Anfrage noch einen zusätzlichen Aufruf - der Wikitext ist für die
+# Abschnitts-Zusammenfassungen ohnehin geholt. 0 schaltet es ab.
+max_interwiki_docs = 3
 # Eine Angabe von letztem Jahr ist keine Neuigkeit.
 stale_after_years = 2

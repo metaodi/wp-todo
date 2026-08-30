@@ -223,7 +223,7 @@ def wikidata_deltas(
                 article_as_of=claim.as_of_year,
                 external_as_of=as_of,
                 source=f"https://www.wikidata.org/wiki/{item_id}#{prop}",
-                agrees=_same(claim.asserted_value, value),
+                agrees=same_value(claim.asserted_value, value),
             )
         )
     return tuple(sorted(deltas, key=lambda d: (d.agrees, d.field or "", d.label))), True, comparable
@@ -387,7 +387,7 @@ def _qualifier_year(qualifiers: Any) -> int | None:
     return None
 
 
-def _same(article_value: str | None, external_value: str) -> bool:
+def same_value(article_value: str | None, external_value: str) -> bool:
     """Do these two say the same thing?
 
     Numbers are compared **at the precision the article states**, and strings on

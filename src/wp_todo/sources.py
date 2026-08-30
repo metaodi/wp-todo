@@ -305,6 +305,7 @@ def circularity(
     host: str = "",
     mirror_domains: tuple[str, ...] = (),
     span: int = 200,
+    openly_wiki: bool = False,
 ) -> str | None:
     """Why this document is a copy of the article, or None.
 
@@ -315,15 +316,27 @@ def circularity(
 
     So the domain list is only a fast path. What actually decides is a shared
     verbatim span: new mirrors appear constantly and no hand-kept list keeps up.
+
+    `openly_wiki` is for a document that is *declared* to be a wiki - another
+    language edition of this very article, shown to the model as such and
+    rendered as such. The two fast paths are heuristics for "this is secretly
+    Wikipedia", and the secret is the part that makes them useful: a document
+    that says so on its own row is not deceiving anybody, and every Wikipedia
+    article's wikitext mentions Wikipedia somewhere, so applying the credit
+    heuristic there would drop all of them.
+
+    The verbatim-span check still runs, and it is the one that matters: a
+    foreign edition that is a straight copy of this article is exactly as
+    circular as any mirror, and is dropped the same way.
     """
-    if host and _first_match(mirror_domains, host):
+    if not openly_wiki and host and _first_match(mirror_domains, host):
         return "bekannter Wikipedia-Spiegel"
 
     normalised = _normalise(text)
     if not normalised:
         return None
 
-    if _credits_wikipedia(normalised):
+    if not openly_wiki and _credits_wikipedia(normalised):
         return "nennt Wikipedia bzw. CC-BY-SA als Quelle"
 
     shared = _longest_shared_span(normalised, _normalise(_strip_markup(article_wikitext)), span)

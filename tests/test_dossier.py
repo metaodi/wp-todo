@@ -710,3 +710,56 @@ def test_the_link_check_runs_in_the_real_pipeline(
     )
     assert built.link_summary.checked == built.link_summary.total
     assert "## Erreichbarkeit der Belege" in render_markdown(built)
+
+
+# ------------------------------------------------------ the other editions
+def interwiki_finding(**kwargs: Any) -> Dossier:
+    from wp_todo.models import AgentRun, ArticleClaims, Finding
+
+    defaults: dict[str, Any] = {
+        "claim_id": "a1",
+        "claim_text": "FLÄCHE = 30.84",
+        "status": "supersedes_with_newer_value",
+        "current_value": "31.2",
+        "as_of": 2024,
+        "quote": "| area_total_km2 = 31.2",
+        "url": "https://en.wikipedia.org/wiki/Musterwil",
+        "standing": "andere Sprachversion dieses Artikels - kein Beleg, sondern ein Hinweis",
+        "interwiki_lang": "en",
+    }
+    return Dossier(
+        pageid=1,
+        title="Musterwil",
+        reference_date=dt.date(2026, 8, 1),
+        claims=ArticleClaims(pageid=1, title="Musterwil"),
+        agent=AgentRun(model="claude-opus-5", effort="medium"),
+        findings=(Finding(**{**defaults, **kwargs}),),
+    )
+
+
+def test_another_edition_is_never_presented_as_a_source(tmp_path: Path) -> None:
+    """Said on the row, not only in the section notice: a reader arriving from
+    a link or a screenshot has to be told before they read the number."""
+    markdown = render_markdown(interwiki_finding())
+
+    assert "**Kein Beleg:**" in markdown
+    assert "ist selbst Wikipedia" in markdown
+    assert "**Beleg:** <https://en.wikipedia.org" not in markdown, "it is a Fundstelle, not a Beleg"
+    assert "**Laut Quelle:**" not in markdown, "the source is enwiki, and it says so"
+    assert "**Laut enwiki:**" in markdown
+
+
+def test_what_the_other_edition_cites_is_the_part_offered_as_useful(tmp_path: Path) -> None:
+    """The whole point of the comparison: a citable document dewiki lacks."""
+    markdown = render_markdown(interwiki_finding(cited_sources=("https://amt.example/flaeche.pdf",)))
+
+    assert "**Dort zitiert**" in markdown
+    assert "https://amt.example/flaeche.pdf" in markdown
+    assert "ungeprüft" in markdown
+
+
+def test_a_bot_imported_figure_is_not_offered_as_a_second_opinion(tmp_path: Path) -> None:
+    markdown = render_markdown(interwiki_finding(matches_wikidata=True))
+
+    assert "**Nicht unabhängig:**" in markdown
+    assert "keine zweite Bestätigung" in markdown

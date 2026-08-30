@@ -501,10 +501,31 @@ def _findings_section(dossier: Dossier) -> list[str]:
     return lines
 
 
+def _origin(finding: Finding) -> str:
+    if finding.interwiki_lang:
+        return f"{finding.interwiki_lang}wiki"
+    return "Beleg des Artikels" if finding.from_reference else "Websuche"
+
+
 def _finding(dossier: Dossier, finding: Finding) -> list[str]:
-    origin = "Beleg des Artikels" if finding.from_reference else "Websuche"
     label = STATUS_LABELS.get(finding.status, finding.status)
-    lines = [f"### {_escape(finding.claim_text)}", "", f"*{label} · {origin}*", ""]
+    lines = [f"### {_escape(finding.claim_text)}", "", f"*{label} · {_origin(finding)}*", ""]
+    if finding.interwiki_lang:
+        # Said on the row, not only in the section notice: a reader who lands
+        # here from a link or a screenshot has to be told before they read the
+        # number that this is another wiki, which is not a source at all.
+        lines += [
+            f"- **Kein Beleg:** eine andere Sprachversion ist selbst Wikipedia. "
+            f"Verwertbar ist hier nicht die Zahl, sondern was {finding.interwiki_lang}wiki "
+            f"dafür zitiert.",
+        ]
+    if finding.matches_wikidata:
+        # Foreign infobox figures are frequently bot-imported. Two wikis
+        # agreeing because one copied the other is not a second opinion.
+        lines += [
+            "- **Nicht unabhängig:** dieselbe Zahl führt auch Wikidata - vermutlich von dort "
+            "übernommen, also keine zweite Bestätigung.",
+        ]
     if finding.demoted:
         # Kept, but never sold as an update: two figures can differ because the
         # source is the older one.
@@ -515,13 +536,24 @@ def _finding(dossier: Dossier, finding: Finding) -> list[str]:
         # when the document carries the figure. Where the model reached the
         # number by inference the label says so: the pointer is still worth
         # following, it is just not what the source says.
-        label = "Laut Quelle" if finding.quote_supports_value else "Schluss des Modells (nicht im Zitat)"
-        lines += [f"- **{label}:** {value}"]
+        said = "Laut Quelle" if finding.quote_supports_value else "Schluss des Modells (nicht im Zitat)"
+        if finding.interwiki_lang and finding.quote_supports_value:
+            said = f"Laut {finding.interwiki_lang}wiki"
+        lines += [f"- **{said}:** {value}"]
     lines += [
-        f"- **Beleg:** <{finding.url}> — {_escape(finding.standing)}",
+        f"- **{'Fundstelle' if finding.interwiki_lang else 'Beleg'}:** <{finding.url}> "
+        f"— {_escape(finding.standing)}",
         f"- **Zitat:** „{_escape(finding.quote)}“",
-        "",
     ]
+    if finding.cited_sources:
+        # The point of the whole comparison: a citable document dewiki does not
+        # have yet. Presented as something to open, because that is the only
+        # thing that turns it into a source.
+        lines += [
+            "- **Dort zitiert** — das ist der Teil, der etwas wert ist, und er ist ungeprüft:",
+        ]
+        lines += [f"  - <{url}>" for url in finding.cited_sources]
+    lines.append("")
     return lines
 
 

@@ -311,6 +311,20 @@ class Finding(Strict):
     #: sentence carries the figure printed beside it, which is what decides
     #: whether the dossier may write "Laut Quelle".
     quote_supports_value: bool = True
+    #: Set when the finding rests on another language edition, and which one.
+    #: A Wikipedia is **not a source** - the useful part of such a finding is
+    #: `cited_sources`, not the value - so the renderer has to be able to tell
+    #: these apart and say so.
+    interwiki_lang: str = ""
+    #: What that other edition cites for the quoted value. Extracted from the
+    #: wikitext around the verified quote, never named by the model: this is
+    #: the citable document dewiki does not have yet, which is the whole
+    #: reason the comparison is worth making.
+    cited_sources: tuple[str, ...] = ()
+    #: True when the value is the same one Wikidata already carries. Foreign
+    #: infobox figures are frequently bot-imported from it, and two wikis
+    #: agreeing because one copied the other is not corroboration.
+    matches_wikidata: bool = False
     #: The model's own confidence. Orders the list; never admits anything.
     confidence: float = 0.0
 

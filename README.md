@@ -217,6 +217,19 @@ mayor is X", no date anywhere) are asked of the article's own references only:
 a web search cannot settle one cheaply, but the official website is fetched and
 paid for by then.
 
+**The other language editions join the same document list.** They cost nothing
+in either currency: the wikitext is already fetched for the section summaries,
+and they ride along on questions that were going to be asked anyway. But a
+Wikipedia is *not a source*, so the finding is shaped accordingly — it says so
+on its own row, it is headed *Fundstelle* rather than *Beleg*, it sorts below
+anything resting on a document the article actually cites, and what it offers
+as useful is **the citation the other edition gives**, pulled out of the
+verified quote by code rather than named by the model. A figure that merely
+matches what Wikidata already carries is labelled as not independent: foreign
+infobox numbers are frequently bot-imported, and two wikis agreeing because one
+copied the other is not corroboration. `research.max_interwiki_docs` caps it
+(3); `0` turns it off.
+
 Running out of the budget is reported in the dossier, and so is everything else
 that left a claim unreported. Those are not one fact: a claim the model
 answered `nothing_found`, a claim whose answer a gate refused, and a claim that
@@ -234,6 +247,14 @@ applied **in code, afterwards**:
 | circularity | a copy of the article. `trust` cannot override this; trusting a mirror is always an error |
 | source standing | a host you blocked. Applied before the fetch, and always reported |
 | numeric containment | a figure the quote does not carry — demoted to "Schluss des Modells", never printed as "Laut Quelle" |
+
+Circularity has one scoped exemption, and it is worth knowing about: a document
+*declared* to be another language edition skips the "secretly Wikipedia"
+heuristics, because they are proxies for a deception that is not being
+attempted — and every Wikipedia article's wikitext mentions Wikipedia, so
+applying them there would drop all of them. The verbatim-span check still runs,
+so an edition that is a straight copy of the article is dropped exactly like
+any mirror.
 
 Every rejection is counted and shown. A run where the quote check rejected six
 of twenty answers is telling you something about that run.

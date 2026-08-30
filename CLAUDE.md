@@ -132,6 +132,19 @@ source that had said something the machine then threw away. The same goes for
 documents: a 404, a robots refusal, a format we cannot read is reported with its
 reason, and the reason is cached with the skip so a replay says the same thing.
 
+The other language editions are read as documents too, and they are the one
+place where "what the gates buy" needs saying twice. A Wikipedia is not a
+source: it may be unsourced, wrong, or a translation of this very article. So
+such a finding is never rendered as a `Beleg`, sorts below anything resting on
+a cited document, and what it offers is the citation *that* edition gives -
+extracted from the verified quote in code, never named by the model. A figure
+matching Wikidata is labelled as not independent, because a bot-imported number
+coming back is not corroboration. The circularity gate skips its "secretly
+Wikipedia" heuristics for a document declared to be another edition - they are
+proxies for a deception nobody is attempting, and every Wikipedia article
+mentions Wikipedia - but the verbatim-span check still runs, so an edition that
+is a straight copy of the article is dropped like any mirror.
+
 And a quote that passes the containment gate proves the sentence is on the page
 — not that the page is honest, and not that the sentence supports the value
 printed beside it. A figure the quote does not carry is demoted and labelled as

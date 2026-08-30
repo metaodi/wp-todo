@@ -1070,3 +1070,242 @@ def test_the_reference_beside_the_claim_is_fetched_before_a_better_ranked_host(
     agenda = _agenda(article, (), REFERENCE, scope.research)
     ranked = _ordered_references(article, SourceLedger(), _urls_beside(wikitext, agenda))
     assert ranked[0] == beside
+
+
+# --------------------------------------------------------- the other editions
+#: An enwiki article as wikitext, with a newer figure that carries its own
+#: citation. The citation is the point: it is a document dewiki does not have.
+ENWIKI = """{{Infobox settlement
+| name = Musterwil
+| area_total_km2 = 31.2<ref>{{cite web |url=https://amt.example/flaeche.pdf |title=Fläche 2024}}</ref>
+| population_total = 9240
+| population_as_of = 2025
+}}
+Musterwil is a municipality. The population was 9240 in 2025.<ref>https://statistik.example/2025</ref>
+"""
+
+FOREIGN = {"en": ("Musterwil", ENWIKI)}
+
+
+def interwiki_reply(quote: str, *, value: str = "31.2", as_of: int | None = 2024) -> dict[str, Any]:
+    """A verdict pointing at document 2 - the foreign edition, after the one
+    reference the fixture article carries."""
+    return verdict(status="supersedes_with_newer_value", document=2, quote=quote, value=value, as_of=as_of)
+
+
+def test_another_edition_becomes_a_finding_that_names_its_language(
+    scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """The wikitext is already fetched for the section summaries and was then
+    used for nothing else."""
+    quote = "| population_total = 9240"
+    outcome = execute(
+        scope, tmp_path, [interwiki_reply(quote, value="9240", as_of=2025)], foreign_texts=FOREIGN
+    )
+
+    assert len(outcome.findings) == 1
+    assert outcome.findings[0].interwiki_lang == "en"
+    assert outcome.findings[0].url == "https://en.wikipedia.org/wiki/Musterwil"
+
+
+def test_the_citation_the_other_edition_gives_is_extracted(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The whole reason the comparison is worth making.
+
+    A Wikipedia is not a source; what an editor can act on is the document it
+    cites. And the URL is pulled out of the verified quote by code, never
+    named by the model, which is what keeps it from being invented.
+    """
+    quote = (
+        "| area_total_km2 = 31.2<ref>{{cite web |url=https://amt.example/flaeche.pdf "
+        "|title=Fläche 2024}}</ref>"
+    )
+    outcome = execute(scope, tmp_path, [interwiki_reply(quote)], foreign_texts=FOREIGN)
+
+    assert outcome.findings[0].cited_sources == ("https://amt.example/flaeche.pdf",)
+
+
+def test_a_citation_at_the_end_of_the_sentence_is_still_found(scope: ScopeConfig, tmp_path: Path) -> None:
+    """An editor may put the ref after the sentence rather than beside the
+    number, so the search widens from the quote to the line around it."""
+    quote = "The population was 9240 in 2025."
+    outcome = execute(
+        scope, tmp_path, [interwiki_reply(quote, value="9240", as_of=2025)], foreign_texts=FOREIGN
+    )
+
+    assert outcome.findings[0].cited_sources == ("https://statistik.example/2025",)
+
+
+def test_a_link_back_into_wikipedia_is_not_offered_as_a_citation(scope: ScopeConfig, tmp_path: Path) -> None:
+    circular = {"en": ("Musterwil", "| population_total = 9240<ref>https://de.wikipedia.org/wiki/X</ref>\n")}
+    outcome = execute(
+        scope,
+        tmp_path,
+        [interwiki_reply("| population_total = 9240", value="9240", as_of=2025)],
+        foreign_texts=circular,
+    )
+
+    assert outcome.findings[0].cited_sources == (), "a wiki citing a wiki is not a source"
+
+
+def test_the_quote_gate_applies_to_another_edition_too(scope: ScopeConfig, tmp_path: Path) -> None:
+    """Nothing softens because the document is a wiki. A paraphrase is a
+    paraphrase."""
+    outcome = execute(
+        scope,
+        tmp_path,
+        [interwiki_reply("The population of Musterwil reached 9240 people in 2025.")],
+        foreign_texts=FOREIGN,
+        budget=1,
+    )
+
+    assert outcome.findings == ()
+    assert [drop.gate for drop in outcome.dropped] == ["quote"]
+
+
+def test_a_figure_wikidata_already_carries_is_marked_as_not_independent(
+    scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """Foreign infobox figures are frequently bot-imported. Two wikis agreeing
+    because one copied the other is not a second opinion."""
+    delta = Delta(
+        kind="wikidata",
+        claim_id="abc12345",
+        field="EINWOHNER",
+        label="Einwohnerzahl",
+        article_value="8500",
+        external_value="9240",
+        agrees=False,
+    )
+    outcome = execute(
+        scope,
+        tmp_path,
+        [interwiki_reply("| population_total = 9240", value="9240", as_of=2025)],
+        foreign_texts=FOREIGN,
+        deltas=(delta,),
+    )
+
+    assert outcome.findings[0].matches_wikidata
+
+
+def test_a_figure_wikidata_does_not_carry_is_not_marked(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The guard on the test above: the label must mean something."""
+    delta = Delta(
+        kind="wikidata",
+        claim_id="abc12345",
+        field="EINWOHNER",
+        label="Einwohnerzahl",
+        article_value="8500",
+        external_value="8500",
+        agrees=True,
+    )
+    outcome = execute(
+        scope,
+        tmp_path,
+        [interwiki_reply("| population_total = 9240", value="9240", as_of=2025)],
+        foreign_texts=FOREIGN,
+        deltas=(delta,),
+    )
+
+    assert not outcome.findings[0].matches_wikidata
+
+
+def test_a_cited_document_outranks_another_wiki_saying_the_same(scope: ScopeConfig, tmp_path: Path) -> None:
+    """A source that answers the question is worth more than a wiki asserting
+    it, and the ordering should say so rather than leaving the standing label
+    to carry it."""
+    # Textually distinct on purpose: two claims with identical text produce
+    # identical prompts, and the second call would be a cache hit on the first.
+    two_claims = claims().model_copy(
+        update={
+            "claims": (
+                claims().claims[0],
+                Claim(
+                    id="def67890",
+                    kind="infobox_field",
+                    text="FLÄCHE = 30.84",
+                    line_no=9,
+                    field="FLÄCHE",
+                    asserted_value="30.84",
+                    as_of_year=2018,
+                ),
+            )
+        }
+    )
+    outcome = execute(
+        scope,
+        tmp_path,
+        [
+            verdict(document=1),
+            interwiki_reply("| population_total = 9240", value="9240", as_of=2025),
+        ],
+        article_claims=two_claims,
+        foreign_texts=FOREIGN,
+    )
+
+    assert len(outcome.findings) == 2
+    assert outcome.findings[0].interwiki_lang == "", "the cited document leads"
+    assert outcome.findings[1].interwiki_lang == "en"
+
+
+def test_the_other_editions_cost_no_request_and_no_extra_call(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The claim the whole feature rests on: the wikitext is already in hand,
+    and the documents join a question that was going to be asked anyway."""
+    without = ScriptedLlm(
+        [verdict(status="nothing_found")],
+        cache=ResponseCache(tmp_path / "a"),
+        budget=LlmBudget(limit=1),
+    )
+    execute(scope, tmp_path, [], llm=without)
+
+    with_foreign = ScriptedLlm(
+        [verdict(status="nothing_found")],
+        cache=ResponseCache(tmp_path / "b"),
+        budget=LlmBudget(limit=1),
+    )
+    outcome = execute(scope, tmp_path, [], foreign_texts=FOREIGN, llm=with_foreign)
+
+    assert len(with_foreign.calls) == len(without.calls) == 1
+    assert outcome.run is not None
+    assert outcome.run.documents == 2, "one reference, one foreign edition"
+
+
+def test_the_other_editions_can_be_turned_off(scope: ScopeConfig, tmp_path: Path) -> None:
+    off = scope.model_copy(update={"research": scope.research.model_copy(update={"max_interwiki_docs": 0})})
+    model = ScriptedLlm(
+        [verdict(status="nothing_found")],
+        cache=ResponseCache(tmp_path / "llm"),
+        budget=LlmBudget(limit=1),
+    )
+    outcome = execute(off, tmp_path, [], foreign_texts=FOREIGN, llm=model)
+
+    assert outcome.run is not None and outcome.run.documents == 1
+    assert "en.wikipedia.org" not in model.sent[0]
+
+
+def test_an_edition_that_is_a_straight_copy_is_still_dropped(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The guard on the circularity exemption.
+
+    A foreign edition is openly a wiki, so the "secretly Wikipedia" heuristics
+    are switched off for it - otherwise every edition would be dropped, since
+    every Wikipedia article mentions Wikipedia. The verbatim-span check is not
+    switched off, and this is what proves it: an edition that is a straight
+    copy of this article is exactly as circular as any mirror.
+    """
+    copied = (
+        "Die Gemeinde Musterwil liegt am See und zaehlte im Jahr 2018 rund 8500 Einwohner, "
+        "verteilt auf mehrere Ortsteile entlang der Seestrasse und der alten Landstrasse "
+        "hinauf zum Waldrand, wo die Gemeindegrenze verlaeuft und der Wanderweg beginnt."
+    )
+    assert len(copied) > scope.research.circularity_span
+
+    outcome = execute(
+        scope,
+        tmp_path,
+        [interwiki_reply(copied[:120], value="8500", as_of=None)],
+        wikitext=copied,
+        foreign_texts={"en": ("Musterwil", copied)},
+        budget=1,
+    )
+
+    assert outcome.findings == ()
+    assert [drop.gate for drop in outcome.dropped] == ["circularity"]

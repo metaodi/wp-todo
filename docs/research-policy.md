@@ -128,6 +128,24 @@ the value comes from:
    points summarising what the other edition's section actually says, with a
    link to it. Not what a model knows about the subject: what the linked text
    says, so the summary can be checked like everything else here.
+4. **The other editions are also read for the claims themselves** — they often
+   carry the same figure with a newer date. This costs no request and no extra
+   call: the wikitext is already there, and the editions ride along on
+   questions that were going to be asked anyway.
+
+On that last one, the thing to keep hold of: **another language edition is not
+a source.** It may be unsourced, wrong, or translated from this very article.
+So the dossier says so on the row itself, calls it a *Fundstelle* rather than a
+*Beleg*, sorts it below anything resting on a document the article actually
+cites, and offers as the useful part **the citation that edition gives** — a
+document you can go and read, which is the only thing here that can become a
+reference. That citation is extracted from the verified quote by code, never
+named by the model, for the same reason no URL anywhere in this stage comes
+from a model.
+
+A foreign figure that matches what Wikidata already carries is labelled as not
+independent. Those numbers are frequently bot-imported, and two wikis agreeing
+because one copied the other is not a second opinion.
 
 Two of those three used to be computed and then thrown away. A Wikidata
 disagreement — the sharpest question the free stage produces, two values that

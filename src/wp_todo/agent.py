@@ -53,6 +53,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .config import ResearchConfig, ScopeConfig
+from .enrich import same_value
 from .llm import LlmCall, LlmClient
 from .models import (
     AgentRun,
@@ -171,6 +172,8 @@ _YEAR = re.compile(r"\b(?:19|20)\d{2}\b")
 _PARAGRAPH = re.compile(r"\n\s*\n")
 #: Same shape as `claims._URL`: what a bare URL looks like inside wikitext.
 _URL = re.compile(r"https?://[^\s\|\]\}<>\"']+")
+#: A whole `<ref>` element, for pulling the citation out around a quote.
+_REF_BLOCK = re.compile(r"<ref[^>/]*>.*?</ref\s*>", re.IGNORECASE | re.DOTALL)
 
 #: Outcomes for one agenda claim, most informative first.
 #:
@@ -219,6 +222,10 @@ class SourceDoc:
     document: Document
     standing_label: str
     from_reference: bool
+    #: Set when the document *is* another language edition of this article.
+    #: A Wikipedia is not a source, and a finding resting on one has to be
+    #: rendered as the pointer it is - see `_interwiki_documents`.
+    lang: str = ""
 
 
 @dataclass
@@ -295,6 +302,15 @@ def run_agent(
     reserve = 1 if sections_pending else 0
 
     docs = _reference_documents(claims, agenda, wikitext, web, ledger, config, dropped)
+    # The other language editions join the same list, so every phase-1 question
+    # already sees them: no request, no extra call. They go *after* the
+    # article's own references, which is also the order of their worth.
+    docs += _interwiki_documents(foreign_texts, config, reference, start=len(docs) + 1)
+    wikidata_values = {
+        delta.claim_id: delta.external_value
+        for delta in deltas
+        if delta.kind == "wikidata" and delta.claim_id and delta.external_value
+    }
     findings: list[Finding] = []
     answered: set[str] = set()
     # Built once: it is the same for every claim, and it is the half the
@@ -322,7 +338,7 @@ def run_agent(
         if call is None:
             record(item.claim.id, "budget" if llm.budget.exhausted else "not_asked")
             continue
-        found, reason = _gate(call, item.claim, docs, wikitext, config, dropped)
+        found, reason = _gate(call, item.claim, docs, wikitext, config, dropped, wikidata_values)
         record(item.claim.id, reason, "reference")
         if found is not None:
             findings.append(found)
@@ -367,7 +383,9 @@ def run_agent(
                 if call is None:
                     record(item.claim.id, "budget" if llm.budget.exhausted else "not_asked")
                     continue
-                found, reason = _gate(call, item.claim, search_docs, wikitext, config, dropped)
+                found, reason = _gate(
+                    call, item.claim, search_docs, wikitext, config, dropped, wikidata_values
+                )
                 record(item.claim.id, reason, "web")
                 if found is not None:
                     findings.append(found)
@@ -635,6 +653,124 @@ def _fetch_urls(
         )
         index += 1
     return docs
+
+
+#: What a foreign edition is worth, said where it cannot be missed. It goes in
+#: the prompt as the document's standing, so the model is not left to infer
+#: from `en.wikipedia.org` that this is an ordinary web source.
+INTERWIKI_STANDING = "andere Sprachversion dieses Artikels - kein Beleg, sondern ein Hinweis"
+
+
+def _interwiki_documents(
+    foreign_texts: dict[str, tuple[str, str]],
+    config: ScopeConfig,
+    reference: dt.date,
+    start: int,
+) -> list[SourceDoc]:
+    """The other language editions, as documents the model can be asked about.
+
+    Free in both currencies that matter here: the wikitext was already fetched
+    for the section summaries, and these join the phase-1 list that every
+    per-claim question already sees, so they cost no request and no extra call.
+
+    The text is the **raw wikitext**, not a stripped rendition, and that is the
+    point rather than laziness. A quote like
+    ``| population_total = 9,240<ref>{{cite web|url=...}}</ref>`` carries the
+    citation inside the span the quote gate has already verified, which is what
+    lets `_cited_sources` find it without anybody guessing.
+
+    `standing_label` is written rather than computed: `sources.standing` would
+    call `en.wikipedia.org` merely `unrated`, and "unrated web host" is exactly
+    the wrong thing for a reader - or a model - to think this is.
+    """
+    docs: list[SourceDoc] = []
+    for index, (lang, (title, wikitext)) in enumerate(sorted(foreign_texts.items())):
+        if index >= config.research.max_interwiki_docs:
+            break
+        if not wikitext.strip():
+            continue
+        url = _article_url(lang, title)
+        docs.append(
+            SourceDoc(
+                index=start + len(docs),
+                url=url,
+                document=Document(
+                    url=url,
+                    final_url=url,
+                    status=200,
+                    content_type="text/x-wiki",
+                    text=wikitext,
+                    fetched_on=reference,
+                ),
+                standing_label=INTERWIKI_STANDING,
+                from_reference=False,
+                lang=lang,
+            )
+        )
+    return docs
+
+
+def _article_url(lang: str, title: str) -> str:
+    return f"https://{lang}.wikipedia.org/wiki/{title.replace(' ', '_')}"
+
+
+def _cited_sources(doc: SourceDoc, quote: str) -> tuple[str, ...]:
+    """What the foreign edition cites for the sentence it was quoted on.
+
+    The model does the semantic matching, which is what it is good at. Finding
+    the citation is a text operation and is done here, mechanically, on a span
+    the quote gate has *already proved* is in the document - so nothing about
+    the URL is inferred.
+
+    Looks in the quote itself first (a wikitext quote usually carries its own
+    `<ref>`), then widens to the enclosing line and to any reference block that
+    overlaps it, because an editor may have put the citation at the end of the
+    sentence rather than beside the number.
+    """
+    text = doc.document.text
+    found: list[str] = list(_URL.findall(quote))
+
+    position = _locate(text, quote)
+    if position is not None:
+        start, end = position
+        line_start = text.rfind("\n", 0, start) + 1
+        line_end = text.find("\n", end)
+        found += _URL.findall(text[line_start : line_end if line_end != -1 else len(text)])
+        for match in _REF_BLOCK.finditer(text):
+            if match.start() < end and match.end() > start:
+                found += _URL.findall(match.group(0))
+
+    seen: set[str] = set()
+    unique: list[str] = []
+    for url in found:
+        # A link back into Wikipedia is not a citation for anything.
+        if "wikipedia.org" in url or url in seen:
+            continue
+        seen.add(url)
+        unique.append(url)
+    return tuple(unique)
+
+
+def _locate(text: str, quote: str) -> tuple[int, int] | None:
+    """Where the quote sits in the document, tolerating whitespace.
+
+    The quote gate matched on whitespace-normalised text, so an exact `find`
+    can miss where the gate did not. Falls back to the quote's first and last
+    substantial runs, which is enough to bracket the span for citation
+    extraction - and returning None simply means no citation is attached.
+    """
+    exact = text.find(quote)
+    if exact != -1:
+        return exact, exact + len(quote)
+
+    words = [w for w in _WHITESPACE.split(quote) if w]
+    if not words:
+        return None
+    start = text.find(words[0])
+    if start == -1:
+        return None
+    end = text.find(words[-1], start)
+    return (start, end + len(words[-1])) if end != -1 else (start, start + len(words[0]))
 
 
 def _context(docs: list[SourceDoc]) -> str:
@@ -928,6 +1064,7 @@ def _gate(
     wikitext: str,
     config: ScopeConfig,
     dropped: list[DroppedFinding],
+    wikidata_values: dict[str, str] | None = None,
 ) -> tuple[Finding | None, str]:
     """Every check that stands between what the model said and the dossier.
 
@@ -977,6 +1114,11 @@ def _gate(
         host=host_of(doc.url),
         mirror_domains=config.research.mirror_domains,
         span=config.research.circularity_span,
+        # A foreign edition is declared to be a wiki everywhere it appears, so
+        # the "secretly Wikipedia" heuristics have nothing to catch. The
+        # verbatim-span check stays: an edition that is a straight copy of this
+        # article is as circular as any mirror.
+        openly_wiki=bool(doc.lang),
     )
     if copied:
         dropped.append(DroppedFinding(claim_id=claim.id, gate="circularity", detail=copied, url=doc.url))
@@ -1003,6 +1145,17 @@ def _gate(
     if unsupported and not demoted:
         demoted = f"nicht im Zitat belegt: {unsupported}"
 
+    # A foreign edition is not a source, so what is worth carrying out of one
+    # is the citation it gives - extracted here, from the span the quote gate
+    # has already verified, rather than named by the model.
+    cited_sources = _cited_sources(doc, quote) if doc.lang else ()
+
+    # Foreign infobox figures are frequently bot-imported from Wikidata. Two
+    # wikis agreeing because one copied the other is not a second opinion, and
+    # `enrich._same` already knows how to compare a number to a number.
+    known = (wikidata_values or {}).get(claim.id)
+    matches_wikidata = bool(doc.lang and known and same_value(reported, known))
+
     confidence = reply.get("confidence")
     return Finding(
         claim_id=claim.id,
@@ -1017,6 +1170,9 @@ def _gate(
         from_reference=doc.from_reference,
         demoted=demoted,
         quote_supports_value=not unsupported,
+        interwiki_lang=doc.lang,
+        cited_sources=cited_sources,
+        matches_wikidata=matches_wikidata,
         confidence=float(confidence) if isinstance(confidence, int | float) else 0.0,
     ), "found"
 
@@ -1071,7 +1227,7 @@ def _contains(document_text: str, quote: str) -> bool:
     return _WHITESPACE.sub(" ", quote).strip() in _WHITESPACE.sub(" ", document_text)
 
 
-def _finding_order(finding: Finding) -> tuple[int, int, float, str]:
+def _finding_order(finding: Finding) -> tuple[int, int, int, float, str]:
     """Newest, most confident, most actionable first - with a stable tail.
 
     `claim_id` breaks every remaining tie, so two findings that score the same
@@ -1080,6 +1236,10 @@ def _finding_order(finding: Finding) -> tuple[int, int, float, str]:
     kind = {"supersedes_with_newer_value": 0, "contradicts_current": 1, "confirms_current": 2}
     return (
         1 if finding.demoted else 0,
+        # A cited document that answers the question outranks another wiki
+        # asserting it. The ordering should say so rather than leaving the
+        # reader to notice the standing label.
+        1 if finding.interwiki_lang else 0,
         kind.get(finding.status, 3),
         -round(finding.confidence, 3),
         finding.claim_id,

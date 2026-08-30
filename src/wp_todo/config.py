@@ -257,6 +257,11 @@ class ResearchConfig(Frozen):
     max_reference_docs: int = Field(default=8, ge=1, le=40)
     #: Search results fetched, when the references answered nothing.
     max_search_docs: int = Field(default=6, ge=1, le=40)
+    #: Other language editions shown to the model as documents, alongside the
+    #: article's own references. Costs no request and no extra call - the
+    #: wikitext is already fetched for the section summaries - so the ceiling
+    #: is about how much context to spend, not about politeness. 0 disables.
+    max_interwiki_docs: int = Field(default=3, ge=0, le=10)
     #: How stale a dated claim has to be before it is worth a call. A figure
     #: from last year is not news.
     stale_after_years: int = Field(default=2, ge=0, le=50)

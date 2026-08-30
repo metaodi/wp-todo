@@ -277,3 +277,27 @@ class TestCircularity:
         assert found.verdict is not None and found.verdict.verdict == "trust"
 
         assert circularity(mirror_text, ARTICLE, host="spiegel.example", span=150) is not None
+
+
+def test_a_declared_wiki_is_not_dropped_merely_for_being_a_wiki() -> None:
+    """`openly_wiki` is for a document shown and rendered as another language
+    edition. The credit heuristic is a proxy for "this is secretly Wikipedia",
+    and the secret is what made it useful - every Wikipedia article's wikitext
+    mentions Wikipedia, so applying it there would drop all of them."""
+    text = "Musterwil is a municipality. See also Wikipedia:Manual of Style. CC-BY-SA."
+
+    assert circularity(text, "Ganz anderer Artikeltext.") is not None
+    assert circularity(text, "Ganz anderer Artikeltext.", openly_wiki=True) is None
+
+
+def test_the_exemption_does_not_cover_an_actual_copy() -> None:
+    """What `openly_wiki` must never become: a way past the check that
+    actually decides."""
+    shared = (
+        "Die Gemeinde liegt am See und zaehlte im Jahr 2018 rund 8500 Einwohner, verteilt "
+        "auf mehrere Ortsteile entlang der Seestrasse und der alten Landstrasse hinauf zum "
+        "Waldrand, wo die Gemeindegrenze verlaeuft."
+    )
+    found = circularity(shared, shared, openly_wiki=True, span=200)
+
+    assert found is not None and "wörtlich aus dem Artikel" in found
