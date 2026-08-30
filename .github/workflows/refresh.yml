@@ -6,10 +6,11 @@ on:
     - cron: "17 5 * * 1"
   workflow_dispatch:
     inputs:
-      limit:
-        description: "Only process the first N articles (debugging)"
+      refresh:
+        description: "Bypass the response cache and re-fetch everything from the API"
         required: false
-        default: ""
+        type: boolean
+        default: false
 
 concurrency:
   group: refresh
@@ -40,18 +41,12 @@ jobs:
 
       - name: Run the pipeline
         env:
-          WP_TODO_LIMIT: ${{ inputs.limit }}
+          WP_TODO_REFRESH: ${{ inputs.refresh }}
         run: |
           set -euo pipefail
           args=""
-          if [ -n "${WP_TODO_LIMIT:-}" ]; then
-            case "$WP_TODO_LIMIT" in
-              ''|*[!0-9]*)
-                echo "::error::limit must be a whole number, got '$WP_TODO_LIMIT'"
-                exit 1
-                ;;
-            esac
-            args="--limit ${WP_TODO_LIMIT}"
+          if [ "${WP_TODO_REFRESH:-false}" = "true" ]; then
+            args="--refresh"
           fi
           # No `|| true` anywhere: an API failure must fail the job rather than
           # commit a truncated worklist.
