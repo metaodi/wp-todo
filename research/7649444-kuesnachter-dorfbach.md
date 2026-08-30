@@ -6,15 +6,21 @@
 
 [Artikel](https://de.wikipedia.org/wiki/Küsnachter_Dorfbach) · [bearbeiten](https://de.wikipedia.org/w/index.php?title=Küsnachter_Dorfbach&action=edit) · [Wikidata](https://www.wikidata.org/wiki/Q18510869)
 
-Stand der Daten: 2026-08-29
+Stand der Daten: 2026-08-30
+
+## Wahrscheinlich veraltet
+
+_Nichts gefunden: in den Belegen des Artikels und der Websuche stand zu diesen Angaben nichts Neueres._
+
+_Nicht abschliessend geprüft (keine Quelle sagte etwas dazu): `marker_derzeit-014245ea`, `zukunft_template-6cba6779`._
 
 ## Abweichungen gegenüber Wikidata
 
-_Keine Abweichungen gefunden._
+_Nichts zu vergleichen: kein Feld aus `Infobox Fluss` ist einer Wikidata-Eigenschaft zugeordnet. Es wurde also **nicht** geprüft, ob die Angaben übereinstimmen._
 
 ## Übereinstimmend mit Wikidata
 
-_Nichts abgeglichen._
+_Nichts zu vergleichen: kein Feld aus `Infobox Fluss` ist einer Wikidata-Eigenschaft zugeordnet. Es wurde also **nicht** geprüft, ob die Angaben übereinstimmen._
 
 ## Möglicherweise fehlend
 
@@ -68,3 +74,13 @@ Domain auf keiner Liste steht - nicht, dass mit ihr etwas nicht stimmt.
 | `www.kuesnacht.ch` | nicht eingestuft | 1 |
 | `www.naturnetz-pfannenstil.ch` | nicht eingestuft | 1 |
 | `www.nau.ch` | nicht eingestuft | 1 |
+
+## Recherche-Metadaten
+
+Modell `claude-opus-5`, Effort `medium` · 6 Aufruf(e) (davon 0 aus dem Cache) von höchstens 10
+
+8 Dokument(e) gelesen, 4 davon Belege des Artikels selbst, danach Websuche
+
+Von den Prüfungen verworfen — Kopie des Artikels: 1
+
+[Vollständiges Protokoll](7649444-kuesnachter-dorfbach.transcript.md)

@@ -1,4 +1,28 @@
 {
+  "agent": {
+    "budget": 10,
+    "budget_exhausted": false,
+    "cached_calls": 0,
+    "calls": 6,
+    "documents": 8,
+    "dropped": [
+      {
+        "claim_id": "marker_derzeit-014245ea",
+        "detail": "nennt Wikipedia bzw. CC-BY-SA als Quelle",
+        "gate": "circularity",
+        "url": "https://de.wikipedia.org/wiki/K%C3%BCsnachter_Dorfbach"
+      }
+    ],
+    "effort": "medium",
+    "model": "claude-opus-5",
+    "reference_documents": 4,
+    "searched": true,
+    "transcript": "7649444-kuesnachter-dorfbach.transcript.md",
+    "unexamined": [
+      "marker_derzeit-014245ea",
+      "zukunft_template-6cba6779"
+    ]
+  },
   "claims": {
     "claims": [
       {
@@ -122,9 +146,10 @@
     }
   ],
   "edit_url": "https://de.wikipedia.org/w/index.php?title=Küsnachter_Dorfbach&action=edit",
+  "findings": [],
   "interwiki_checked": true,
   "pageid": 7649444,
-  "reference_date": "2026-08-29",
+  "reference_date": "2026-08-30",
   "reference_standing": [
     {
       "decided": null,
@@ -348,7 +373,9 @@
     }
   ],
   "scope_label": "Recherche",
+  "section_notes": [],
   "title": "Küsnachter Dorfbach",
   "wikidata_checked": true,
+  "wikidata_comparable": 0,
   "wikidata_item": "Q18510869"
 }
