@@ -104,18 +104,29 @@ jobs:
             fi
             args+=(--agent)
           fi
-          uv run wp-todo research "$TITLE" "${args[@]}"
+          # The status is captured rather than allowed to abort the step. The
+          # CLI writes the deterministic dossier and *then* exits non-zero when
+          # the optional agent stage failed, so aborting here would discard an
+          # artefact that a run against Wikimedia has already paid for - which
+          # is exactly what run #14 did with nine requests' worth of work.
+          # The job still goes red: the status is re-raised at the end.
+          status=0
+          uv run wp-todo research "$TITLE" "${args[@]}" || status=$?
 
           # The CLI names the file it wrote; find it the same way rather than
           # re-deriving the slug here and risking a mismatch.
           # `*.transcript.md` also matches `*.md`, and it is written first,
           # so exclude it explicitly rather than relying on mtime order.
-          dossier=$(ls -t research/*.md 2>/dev/null | grep -v '\.transcript\.md$' | head -1)
-          if [ -z "$dossier" ]; then
+          # `|| true` because a failed glob would otherwise trip `pipefail`
+          # before the clearer message below ever runs.
+          dossier=$(ls -t research/*.md 2>/dev/null | grep -v '\.transcript\.md$' | head -1 || true)
+          if [ -n "$dossier" ]; then
+            echo "path=$dossier" >> "$GITHUB_OUTPUT"
+          elif [ "$status" -eq 0 ]; then
             echo "::error::no dossier was produced"
-            exit 1
+            status=1
           fi
-          echo "path=$dossier" >> "$GITHUB_OUTPUT"
+          exit "$status"
 
       - name: Publish the dossier to the job summary
         if: ${{ always() && steps.research.outputs.path != '' }}
@@ -132,8 +143,12 @@ jobs:
           retention-days: 90
           if-no-files-found: warn
 
+      # The summary and the artifact above run on a failed build too, so a
+      # dossier whose agent died is still readable. Committing one is a
+      # different matter: `research/` is public and a dossier that says
+      # "abgebrochen" belongs in a red run's artifact, not in the history.
       - name: Commit the dossier
-        if: ${{ inputs.commit && steps.research.outputs.path != '' }}
+        if: ${{ inputs.commit && steps.research.outcome == 'success' && steps.research.outputs.path != '' }}
         env:
           TITLE: ${{ inputs.title }}
           BRANCH: ${{ github.ref_name }}

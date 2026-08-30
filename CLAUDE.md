@@ -107,6 +107,15 @@ because there was little to find, and the dossier names every claim it never got
 to. That is the same rule as `_Nicht abgefragt._` versus `_Keine gefunden._`,
 applied one layer further out.
 
+The stage *failing* is reported the same way, and does not take the dossier with
+it. The deterministic half is finished and paid for in requests to Wikimedia by
+the time a model is ever called, so an error from the API — a bad key, a
+timeout — costs the agent, not the briefing: the dossier is written, says
+`abgebrochen` where the findings would have been, and the command still exits
+non-zero, because an agent that was asked for and did not run must not pass for
+a clean run. Only `LlmUnavailableError` keeps its early exit; "the stage cannot
+start at all" is the operator's to fix before anything else.
+
 ## Verifying API behaviour
 
 The development sandbox has no network egress to Wikimedia hosts. Run

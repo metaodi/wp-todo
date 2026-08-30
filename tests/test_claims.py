@@ -13,7 +13,7 @@ import pytest
 
 from wp_todo.claims import extract_claims
 from wp_todo.config import ScopeConfig, load_scope
-from wp_todo.models import Article
+from wp_todo.models import Article, Claim
 
 REFERENCE = dt.date(2026, 8, 1)
 
@@ -27,7 +27,7 @@ def article(wikitext: str) -> Article:
     return Article(pageid=42, title="Testort", scope_label="Test", wikitext=wikitext)
 
 
-def claims_for(wikitext: str, config: ScopeConfig) -> dict[str, object]:
+def claims_for(wikitext: str, config: ScopeConfig) -> dict[str, Claim]:
     result = extract_claims(article(wikitext), config, REFERENCE)
     return {claim.field or claim.kind: claim for claim in result.claims}
 
@@ -40,7 +40,7 @@ def test_wikilink_pipe_does_not_split_a_parameter(config: ScopeConfig) -> None:
         config,
     )
     claim = found["STADTPRÄSIDENT"]
-    assert claim.asserted_value == "Markus Bürgi ([[FDP.Die Liberalen|FDP]])"  # type: ignore[attr-defined]
+    assert claim.asserted_value == "Markus Bürgi ([[FDP.Die Liberalen|FDP]])"
 
 
 def test_nested_template_in_a_value_does_not_end_the_infobox(config: ScopeConfig) -> None:
@@ -77,7 +77,7 @@ def test_stand_parameter_supplies_the_as_of_year(config: ScopeConfig) -> None:
         "{{Infobox Ort in der Schweiz\n| EINWOHNER = 8500\n| STAND_EINWOHNER = 31. Dezember 2018\n}}\n",
         config,
     )
-    assert found["EINWOHNER"].as_of_year == 2018  # type: ignore[attr-defined]
+    assert found["EINWOHNER"].as_of_year == 2018
 
 
 def test_year_inside_the_value_is_used_when_there_is_no_stand_field(config: ScopeConfig) -> None:
@@ -85,7 +85,7 @@ def test_year_inside_the_value_is_used_when_there_is_no_stand_field(config: Scop
         "{{Infobox Unternehmen\n| UMSATZ = 4,2 Mio. CHF (2019)\n}}\n",
         config,
     )
-    assert found["UMSATZ"].as_of_year == 2019  # type: ignore[attr-defined]
+    assert found["UMSATZ"].as_of_year == 2019
 
 
 def test_article_without_an_infobox_is_not_an_error(config: ScopeConfig) -> None:
@@ -253,3 +253,106 @@ class TestMaintenanceTemplates:
             c for c in extract_claims(without, config, REFERENCE).claims if c.kind == "veraltet_kategorie"
         )
         assert claim.as_of_year == 2019
+
+
+# --------------------------------------------------- Weblinks and Literatur
+def test_weblinks_and_literatur_urls_are_collected(config: ScopeConfig) -> None:
+    """`Sanatorium Kilchberg`: 46 print refs, and the only two readable
+    documents sitting under `Literatur` and `Weblinks` where nothing looked."""
+    result = extract_claims(
+        article(
+            "Satz.<ref>Buch ohne URL, 1901.</ref>\n"
+            "== Literatur ==\n"
+            "* Autor: [https://example.ch/monografie.pdf ''Titel''] 2017.\n"
+            "== Weblinks ==\n"
+            "* [https://example.ch/ Offizielle Website]\n"
+            "== Einzelnachweise ==\n"
+            "<references />\n"
+        ),
+        config,
+        REFERENCE,
+    )
+    assert result.references.total == 1
+    assert result.references.external_urls == ()
+    assert result.references.linked_urls == (
+        "https://example.ch/",
+        "https://example.ch/monografie.pdf",
+    )
+
+
+def test_linked_urls_stay_out_of_the_cited_ones(config: ScopeConfig) -> None:
+    """The split is the point: `already_cited` and the standing table both mean
+    "cited as a reference", and folding these in would overstate the sourcing."""
+    result = extract_claims(
+        article(
+            "Satz.<ref>[https://example.ch/beleg Beleg]</ref>\n"
+            "== Weblinks ==\n* [https://example.ch/ Seite]\n"
+        ),
+        config,
+        REFERENCE,
+    )
+    assert result.references.external_urls == ("https://example.ch/beleg",)
+    assert result.references.linked_urls == ("https://example.ch/",)
+
+
+def test_a_url_that_is_both_cited_and_linked_is_not_counted_twice(config: ScopeConfig) -> None:
+    result = extract_claims(
+        article("Satz.<ref>[https://example.ch/x X]</ref>\n== Weblinks ==\n* [https://example.ch/x X]\n"),
+        config,
+        REFERENCE,
+    )
+    assert result.references.external_urls == ("https://example.ch/x",)
+    assert result.references.linked_urls == ()
+
+
+def test_links_outside_those_sections_are_left_alone(config: ScopeConfig) -> None:
+    """Only the two sections that conventionally hold readable documents."""
+    result = extract_claims(
+        article("== Geschichte ==\nText mit https://example.ch/irgendwo mittendrin.\n"),
+        config,
+        REFERENCE,
+    )
+    assert result.references.linked_urls == ()
+
+
+# ------------------------------------------------------------ Belege fehlen
+def test_belege_fehlen_becomes_a_claim_with_the_editors_words(config: ScopeConfig) -> None:
+    found = claims_for("{{Belege fehlen|Teilweise: Nur spärliche Einzelnachweise}}\nText.\n", config)
+    claim = found["belege_fehlen"]
+    assert claim.as_of_year is None
+    assert "Teilweise: Nur spärliche Einzelnachweise" in claim.text
+
+
+def test_belege_fehlen_without_a_reason_still_becomes_a_claim(config: ScopeConfig) -> None:
+    assert "belege_fehlen" in claims_for("{{Belege fehlen}}\nText.\n", config)
+
+
+def test_belege_fehlen_does_not_swallow_the_veraltet_category(config: ScopeConfig) -> None:
+    """The category fallback is guarded by `if not claims`. Appending the
+    sourcing claim any earlier would silence a real `Veraltet seit` category."""
+    result = extract_claims(
+        Article(
+            pageid=42,
+            title="Testort",
+            scope_label="Test",
+            wikitext="{{Belege fehlen}}\nText.\n",
+            categories=("Kategorie:Wikipedia:Veraltet seit 2019",),
+        ),
+        config,
+        REFERENCE,
+    )
+    kinds = {claim.kind for claim in result.claims}
+    assert kinds == {"belege_fehlen", "veraltet_kategorie"}
+
+
+def test_the_references_tag_is_not_itself_a_reference(config: ScopeConfig) -> None:
+    """`<references />` closes the list, it is not an entry in it. Without the
+    lookahead in `_REF` it matched as a self-closing `<ref/>` and every article
+    that ends with the tag - which is nearly all of them - counted one too
+    many."""
+    result = extract_claims(
+        article("Satz.<ref>Beleg</ref>\n== Einzelnachweise ==\n<references />\n"),
+        config,
+        REFERENCE,
+    )
+    assert result.references.total == 1

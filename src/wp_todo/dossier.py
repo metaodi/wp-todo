@@ -246,6 +246,11 @@ def _references_section(dossier: Dossier) -> list[str]:
     if refs.oldest_year is not None:
         parts.append(f"ältester: {refs.oldest_year}")
     parts.append(f"{len(refs.external_urls)} externe(r) Link(s)")
+    if refs.linked_urls:
+        # Counted apart from the references on purpose: an article with 46
+        # print citations and one `Weblinks` entry is not an article with 47
+        # references, and the difference is the whole point of the split.
+        parts.append(f"{len(refs.linked_urls)} unter Weblinks/Literatur")
     lines += [" · ".join(parts), ""]
     return lines
 
@@ -386,6 +391,16 @@ def _no_findings(dossier: Dossier) -> str:
     run = dossier.agent
     if run is None:  # pragma: no cover - guarded by the caller
         return ""
+    if run.failed:
+        # Loudest of the three, because it is the only one where the stage did
+        # not merely come up empty - it stopped. Reading this section as "all
+        # current" would be reading a crash as a clean bill of health.
+        return (
+            f"_Die Recherche ist abgebrochen: `{_escape(run.failed)}`. Was hier steht, "
+            "ist der deterministische Teil des Dossiers; der Sprachmodell-Teil hat "
+            "**nicht** stattgefunden. Das ist **kein** Hinweis darauf, dass alles "
+            "aktuell oder belegt ist._"
+        )
     if run.budget_exhausted:
         return (
             "_Das Aufruf-Budget war aufgebraucht, bevor etwas geprüft werden konnte. "
@@ -393,9 +408,9 @@ def _no_findings(dossier: Dossier) -> str:
         )
     if not run.documents:
         return (
-            "_Kein Dokument konnte gelesen werden - der Artikel zitiert keine "
-            "abrufbaren Belege, und die Suche hat nichts geliefert. Es wurde also "
-            "**nichts** geprüft._"
+            "_Kein Dokument konnte gelesen werden - der Artikel verlinkt keine "
+            "abrufbaren Belege, Weblinks oder Literaturangaben, und die Suche hat "
+            "nichts geliefert. Es wurde also **nichts** geprüft._"
         )
     where = "den Belegen des Artikels" + (" und der Websuche" if run.searched else "")
     return f"_Nichts gefunden: in {where} stand zu diesen Angaben nichts Neueres._"
@@ -427,6 +442,8 @@ def _agent_section(dossier: Dossier) -> list[str]:
         return []
 
     lines = ["## Recherche-Metadaten", ""]
+    if run.failed:
+        lines += [f"**Abgebrochen:** `{_escape(run.failed)}`", ""]
     lines += [
         f"Modell `{run.model}`, Effort `{run.effort}` · {run.calls} Aufruf(e) "
         f"(davon {run.cached_calls} aus dem Cache) von höchstens {run.budget}",
@@ -446,6 +463,8 @@ def _agent_section(dossier: Dossier) -> list[str]:
             "circularity": "Kopie des Artikels",
             "source_standing": "Quelle ausgeschlossen",
             "schema": "unbrauchbare Antwort",
+            "section_provenance": "Abschnitt gibt es nicht",
+            "section_empty": "Abschnitt ohne Stichpunkte",
         }
         parts = [f"{labels.get(gate, gate)}: {count}" for gate, count in sorted(counts.items())]
         lines += ["Von den Prüfungen verworfen — " + " · ".join(parts), ""]

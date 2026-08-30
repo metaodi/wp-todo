@@ -113,11 +113,13 @@ SECTIONS_SCHEMA: dict[str, Any] = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "heading": {"type": "string"},
-                    "lang": {"type": "string"},
+                    "section": {
+                        "type": "integer",
+                        "description": "1-based number of the section, exactly as listed.",
+                    },
                     "bullets": {"type": "array", "items": {"type": "string"}},
                 },
-                "required": ["heading", "lang", "bullets"],
+                "required": ["section", "bullets"],
                 "additionalProperties": False,
             },
         }
@@ -144,7 +146,10 @@ SECTIONS_SYSTEM = (
     "Sprachversion geht - in wenigen Stichpunkten, damit eine Person "
     "entscheiden kann, ob sich das Übersetzen lohnt. Keine Wertung, kein "
     "Artikeltext, nur worüber der Abschnitt handelt. Ausschliesslich aus dem "
-    "vorgelegten Text, nie aus eigenem Wissen."
+    "vorgelegten Text, nie aus eigenem Wissen.\n\n"
+    "Wähle jeden Abschnitt über seine Nummer aus der vorgelegten Liste. Die "
+    "Überschrift schreibst du nicht ab - die Stichpunkte selbst gehören auf Deutsch, "
+    "und eine übersetzte Überschrift wäre nicht mehr wiederzuerkennen."
 )
 
 #: Characters of one document put in front of the model. The quote gate checks
@@ -177,6 +182,36 @@ class AgentOutcome:
     run: AgentRun | None = None
     calls: tuple[LlmCall, ...] = ()
     dropped: list[DroppedFinding] = field(default_factory=list)
+
+
+def failed_outcome(llm: LlmClient, exc: BaseException) -> AgentOutcome:
+    """What to report when the stage died partway through.
+
+    The deterministic dossier is finished by the time this stage starts, and it
+    cost real requests to Wikimedia. Throwing it away because an optional,
+    paid-for extra failed is the wrong trade - so the failure becomes a fact
+    the dossier states, not a reason to have nothing.
+
+    The calls made before the failure are kept: a transcript that stops mid-run
+    is exactly what somebody debugging the run needs to see.
+    """
+    log.warning("the research agent failed after %d call(s): %s", len(llm.calls), exc)
+    return AgentOutcome(
+        run=AgentRun(
+            model=llm.model,
+            effort=llm.effort,
+            calls=len(llm.calls),
+            cached_calls=sum(1 for call in llm.calls if call.cached),
+            budget=llm.budget.limit,
+            failed=_condense_error(exc),
+        ),
+        calls=tuple(llm.calls),
+    )
+
+
+def _condense_error(exc: BaseException) -> str:
+    """One readable line. The traceback is for the log, not for the dossier."""
+    return _WHITESPACE.sub(" ", f"{type(exc).__name__}: {exc}").strip()[:300]
 
 
 def run_agent(
@@ -257,7 +292,7 @@ def run_agent(
 
     # 3 - what the article does not have. Grounded in the other edition's own
     #     text, so the bullets point at something a person can go and read.
-    notes = _section_notes(deltas, foreign_texts, llm)
+    notes = _section_notes(deltas, foreign_texts, llm, dropped)
 
     run = AgentRun(
         model=llm.model,
@@ -292,7 +327,7 @@ def _agenda(claims: ArticleClaims, reference: dt.date, stale_after: int) -> list
     """
     worth: list[Claim] = []
     for claim in claims.claims:
-        if claim.kind in ("veraltet_template", "zukunft_template"):
+        if claim.kind in ("veraltet_template", "zukunft_template", "belege_fehlen"):
             # An editor has already said in the article that this is stale.
             # That is the strongest signal on the page; it goes first.
             worth.append(claim)
@@ -302,7 +337,10 @@ def _agenda(claims: ArticleClaims, reference: dt.date, stale_after: int) -> list
 
 
 def _agenda_rank(claim: Claim) -> int:
-    order = {"veraltet_template": 0, "zukunft_template": 0, "infobox_field": 1}
+    # `belege_fehlen` sorts last on purpose. It is a whole-article signal with
+    # no date, so it is the least specific question here; a dated infobox
+    # figure should get the budget first, and this one gets whatever is left.
+    order = {"veraltet_template": 0, "zukunft_template": 0, "infobox_field": 1, "belege_fehlen": 3}
     return order.get(claim.kind, 2)
 
 
@@ -333,10 +371,17 @@ def _reference_documents(
 
 
 def _ordered_references(claims: ArticleClaims, ledger: SourceLedger) -> list[str]:
+    """Every document the article points at, cited or merely linked.
+
+    `Weblinks` and `Literatur` are included because an article can cite forty
+    books, carry no fetchable reference at all, and still link the one document
+    worth reading. Standing still orders them, so a `Weblinks` entry on an
+    official host outranks a cited blog rather than being appended at the end.
+    """
     official = _official_website(claims)
     seen: set[str] = set()
     unique: list[str] = []
-    for url in claims.references.external_urls:
+    for url in (*claims.references.external_urls, *claims.references.linked_urls):
         if url not in seen:
             seen.add(url)
             unique.append(url)
@@ -447,6 +492,9 @@ def _excerpt(text: str) -> str:
 
 # ----------------------------------------------------------------- prompting
 def _claim_prompt(claims: ArticleClaims, claim: Claim, *, searched: bool) -> str:
+    if claim.kind == "belege_fehlen":
+        return _sourcing_prompt(claims, claim, searched=searched)
+
     where = claim.section or claim.field or "—"
     stand = f"Stand laut Artikel: {claim.as_of_year}" if claim.as_of_year else "Kein Stand angegeben"
     origin = (
@@ -462,6 +510,38 @@ def _claim_prompt(claims: ArticleClaims, claim: Claim, *, searched: bool) -> str
         f"{origin}\n"
         "Sagt eines der Dokumente etwas Neueres oder Abweichendes zu genau "
         "dieser Angabe? Wenn nicht: status = nothing_found."
+    )
+
+
+def _sourcing_prompt(claims: ArticleClaims, claim: Claim, *, searched: bool) -> str:
+    """A different question, because `{{Belege fehlen}}` is a different claim.
+
+    Every other claim asks "is this still true?". This one is the article
+    saying *nothing here is sourced*, and the useful answer is not a newer
+    value but a citable document - something an editor can put behind a
+    sentence that currently has nothing behind it. Asking the dated question
+    here would earn `nothing_found` every time, which is how a call gets spent
+    on a question nobody asked.
+
+    The gates do not soften for it: the quote must still be verbatim in the
+    document, the document must still be one we fetched, and a mirror of the
+    article is still dropped. All that changes is what is being asked.
+    """
+    origin = (
+        "Die Dokumente stammen aus einer Websuche."
+        if searched
+        else "Die Dokumente sind die Belege und Weblinks des Artikels."
+    )
+    return (
+        f"Artikel: {claims.title}\n"
+        f"Abschnitt: {claim.section or '—'}\n\n"
+        f"Wartungshinweis im Artikel:\n{claim.text}\n\n"
+        f"{origin}\n"
+        "Belegt eines der Dokumente eine konkrete, überprüfbare Aussage über "
+        "das Thema des Artikels - etwas, das sich als Einzelnachweis "
+        "verwenden liesse? Wenn ja: status = confirms_current, current_value = "
+        "die belegte Aussage, quote = wörtlich aus dem Dokument. Wenn keines "
+        "der Dokumente etwas Belegbares hergibt: status = nothing_found."
     )
 
 
@@ -494,9 +574,25 @@ def _discover(claims: ArticleClaims, unanswered: list[Claim], llm: LlmClient) ->
 
 
 def _section_notes(
-    deltas: tuple[Delta, ...], foreign_texts: dict[str, tuple[str, str]], llm: LlmClient
+    deltas: tuple[Delta, ...],
+    foreign_texts: dict[str, tuple[str, str]],
+    llm: LlmClient,
+    dropped: list[DroppedFinding],
 ) -> tuple[SectionNote, ...]:
-    """Bullet points for the sections this article does not have."""
+    """Bullet points for the sections this article does not have.
+
+    Provenance works by number here, exactly as it does for documents, and for
+    a reason paid for in a live run. It used to work by heading, compared with
+    string equality against the heading we asked about - and since every prompt
+    in this stage is in German, the model translated them. `Historical floods`
+    came back as `Historische Hochwasser`, missed the match, and *both*
+    summaries in the Küsnachter Dorfbach run were discarded without a word: the
+    dossier showed the bare English headings, the good bullets sat in the
+    transcript, and nothing anywhere said they had been thrown away.
+
+    A number cannot be translated. What the model can still get wrong - a
+    number that is not on the list - is reported rather than dropped quietly.
+    """
     gaps = [d for d in deltas if d.kind == "interwiki_section" and d.external_value]
     if not gaps or not foreign_texts:
         return ()
@@ -507,7 +603,7 @@ def _section_notes(
         wanted[lang] = [h.strip() for h in (delta.external_value or "").split(";") if h.strip()]
 
     context_parts: list[str] = []
-    known: set[tuple[str, str]] = set()
+    offered: list[tuple[str, str]] = []
     for lang, headings in sorted(wanted.items()):
         entry = foreign_texts.get(lang)
         if entry is None:
@@ -517,10 +613,10 @@ def _section_notes(
             body = _section_body(wikitext, heading)
             if not body:
                 continue
-            known.add((lang, heading))
-            context_parts += [f"### {lang} / {heading}", body[:2_000], ""]
+            offered.append((lang, heading))
+            context_parts += [f"### Abschnitt {len(offered)} - {lang}wiki: {heading}", body[:2_000], ""]
 
-    if not context_parts:
+    if not offered:
         return ()
 
     call = llm.ask(
@@ -531,7 +627,8 @@ def _section_notes(
         prompt=(
             "Fasse jeden Abschnitt in zwei bis vier Stichpunkten zusammen: "
             "worüber er handelt, welche Zahlen oder Ereignisse darin "
-            "vorkommen. Kein Fliesstext, keine Wertung."
+            "vorkommen. Kein Fliesstext, keine Wertung. Gib zu jedem "
+            "Abschnitt seine Nummer aus der Liste an."
         ),
         schema=SECTIONS_SCHEMA,
     )
@@ -542,15 +639,20 @@ def _section_notes(
     for raw in call.reply.get("sections", []) or []:
         if not isinstance(raw, dict):
             continue
-        lang = str(raw.get("lang", "")).strip()
-        heading = str(raw.get("heading", "")).strip()
-        # Provenance again: a section the model invented is not one we found.
-        if (lang, heading) not in known:
+        # Provenance again, by number: a section the model invented has no
+        # number, and one it renamed still carries the right one.
+        index = raw.get("section")
+        if not isinstance(index, int) or isinstance(index, bool) or not 1 <= index <= len(offered):
+            dropped.append(
+                DroppedFinding(gate="section_provenance", detail=f"Abschnitt {index!r} gibt es nicht")
+            )
             continue
-        entry = foreign_texts.get(lang)
+        lang, heading = offered[index - 1]
         bullets = tuple(str(b).strip() for b in raw.get("bullets", []) or [] if str(b).strip())
         if not bullets:
+            dropped.append(DroppedFinding(gate="section_empty", detail=f"{lang}wiki: {heading}"))
             continue
+        entry = foreign_texts.get(lang)
         notes.append(
             SectionNote(
                 heading=heading,

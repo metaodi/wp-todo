@@ -67,6 +67,14 @@ def render_transcript(dossier: Dossier, outcome: AgentOutcome) -> str:
             + (" · Websuche: ja" if run.searched else " · Websuche: nein"),
             "",
         ]
+        if run.failed:
+            lines += [
+                "> **Die Recherche ist abgebrochen.** Was unten steht, sind die Aufrufe,",
+                "> die vor dem Abbruch noch zustande kamen - nicht der vollständige Lauf.",
+                ">",
+                f"> `{run.failed}`",
+                "",
+            ]
         if run.budget_exhausted:
             lines += [
                 "> **Das Budget war aufgebraucht, bevor alle Angaben geprüft waren.**",
@@ -138,6 +146,8 @@ def _dropped_section(outcome: AgentOutcome) -> list[str]:
         "circularity": "Zirkelbezug: das Dokument ist eine Kopie des Artikels",
         "source_standing": "Quelle ausgeschlossen (von dir, früher)",
         "schema": "unbrauchbare Antwort",
+        "section_provenance": "Herkunft: den genannten Abschnitt gab es nicht",
+        "section_empty": "Abschnitt ohne verwertbare Stichpunkte",
     }
     lines += ["| Prüfung | Angabe | Detail | Dokument |", "| --- | --- | --- | --- |"]
     for drop in outcome.dropped:

@@ -121,7 +121,12 @@ class ReferenceSummary(Strict):
     with_year: int = 0
     newest_year: int | None = None
     oldest_year: int | None = None
+    #: URLs found inside `<ref>` bodies: what the article actually cites.
     external_urls: tuple[str, ...] = ()
+    #: URLs found under `Weblinks` and `Literatur` and cited nowhere. Readable
+    #: documents, but not sourcing - see `claims._linked_urls` for why the two
+    #: are not one field.
+    linked_urls: tuple[str, ...] = ()
 
 
 class ArticleClaims(Strict):
@@ -305,6 +310,11 @@ class AgentRun(Strict):
     dropped: tuple[DroppedFinding, ...] = ()
     #: Relative path of the committed transcript, so the dossier can link it.
     transcript: str = ""
+    #: Why the stage stopped early, when it stopped by failing rather than by
+    #: finishing. Empty on a healthy run. A dossier whose agent died has to say
+    #: so where the findings would have been: "nothing found" and "the stage
+    #: crashed before it could look" are not the same sentence.
+    failed: str = ""
 
 
 class Dossier(Strict):

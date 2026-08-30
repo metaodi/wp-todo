@@ -420,8 +420,8 @@ def test_a_section_the_agent_did_not_find_cannot_be_summarised(scope: ScopeConfi
     reply = {
         "json": {
             "sections": [
-                {"heading": "Economy", "lang": "en", "bullets": ["Zwei Betriebe", "Pendleranteil"]},
-                {"heading": "Erfundener Abschnitt", "lang": "en", "bullets": ["nichts davon"]},
+                {"section": 1, "bullets": ["Zwei Betriebe", "Pendleranteil"]},
+                {"section": 7, "bullets": ["nichts davon"]},
             ]
         },
         "urls": [],
@@ -441,6 +441,44 @@ def test_a_section_the_agent_did_not_find_cannot_be_summarised(scope: ScopeConfi
     assert headings == ["Economy"]
     assert outcome.section_notes[0].bullets == ("Zwei Betriebe", "Pendleranteil")
     assert outcome.section_notes[0].source.endswith("#Economy")
+    # And the invented one is reported, not quietly forgotten.
+    assert [drop.gate for drop in outcome.dropped] == ["section_provenance"]
+
+
+def test_a_translated_heading_does_not_lose_the_summary(scope: ScopeConfig, tmp_path: Path) -> None:
+    """The Küsnachter Dorfbach regression. Every prompt in this stage is in
+    German, so the model translated `Historical floods` to `Historische
+    Hochwasser`; matching on the heading dropped both summaries in silence and
+    left the dossier showing bare English headings. A number survives that."""
+    deltas = (
+        Delta(
+            kind="interwiki_section",
+            label="enwiki",
+            external_value="Historical floods",
+            source="https://en.wikipedia.org/wiki/Musterwil",
+            detail="1 Abschnitt(e) ohne Entsprechung hier",
+        ),
+    )
+    reply = {
+        "json": {"sections": [{"section": 1, "bullets": ["1778: 63 Todesopfer", "Danach begradigt"]}]},
+        "urls": [],
+        "input_tokens": 300,
+        "output_tokens": 90,
+    }
+    outcome = execute(
+        scope,
+        tmp_path,
+        [verdict(status="nothing_found"), reply],
+        deltas=deltas,
+        foreign_texts={"en": ("Musterwil", "== Historical floods ==\nIn 1778 a flood killed 63.\n")},
+        budget=2,
+    )
+
+    assert len(outcome.section_notes) == 1
+    note = outcome.section_notes[0]
+    assert note.heading == "Historical floods", "the heading comes from our list, not from the model"
+    assert note.bullets == ("1778: 63 Todesopfer", "Danach begradigt")
+    assert not outcome.dropped
 
 
 # ------------------------------------------------------------------- replay
@@ -607,3 +645,91 @@ def test_without_the_agent_nothing_extra_is_written(tmp_path: Path) -> None:
 
 def scope_for_writing() -> ScopeConfig:
     return load_scope(FIXTURES / "scope.toml")
+
+
+# ------------------------------------------- Weblinks, Literatur, and sourcing
+def sourcing_claims(*, linked: str = "https://beispiel-gemeinde.example/zahlen") -> ArticleClaims:
+    """`Sanatorium Kilchberg` in miniature: print references that cite no URL,
+    a `{{Belege fehlen}}` marker, and the one readable document under
+    `Weblinks`. Before this pair of fixes the agenda and the document list were
+    both empty and the stage made zero calls."""
+    return ArticleClaims(
+        pageid=2,
+        title="Musterwil",
+        sections=("Geschichte", "Weblinks"),
+        claims=(
+            Claim(
+                id="belege_fehlen-abc12345",
+                kind="belege_fehlen",
+                text="{{Belege fehlen}}: als unzureichend belegt markiert",
+                line_no=1,
+            ),
+        ),
+        references=ReferenceSummary(total=46, external_urls=(), linked_urls=(linked,)),
+    )
+
+
+def test_a_weblinks_document_is_read_even_when_no_reference_cites_a_url(
+    scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """Remove `linked_urls` from `_ordered_references` and this goes to zero
+    documents and zero calls - which is exactly what run #13 did."""
+    outcome = execute(scope, tmp_path, [verdict(status="confirms_current")], article_claims=sourcing_claims())
+
+    assert outcome.run is not None
+    assert outcome.run.documents == 1, "the Weblinks entry is a document like any other"
+    assert outcome.run.calls == 1, "and the sourcing claim is a question worth asking about it"
+    assert len(outcome.findings) == 1
+    assert outcome.findings[0].quote == QUOTE
+
+
+def test_the_sourcing_claim_is_asked_a_sourcing_question(scope: ScopeConfig, tmp_path: Path) -> None:
+    """Not "is this still true?" - the marker has no date to go stale. Asking
+    the dated question here earns `nothing_found` and wastes the call."""
+    outcome = execute(scope, tmp_path, [verdict(status="confirms_current")], article_claims=sourcing_claims())
+
+    prompt = outcome.calls[0].prompt
+    assert "Einzelnachweis verwenden" in prompt
+    assert "etwas Neueres" not in prompt
+
+
+def test_the_quote_gate_still_applies_to_a_sourcing_answer(scope: ScopeConfig, tmp_path: Path) -> None:
+    """A different question, not a softer one."""
+    outcome = execute(
+        scope,
+        tmp_path,
+        [verdict(status="confirms_current", quote="So steht das nirgends im Dokument.")],
+        article_claims=sourcing_claims(),
+        # One call only: a dropped answer leaves the claim unanswered, and with
+        # room to spare the stage would go on to the open web, which is a
+        # different behaviour than the one under test here.
+        budget=1,
+    )
+
+    assert not outcome.findings
+    assert [drop.gate for drop in outcome.dropped] == ["quote"]
+
+
+def test_a_dated_claim_is_asked_before_the_undated_sourcing_marker(
+    scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """`belege_fehlen` is the least specific question on the agenda, so it gets
+    whatever budget is left rather than the first call."""
+    both = claims().model_copy(
+        update={
+            "claims": (
+                *claims().claims,
+                Claim(
+                    id="belege_fehlen-abc12345",
+                    kind="belege_fehlen",
+                    text="{{Belege fehlen}}: als unzureichend belegt markiert",
+                    line_no=1,
+                ),
+            )
+        }
+    )
+    outcome = execute(scope, tmp_path, [verdict(), verdict()], article_claims=both, budget=1)
+
+    assert outcome.run is not None
+    assert outcome.run.calls == 1
+    assert outcome.calls[0].subject == "abc12345", "the dated infobox claim went first"
