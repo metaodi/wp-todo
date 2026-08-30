@@ -175,8 +175,18 @@ class ResearchConfig(Frozen):
     asked to be crawled, so it runs when somebody asks for it.
     """
 
-    #: Requests to hosts outside Wikimedia, per run.
-    max_fetches: int = Field(default=60, ge=0)
+    #: Requests to hosts outside Wikimedia, per run. Has to cover the link
+    #: check, its archive lookups *and* the agent's document fetches - see
+    #: `_check_fetches_fit`.
+    max_fetches: int = Field(default=150, ge=0)
+    #: Links whose reachability is checked, per article. 0 turns the check off,
+    #: which is the way to get back the Wikimedia-only run this command used to
+    #: be: with the check on, a plain `research` GETs every reference.
+    max_link_checks: int = Field(default=40, ge=0)
+    #: Ask the Internet Archive for a snapshot of the links that failed. Only
+    #: for those - a live link needs no archive copy, and it halves the
+    #: requests.
+    suggest_archives: bool = True
     #: Seconds between requests *to the same host*.
     delay_s: float = Field(default=2.0, ge=0.0)
     #: Its own, not `http.max_retries`: a cantonal website is not the action
@@ -252,6 +262,14 @@ class ResearchConfig(Frozen):
     stale_after_years: int = Field(default=2, ge=0, le=50)
 
     @property
+    def fetches_needed(self) -> int:
+        """Worst case requests to non-Wikimedia hosts for one article: every
+        link checked, every one of them archived-looked-up, and the agent's
+        own documents on top."""
+        archives = self.max_link_checks if self.suggest_archives else 0
+        return self.max_link_checks + archives + self.max_reference_docs + self.max_search_docs
+
+    @property
     def calls_needed(self) -> int:
         """What a full agenda costs: every claim asked of the references, the
         dated ones asked again of the web, one discovery call, one for the
@@ -263,6 +281,26 @@ class ResearchConfig(Frozen):
         allowed = ("low", "medium", "high", "xhigh", "max")
         if self.effort not in allowed:
             raise ValueError(f"research.effort must be one of {', '.join(allowed)}")
+        return self
+
+    @model_validator(mode="after")
+    def _check_fetches_fit(self) -> Self:
+        """The request ceiling has to be able to pay for what it authorises.
+
+        `RequestBudget` raises when it is hit, and the link check degrades
+        rather than propagating it - but a ceiling that cannot cover its own
+        settings means the agent stage reliably runs out of documents partway,
+        which is the same silent-shortfall trap `_check_budget_fits` exists to
+        close on the model side.
+        """
+        if self.max_fetches and self.max_fetches < self.fetches_needed:
+            raise ValueError(
+                f"research.max_fetches is {self.max_fetches}, but max_link_checks="
+                f"{self.max_link_checks}, max_reference_docs={self.max_reference_docs} and "
+                f"max_search_docs={self.max_search_docs} authorise up to "
+                f"{self.fetches_needed} requests. Raise max_fetches to {self.fetches_needed}, "
+                f"or lower the ceilings above it."
+            )
         return self
 
     @model_validator(mode="after")

@@ -152,6 +152,34 @@ source classification below:
 - **Belege dieses Artikels** — how many references, and how old. "The newest
   source on this page is from 2011" is often the most informative line in the
   file.
+- **Erreichbarkeit der Belege** — which of the article's links still resolve.
+  No model, no inference: an HTTP status is a fact. The verdict is deliberately
+  not a boolean, because a checker that is confidently wrong is worse than
+  none — an editor acting on a false "dead" replaces a working reference with
+  an archive copy, which is the damage bot-driven dead-link tagging has already
+  done on dewiki.
+
+  | verdict | means |
+  | --- | --- |
+  | `tot` | 404 or 410. The only one that says the document is gone. |
+  | `nicht erreichbar` | 5xx, a timeout, a refused connection. Not now — not "never". |
+  | `gesperrt` | 401/403/429: the host refused **us**. Says nothing about whether the page is there. |
+  | `umgeleitet` | 200, but it landed on another host or on the root. The quiet shape of a soft 404. |
+  | `nicht geprüft` | robots.txt, or the ceiling was reached. Not a verdict — we did not look. |
+  | `erreichbar` | it resolves. A fact about the URL, not about the content. |
+
+  A **soft 404 that answers 200 with a "Seite nicht gefunden" body is not
+  detected**, and the section says so inside itself. Dead and unreachable links
+  get a Wayback snapshot looked up — printed as a URL and a date to open, never
+  as a ready-to-paste `{{Webarchiv}}`, because the tool does not draft article
+  text. Links the article already archived are checked anyway and labelled, so
+  what is new work is visible at a glance.
+
+  It costs one GET per link — a GET, not a HEAD, because `webclient.py`
+  promises it is GET-only by construction and a verb is not worth trading that
+  for; the response is closed once the headers are in. `research.max_link_checks`
+  caps it (40), and **`0` turns it off**, which is how to get back a run that
+  asks nothing of anybody outside Wikimedia.
 
 Three things it deliberately does not do: draft article prose, post anywhere, or
 decide who is right. Wikidata is frequently the side that is out of date, and

@@ -19,6 +19,8 @@ source.
 - Compares the ones it can compare mechanically against Wikidata.
 - Reports which sections other language editions have that this one does not.
 - Summarises how old the article's own sourcing is.
+- Checks whether the article's own links still resolve, and looks up an
+  archived copy of the ones that do not.
 
 ## What the tool does not do
 
@@ -34,6 +36,30 @@ source.
   raises it, in their own words, having checked it.
 - **It does not decide who is right.** A Wikidata delta is a pair of values and
   two links. Wikidata is frequently the one that is out of date or wrong.
+
+## On the link check
+
+It reports six verdicts rather than dead/alive, and the reason is the same one
+that governs everything else here: **a tool that is confidently wrong costs
+more than a tool that says less.** A host that refuses our request tells us
+nothing about whether its page is still there, and an editor who replaces a
+live reference with an archive copy on the strength of that has made the
+article worse. So `gesperrt` is its own verdict and is never counted as dead,
+`nicht erreichbar` is not "gone", and `nicht geprüft` says plainly that nobody
+looked.
+
+Two limits are printed in the section, not buried here:
+
+- a soft 404 — HTTP 200 with an error page in the body — is **not** detected;
+  only the redirect-to-homepage shape is;
+- `erreichbar` is a fact about the URL. The page may have been rewritten since
+  it was cited, and the link check has no opinion about that.
+
+An archive snapshot is a **candidate**. It may itself have captured a soft 404,
+or predate what was cited. So the dossier gives its URL and its date and sends
+you to open it — and deliberately does not write the `{{Webarchiv}}` call,
+because a ready-to-paste template is exactly what invites pasting it unread.
+Rules 1 and 3 above apply to it like everything else.
 
 ## On the source list
 

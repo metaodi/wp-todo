@@ -140,6 +140,62 @@ class ArticleClaims(Strict):
     references: ReferenceSummary = Field(default_factory=ReferenceSummary)
 
 
+class LinkStatus(Strict):
+    """Whether one of the article's links still resolves, and how sure we are.
+
+    Deliberately not a boolean. A checker that reports "dead" for a host that
+    merely refused *us* causes real damage: an editor acting on it replaces a
+    working link with an archive copy. That is the failure mode dewiki has
+    already lived through with bot-driven dead-link tagging, which is why
+    `scope.toml` weights those maintenance categories near zero.
+
+    So `verdict` distinguishes "the document is gone" from "the host refused
+    us", from "not reachable right now", from "we did not look". Only `tot`
+    says the document is gone.
+    """
+
+    url: str
+    #: tot | gesperrt | nicht erreichbar | umgeleitet | erreichbar | nicht geprüft
+    verdict: str
+    #: The HTTP status, when there was one. None for a refusal or a timeout.
+    status: int | None = None
+    #: Set only when it differs materially from `url` - a redirect to a
+    #: different host, or one that dropped the path. The soft-404 shape.
+    final_url: str = ""
+    #: True for a URL inside a `<ref>`; False for one under Weblinks/Literatur.
+    #: The split matters here for the same reason it does in ReferenceSummary.
+    cited: bool = True
+    #: The article already carries an archive link or a dead-link marker for
+    #: this URL. Still checked - a marker can be stale and an archive link can
+    #: be wrong - but it is not new work for the editor.
+    archived_in_article: bool = False
+    #: A Wayback snapshot, when one was found. A *candidate*, never a verified
+    #: replacement: the snapshot may itself have captured a soft 404.
+    snapshot_url: str = ""
+    snapshot_date: str = ""
+    #: The reason, when the verdict alone does not carry it.
+    detail: str = ""
+
+
+class LinkSummary(Strict):
+    """Counts for the link check, and whether it got to finish.
+
+    `checked` versus `total` is the load-bearing pair: a short dead-link list
+    because the ceiling stopped the run is a different fact from a short list
+    because the links are fine.
+    """
+
+    total: int = 0
+    checked: int = 0
+    dead: int = 0
+    blocked: int = 0
+    unreachable: int = 0
+    redirected: int = 0
+    reachable: int = 0
+    #: True when the request ceiling stopped the check before it was done.
+    budget_exhausted: bool = False
+
+
 class Delta(Strict):
     """A comparison against an already-structured source.
 
@@ -397,6 +453,11 @@ class Dossier(Strict):
     reference_standing: tuple[SourceStanding, ...] = ()
     #: Set only when the research agent ran. `None` means it was not asked to,
     #: which must never render as "it looked and found nothing".
+    #: Reachability of the article's own links. Empty when the check was
+    #: turned off (`research.max_link_checks = 0`), which the renderer has to
+    #: tell apart from "checked and everything resolves".
+    links: tuple[LinkStatus, ...] = ()
+    link_summary: LinkSummary | None = None
     agent: AgentRun | None = None
     findings: tuple[Finding, ...] = ()
     section_notes: tuple[SectionNote, ...] = ()

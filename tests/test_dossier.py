@@ -587,3 +587,126 @@ def test_a_summary_the_budget_refused_is_said_out_loud(tmp_path: Path) -> None:
 
     assert "Economy" in markdown, "the heading is listed"
     assert "keine Zusammenfassung erstellt" in markdown, "and its missing summary is explained"
+
+
+# --------------------------------------------------------- reachability
+def with_links(**kwargs: Any) -> Dossier:
+    from wp_todo.models import ArticleClaims
+
+    return Dossier(
+        pageid=1,
+        title="Musterwil",
+        reference_date=dt.date(2026, 8, 1),
+        claims=ArticleClaims(pageid=1, title="Musterwil"),
+        **kwargs,
+    )
+
+
+def test_a_check_that_never_ran_renders_nothing_at_all(tmp_path: Path) -> None:
+    """The same distinction `wikidata_checked` draws: an absent section must
+    never be read as "checked, and everything resolves"."""
+    assert "Erreichbarkeit" not in render_markdown(with_links())
+
+
+def test_a_blocked_host_is_not_presented_to_the_reader_as_dead(tmp_path: Path) -> None:
+    """The rendering half of the rule the checker enforces. An editor skimming
+    this table must not come away thinking a 403 is a dead link."""
+    from wp_todo.models import LinkStatus, LinkSummary
+
+    markdown = render_markdown(
+        with_links(
+            link_summary=LinkSummary(total=1, checked=1, blocked=1),
+            links=(
+                LinkStatus(
+                    url="https://zeitung.example/x",
+                    verdict="gesperrt",
+                    status=403,
+                    detail="der Host hat die Anfrage abgelehnt, die Seite kann trotzdem existieren",
+                ),
+            ),
+        )
+    )
+
+    assert "**gesperrt**" in markdown
+    assert "0 tot" in markdown
+    assert "im Browser oft trotzdem da" in markdown, "the glossary spells out what it is not"
+
+
+def test_the_snapshot_is_offered_as_something_to_check_not_as_wikitext(tmp_path: Path) -> None:
+    """`docs/research-policy.md`: the tool does not draft article text. A
+    ready-to-paste {{Webarchiv}} is exactly what invites pasting it without
+    opening the snapshot first."""
+    from wp_todo.models import LinkStatus, LinkSummary
+
+    markdown = render_markdown(
+        with_links(
+            link_summary=LinkSummary(total=1, checked=1, dead=1),
+            links=(
+                LinkStatus(
+                    url="https://amt.example/weg",
+                    verdict="tot",
+                    status=404,
+                    snapshot_url="http://web.archive.org/web/20190302/https://amt.example/weg",
+                    snapshot_date="2019-03-02",
+                ),
+            ),
+        )
+    )
+
+    assert "2019-03-02" in markdown
+    assert "selbst prüfen" in markdown
+    assert "{{Webarchiv" not in markdown, "no article text is drafted, here or anywhere"
+
+
+def test_an_interrupted_check_says_so_rather_than_looking_complete(tmp_path: Path) -> None:
+    from wp_todo.models import LinkStatus, LinkSummary
+
+    markdown = render_markdown(
+        with_links(
+            link_summary=LinkSummary(total=9, checked=2, dead=1, budget_exhausted=True),
+            links=(
+                LinkStatus(url="https://amt.example/weg", verdict="tot", status=404),
+                LinkStatus(
+                    url="https://amt.example/spaeter",
+                    verdict="nicht geprüft",
+                    detail="das Anfrage-Budget war aufgebraucht",
+                ),
+            ),
+        )
+    )
+
+    assert "2 von 9 Link(s) geprüft" in markdown
+    assert "Anfrage-Budget war aufgebraucht" in markdown
+    assert "**kein** Hinweis" in markdown
+
+
+def test_the_section_says_which_dead_links_it_cannot_see(tmp_path: Path) -> None:
+    """A reader who believes the list is exhaustive trusts `erreichbar` further
+    than it has earned."""
+    from wp_todo.models import LinkStatus, LinkSummary
+
+    markdown = render_markdown(
+        with_links(
+            link_summary=LinkSummary(total=1, checked=1, reachable=1),
+            links=(LinkStatus(url="https://amt.example/ok", verdict="erreichbar", status=200),),
+        )
+    )
+
+    assert "wird **nicht** erkannt" in markdown, "the soft-404 blind spot is named"
+    assert "Alle geprüften Links lösen auf." in markdown
+
+
+def test_the_link_check_runs_in_the_real_pipeline(
+    corpus: FetchResult, scope: ScopeConfig, tmp_path: Path
+) -> None:
+    """End to end through `research_article`, with no model anywhere: the
+    reachability section is the part of a dossier that costs nothing and works
+    without `--agent`."""
+    built = build(corpus, scope, tmp_path)
+
+    assert built.link_summary is not None
+    assert built.link_summary.total == len(built.claims.references.external_urls) + len(
+        built.claims.references.linked_urls
+    )
+    assert built.link_summary.checked == built.link_summary.total
+    assert "## Erreichbarkeit der Belege" in render_markdown(built)

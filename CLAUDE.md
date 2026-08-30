@@ -46,6 +46,23 @@ checkable. The model never emits a URL and never sees a way to reach Wikipedia.
   unless `--refresh` is passed. Batched title queries are cached per title, so
   changing the scope does not invalidate whole batches.
 
+The link check is the one part of the research stage that reads non-Wikimedia
+hosts without a model being involved at all, and it reads *every* link the
+article carries rather than a handful. It is a GET like everything else here -
+`webclient.py` implements no other verb and that guarantee is not traded for a
+HEAD - closed once the headers are in. `research.max_link_checks` caps it and
+`0` turns it off, which is the way back to a run that asks nothing of anybody
+outside Wikimedia.
+
+What it concludes is deliberately narrower than what it observes. Only 404 and
+410 mean the document is gone; a host refusing *us* is `gesperrt` and is never
+counted as dead, because an editor who replaces a live reference with an
+archive copy on that basis has made the article worse. A soft 404 answering
+HTTP 200 is not detected, and the section says so inside itself rather than
+letting `erreichbar` be read as more than it is. An archive snapshot is a
+candidate with a date to open, never a `{{Webarchiv}}` call - writing the
+template would be drafting article text, which rule 1 forbids.
+
 Hosts outside Wikimedia never asked to be read by anybody's tool, so the
 research stage is stricter, not looser: `robots.txt` is consulted and honoured
 per host, hosts are paced independently, responses are size-capped and

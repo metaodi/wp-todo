@@ -15,7 +15,8 @@ from __future__ import annotations
 import json
 import re
 
-from .models import Delta, Dossier, Finding
+from .links import SEVERITY as SEVERITY_ORDER
+from .models import Delta, Dossier, Finding, LinkStatus
 
 HEADER_NOTICE = (
     "> **Dieses Werkzeug bearbeitet die Wikipedia nicht.** Alles hier ist ein *Hinweis*,\n"
@@ -91,6 +92,7 @@ def render_markdown(dossier: Dossier) -> str:
     lines += _interwiki_section(dossier)
     lines += _claims_section(dossier)
     lines += _references_section(dossier)
+    lines += _links_section(dossier)
     lines += _standing_section(dossier)
     lines += _excluded_section(dossier)
     lines += _agent_section(dossier)
@@ -253,6 +255,137 @@ def _references_section(dossier: Dossier) -> list[str]:
         parts.append(f"{len(refs.linked_urls)} unter Weblinks/Literatur")
     lines += [" · ".join(parts), ""]
     return lines
+
+
+#: Said inside the section, not only in the file header, for the same reason
+#: the findings notice is: this is the part that gets scrolled to, and a reader
+#: who believes the list is exhaustive will trust "erreichbar" further than it
+#: has earned.
+LINKS_NOTICE = (
+    "> **Was hier nicht steht.** Eine Seite, die mit HTTP 200 auf eine\n"
+    "> Fehlermeldung antwortet - «Seite nicht gefunden» im Text, aber alles in\n"
+    "> Ordnung im Statuscode - wird **nicht** erkannt; nur die Umleitung auf die\n"
+    "> Startseite. Und `erreichbar` sagt etwas über die URL, nicht über den\n"
+    "> Inhalt: die Seite kann längst umgeschrieben sein."
+)
+
+#: What each verdict means, in the order the reader needs it. `gesperrt` is the
+#: one that has to be spelled out: a host refusing us is the most common way a
+#: link checker earns a false "tot", and an editor who replaces a live link
+#: with an archive copy has made the article worse.
+VERDICT_NOTES = {
+    "tot": "Dokument ist weg (404/410)",
+    "nicht erreichbar": "gerade nicht erreichbar - nicht dasselbe wie weg",
+    "gesperrt": "der Host hat *uns* abgelehnt; im Browser oft trotzdem da",
+    "umgeleitet": "landet woanders - häufig die stille Form von «gibt es nicht mehr»",
+    "nicht geprüft": "nicht angesehen",
+    "erreichbar": "löst auf",
+}
+
+
+def _links_section(dossier: Dossier) -> list[str]:
+    """Which of the article's links still resolve.
+
+    Absent entirely when the check was turned off, which must never render as
+    "checked and everything is fine" - the same distinction `wikidata_checked`
+    and `interwiki_checked` already draw.
+    """
+    summary = dossier.link_summary
+    if summary is None:
+        return []
+
+    lines = ["## Erreichbarkeit der Belege", ""]
+    if not summary.total:
+        lines += ["_Der Artikel verlinkt nichts, was sich prüfen liesse._", ""]
+        return lines
+
+    lines += [
+        " · ".join(
+            [
+                f"{summary.checked} von {summary.total} Link(s) geprüft",
+                f"{summary.dead} tot",
+                f"{summary.unreachable} nicht erreichbar",
+                f"{summary.blocked} gesperrt",
+                f"{summary.redirected} umgeleitet",
+                f"{summary.reachable} erreichbar",
+            ]
+        ),
+        "",
+    ]
+    if summary.budget_exhausted:
+        lines += [
+            "_Das Anfrage-Budget war aufgebraucht, bevor alle Links geprüft waren. Die "
+            "übrigen stehen unten als `nicht geprüft` - das ist **kein** Hinweis darauf, "
+            "dass sie in Ordnung sind._",
+            "",
+        ]
+    lines += [LINKS_NOTICE, ""]
+
+    interesting = [link for link in dossier.links if link.verdict != "erreichbar"]
+    if not interesting:
+        lines += ["Alle geprüften Links lösen auf.", ""]
+        return lines
+
+    # The glossary goes here, once, rather than repeated down the Befund
+    # column. `gesperrt` is why it exists at all: a reader who takes it for
+    # "dead" replaces a working reference with an archive copy.
+    lines += ["Was die Befunde heissen:", ""]
+    lines += [
+        f"- **{verdict}** — {VERDICT_NOTES[verdict]}"
+        for verdict in SEVERITY_ORDER
+        if any(link.verdict == verdict for link in interesting)
+    ]
+    lines += [""]
+
+    lines += ["| Link | Befund | Archiv |", "| --- | --- | --- |"]
+    lines += [
+        f"| {_link_cell(link)} | {_verdict_cell(link)} | {_snapshot_cell(link)} |" for link in interesting
+    ]
+    lines.append("")
+    return lines
+
+
+def _link_cell(link: LinkStatus) -> str:
+    """The URL, and whether it is sourcing or a Weblinks entry.
+
+    A dead `<ref>` is an unsourced statement; a dead `Weblinks` entry is
+    untidy. The split `ReferenceSummary` already draws matters more here than
+    anywhere else.
+    """
+    where = "Beleg" if link.cited else "Weblink"
+    marker = " · _bereits archiviert_" if link.archived_in_article else ""
+    return f"<{link.url}> ({where}){marker}"
+
+
+def _verdict_cell(link: LinkStatus) -> str:
+    """The verdict and what is specific to *this* link.
+
+    Deliberately not carrying the glossary: that is printed once above the
+    table, and repeating it on every row buried the per-link detail, which is
+    the part a reader cannot get anywhere else.
+    """
+    parts = [f"**{link.verdict}**"]
+    if link.status is not None:
+        parts.append(f"HTTP {link.status}")
+    if link.detail:
+        parts.append(_escape(link.detail))
+    if link.final_url:
+        parts.append(f"→ <{link.final_url}>")
+    return " · ".join(parts)
+
+
+def _snapshot_cell(link: LinkStatus) -> str:
+    """A snapshot is a candidate, never a replacement.
+
+    No `{{Webarchiv}}` call is written here on purpose:
+    `docs/research-policy.md` says the tool does not draft article text, and a
+    ready-to-paste template is exactly what invites pasting it without opening
+    the snapshot first. URL and date; the editor writes the template.
+    """
+    if not link.snapshot_url:
+        return "—"
+    dated = f" ({link.snapshot_date})" if link.snapshot_date else ""
+    return f"[Schnappschuss]({link.snapshot_url}){dated} — selbst prüfen"
 
 
 def _standing_section(dossier: Dossier) -> list[str]:

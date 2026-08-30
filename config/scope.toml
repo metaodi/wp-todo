@@ -190,8 +190,15 @@ agent = "user"
 # absichtlich nicht Teil des wöchentlichen Laufs - er liest Hosts ausserhalb
 # von Wikimedia, die niemand darum gebeten hat.
 [research]
-# Anfragen an Hosts ausserhalb von Wikimedia, pro Lauf. Harte Grenze.
-max_fetches = 60
+# Anfragen an Hosts ausserhalb von Wikimedia, pro Lauf. Harte Grenze. Muss die
+# Linkprüfung, deren Archiv-Abfragen und die Dokumente des Agenten abdecken.
+max_fetches = 150
+# Belege und Weblinks, deren Erreichbarkeit geprüft wird. 0 schaltet die Prüfung
+# ab - und damit zurück auf einen Lauf, der nur Wikimedia anfragt.
+max_link_checks = 40
+# Zu toten Links einen Schnappschuss im Internet Archive suchen. Nur zu toten:
+# ein erreichbarer Link braucht keine Archivkopie.
+suggest_archives = true
 # Sekunden zwischen zwei Anfragen *an denselben Host*. Hosts werden getrennt
 # getaktet: die Höflichkeitspause bei einem ist kein Freibrief beim nächsten.
 delay_s = 2.0

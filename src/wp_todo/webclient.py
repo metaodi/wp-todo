@@ -66,6 +66,11 @@ JSON_TYPES = ("application/json", "application/sparql-results+json")
 #: involved and the frozen ALLOWED_ACTIONS allowlist is not implicated.
 WIKIDATA_REST = "https://www.wikidata.org/w/rest.php/wikibase/v1"
 
+#: The Internet Archive's availability API: one question about one URL, and
+#: the answer is a snapshot or nothing. Used only for links that failed the
+#: reachability check - a live link needs no archive copy.
+WAYBACK_AVAILABLE = "https://archive.org/wayback/available"
+
 #: Documented API endpoints, which robots.txt does not govern.
 #:
 #: Found the hard way: Wikimedia's robots.txt carries `Disallow: /w/`, aimed at
@@ -83,6 +88,11 @@ API_PREFIXES: tuple[str, ...] = (
     "https://www.wikidata.org/w/rest.php/",
     "https://www.wikidata.org/w/api.php",
     "https://wikimedia.org/api/rest_v1/",
+    # The Wayback availability API, on the same reasoning: a documented
+    # endpoint that answers one question about one URL, asked once per dead
+    # link. archive.org's robots.txt governs crawling the archive, which is
+    # not what this is.
+    WAYBACK_AVAILABLE,
 )
 
 _SCRIPT_STYLE = re.compile(r"<(script|style|noscript)\b.*?</\1>", re.IGNORECASE | re.DOTALL)
@@ -262,6 +272,107 @@ class WebClient:
             return None
         self.cache.put(key, document.to_cache())
         return document
+
+    def head_status(self, url: str) -> tuple[int | None, str, str]:
+        """Is this URL still there? Returns `(status, final_url, reason)`.
+
+        A **GET**, not a HEAD. This module's first line promises it is GET-only
+        by construction - "no other verb is implemented, so none can be called"
+        - which is the same kind of guarantee `ALLOWED_ACTIONS` gives on the
+        Wikimedia side. Adding a verb to save a few kilobytes would trade a
+        structural guarantee for an optimisation.
+
+        What it does instead is close the response once the headers are in,
+        without consuming the body, which is politer to the host than the full
+        fetch `fetch()` does.
+
+        Answers are reused rather than re-asked, in both directions: a document
+        already in the `WEB` cache is a completed check, and a recorded skip
+        replays its reason. Only a URL nothing knows about costs a request.
+        """
+        document = self.cache.get(cache_key("WEB", url, {}))
+        if document:
+            if "skipped" in document:
+                return None, "", str(document.get("skipped", ""))
+            self.stats.cache_hits += 1
+            return int(document.get("status", 200)), str(document.get("final_url", url)), ""
+
+        key = cache_key("LINK", url, {})
+        cached = self.cache.get(key)
+        if cached is not None:
+            self.stats.cache_hits += 1
+            status = cached.get("status")
+            return (
+                int(status) if isinstance(status, int) else None,
+                str(cached.get("final_url", "")),
+                str(cached.get("reason", "")),
+            )
+
+        if self.offline:
+            raise OfflineCacheMissError(f"no recorded link status for {url}")
+        if self.dry_run:
+            log.info("dry-run: would check %s", url)
+            return None, "", "dry run"
+        if self.respect_robots and not self._robots_allow(url):
+            log.info("robots.txt disallows %s", url)
+            answer = {"status": None, "final_url": "", "reason": "robots.txt verbietet den Abruf"}
+            self.cache.put(key, answer)
+            return None, "", str(answer["reason"])
+
+        answer = self._status_only(url)
+        self.cache.put(key, answer)
+        status = answer["status"]
+        return (
+            int(status) if isinstance(status, int) else None,
+            str(answer["final_url"]),
+            str(answer["reason"]),
+        )
+
+    def _status_only(self, url: str) -> dict[str, Any]:
+        """One paced, budgeted GET whose body is never read."""
+        if self._client is None:
+            raise RuntimeError("WebClient must be used as a context manager")
+
+        backoff = 1.0
+        for attempt in range(1, self.max_retries + 1):
+            self._budget.check(self.stats)
+            pacer = self._pacer_for(url)
+            pacer.wait(self.stats)
+            pacer.mark()
+            self.stats.requests += 1
+            log_progress(self.stats, self.progress_every)
+            try:
+                with self._client.stream("GET", url) as response:
+                    if response.status_code in (500, 502, 503, 504):
+                        log.info(
+                            "retriable %s from %s (%s/%s)",
+                            response.status_code,
+                            url,
+                            attempt,
+                            self.max_retries,
+                        )
+                        backoff = max(backoff, retry_after(response))
+                    else:
+                        # Closed here without iterating: the body is never
+                        # downloaded, which is the whole point of this path.
+                        return {
+                            "status": response.status_code,
+                            "final_url": str(response.url),
+                            "reason": "",
+                        }
+            except httpx.HTTPError as exc:
+                log.info("link check failed (%s/%s): %s", attempt, self.max_retries, exc)
+                backoff = max(backoff, 1.0)
+
+            if attempt < self.max_retries:
+                sleep_with_backoff(backoff, self.stats)
+                backoff *= 2
+
+        return {
+            "status": None,
+            "final_url": "",
+            "reason": f"nach {self.max_retries} Versuch(en) nicht erreichbar",
+        }
 
     def _skip(self, key: str, url: str, reason: str) -> None:
         self.skips[url] = reason

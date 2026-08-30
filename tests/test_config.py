@@ -141,3 +141,33 @@ def test_the_shipped_defaults_can_pay_for_their_own_agenda(tmp_path: Path) -> No
     path.write_text("pages = ['Musterwil']\n[meta]\ncontact = 'mail@beispiel.ch'\n", encoding="utf-8")
     research = load_scope(path).research
     assert research.max_llm_calls >= research.calls_needed
+
+
+def test_a_fetch_ceiling_that_cannot_pay_for_the_link_check_is_refused(tmp_path: Path) -> None:
+    """Same trap as the model budget, one layer out: a ceiling below what the
+    settings authorise does not mean "fetch less", it means the agent runs out
+    of documents partway through every article."""
+    path = tmp_path / "scope.toml"
+    path.write_text(
+        "pages = ['Musterwil']\n"
+        "[meta]\ncontact = 'mail@beispiel.ch'\n"
+        "[research]\nmax_fetches = 20\nmax_link_checks = 40\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValidationError) as raised:
+        load_scope(path)
+    assert "max_fetches" in str(raised.value)
+
+
+def test_turning_the_link_check_off_is_always_a_valid_config(tmp_path: Path) -> None:
+    """`max_link_checks = 0` is the way back to a Wikimedia-only run, so it
+    must never be blocked by the ceiling arithmetic."""
+    path = tmp_path / "scope.toml"
+    path.write_text(
+        "pages = ['Musterwil']\n"
+        "[meta]\ncontact = 'mail@beispiel.ch'\n"
+        "[research]\nmax_link_checks = 0\nmax_fetches = 20\n",
+        encoding="utf-8",
+    )
+    assert load_scope(path).research.max_link_checks == 0
