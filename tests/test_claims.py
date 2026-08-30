@@ -13,7 +13,7 @@ import pytest
 
 from wp_todo.claims import extract_claims
 from wp_todo.config import ScopeConfig, load_scope
-from wp_todo.models import Article
+from wp_todo.models import Article, Claim
 
 REFERENCE = dt.date(2026, 8, 1)
 
@@ -27,7 +27,7 @@ def article(wikitext: str) -> Article:
     return Article(pageid=42, title="Testort", scope_label="Test", wikitext=wikitext)
 
 
-def claims_for(wikitext: str, config: ScopeConfig) -> dict[str, object]:
+def claims_for(wikitext: str, config: ScopeConfig) -> dict[str, Claim]:
     result = extract_claims(article(wikitext), config, REFERENCE)
     return {claim.field or claim.kind: claim for claim in result.claims}
 
@@ -40,7 +40,7 @@ def test_wikilink_pipe_does_not_split_a_parameter(config: ScopeConfig) -> None:
         config,
     )
     claim = found["STADTPRÄSIDENT"]
-    assert claim.asserted_value == "Markus Bürgi ([[FDP.Die Liberalen|FDP]])"  # type: ignore[attr-defined]
+    assert claim.asserted_value == "Markus Bürgi ([[FDP.Die Liberalen|FDP]])"
 
 
 def test_nested_template_in_a_value_does_not_end_the_infobox(config: ScopeConfig) -> None:
@@ -77,7 +77,7 @@ def test_stand_parameter_supplies_the_as_of_year(config: ScopeConfig) -> None:
         "{{Infobox Ort in der Schweiz\n| EINWOHNER = 8500\n| STAND_EINWOHNER = 31. Dezember 2018\n}}\n",
         config,
     )
-    assert found["EINWOHNER"].as_of_year == 2018  # type: ignore[attr-defined]
+    assert found["EINWOHNER"].as_of_year == 2018
 
 
 def test_year_inside_the_value_is_used_when_there_is_no_stand_field(config: ScopeConfig) -> None:
@@ -85,7 +85,7 @@ def test_year_inside_the_value_is_used_when_there_is_no_stand_field(config: Scop
         "{{Infobox Unternehmen\n| UMSATZ = 4,2 Mio. CHF (2019)\n}}\n",
         config,
     )
-    assert found["UMSATZ"].as_of_year == 2019  # type: ignore[attr-defined]
+    assert found["UMSATZ"].as_of_year == 2019
 
 
 def test_article_without_an_infobox_is_not_an_error(config: ScopeConfig) -> None:
