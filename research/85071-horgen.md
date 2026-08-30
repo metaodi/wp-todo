@@ -16,15 +16,53 @@ Stand der Daten: 2026-08-30
 > das heisst, dass es dort steht, und sonst nichts. Ob es die Angabe im Artikel
 > wirklich überholt, weisst du erst, wenn du den Beleg selbst geöffnet hast.
 
+### FLÄCHE = 30.84
+
+*widerspricht dem Artikel · enwiki*
+
+- **Kein Beleg:** eine andere Sprachversion ist selbst Wikipedia. Verwertbar ist hier nicht die Zahl, sondern was enwiki dafür zitiert.
+- **Laut enwiki:** 30.75
+- **Fundstelle:** <https://en.wikipedia.org/wiki/Horgen> — andere Sprachversion dieses Artikels - kein Beleg, sondern ein Hinweis
+- **Zitat:** „\| area			= 30.75“
+
+### WEBSITE = www.horgen.ch
+
+*bestätigt den Artikel · enwiki*
+
+- **Kein Beleg:** eine andere Sprachversion ist selbst Wikipedia. Verwertbar ist hier nicht die Zahl, sondern was enwiki dafür zitiert.
+- **Nicht unabhängig:** dieselbe Zahl führt auch Wikidata - vermutlich von dort übernommen, also keine zweite Bestätigung.
+- **Laut enwiki:** www.horgen.ch
+- **Fundstelle:** <https://en.wikipedia.org/wiki/Horgen> — andere Sprachversion dieses Artikels - kein Beleg, sondern ein Hinweis
+- **Zitat:** „\| website		= www.horgen.ch“
+
+### GEMEINDEPRÄSIDENT = Beat Nüesch (FDP)
+
+*bestätigt den Artikel · enwiki*
+
+- **Kein Beleg:** eine andere Sprachversion ist selbst Wikipedia. Verwertbar ist hier nicht die Zahl, sondern was enwiki dafür zitiert.
+- **Laut enwiki:** Beat Nüesch (FDP) (Stand 2022)
+- **Fundstelle:** <https://en.wikipedia.org/wiki/Horgen> — andere Sprachversion dieses Artikels - kein Beleg, sondern ein Hinweis
+- **Zitat:** „\| mayor		= Beat Nüesch\|mayor_asof=2022\|mayor_party=FDP“
+
 ### Der [[Schwimmclub Horgen]], 30-facher [[Schweizer Meister (Wasserball)\|Schweizer Meister]] im [[Wasserball]] (Stand 2017),<ref>[https://www.schorgen.ch/ Website des Schwimmclubs Horgen.]</ref> spielt 
+
+*neuerer Wert · Beleg des Artikels*
+
+- **Kein Update:** nicht im Zitat belegt: 30, 2017
+- **Schluss des Modells (nicht im Zitat):** Der SC Horgen wurde 2026 erneut Schweizer Meister in der NLA – die Zahl «30-facher Schweizer Meister (Stand 2017)» ist damit überholt (mindestens ein weiterer Titel 2026); eine aktualisierte Gesamtzahl nennt das Dokument nicht. (Stand 2026)
+- **Beleg:** <https://www.schorgen.ch/> — nicht eingestuft · im Artikel bereits zitiert
+- **Zitat:** „NLA Schweizermeister 2026 – Die Durstrecke hat endlich ein Ende“
+
+### Ein grosser Teil von Horgen ist von Wald bedeckt und umfasst 39,6 % des Gemeindegebietes. Weitere 38,4 % werden landwirtschaftlich genutzt, 12,5 % für Siedlungen, 6,3 % für Verkehr, 1,5 % sind unprodu
 
 *neuerer Wert · Websuche*
 
-- **Laut Quelle:** Der SC Horgen hat 2026 erneut den NLA-Schweizermeistertitel gewonnen; die Zahl «30 Titel (Stand 2017)» ist damit überholt (mindestens 31 Titel), auch wenn die genaue Titelzahl im Dokument nicht genannt wird. (Stand 2026)
-- **Beleg:** <https://schorgen.ch/u12-sind-schweizer-meister-2025/> — nicht eingestuft
-- **Zitat:** „NLA Schweizermeister 2026 – Die Durstrecke hat endlich ein Ende 17. Juli 2026“
+- **Kein Update:** nicht im Zitat belegt: 2026
+- **Schluss des Modells (nicht im Zitat):** Fast 38 % des Gemeindegebiets sind bewaldet (über 1000 ha Wald, davon 127 ha Gemeindewald) (Stand 2026)
+- **Beleg:** <https://www.horgen.ch/ueber-horgen/verwaltung/bereiche/planung-und-bau/klima-und-umwelt.html/163> — nicht eingestuft · offizielle Website des Artikelgegenstands · im Artikel bereits zitiert
+- **Zitat:** „Fast 38 % des Horgner Gemeindegebietes sind bewaldet. Das sind über 1000 ha Wald. Davon sind 127 ha Gemeindewald.“
 
-_Nicht abschliessend geprüft (keine Quelle sagte etwas dazu): `marker_stand_year-eea48fc6`._
+_Nicht abschliessend geprüft (keine der gelesenen Quellen sagte etwas dazu): `infobox_field-7a8f2c5f`._
 
 ## Abweichungen gegenüber Wikidata
 
@@ -63,38 +101,38 @@ Sprachmodell aus dem dortigen Text, nicht aus eigenem Wissen, und deshalb
 ebenso ungeprüft wie alles andere Maschinelle hier:
 
 - **[19th and 20th Centuries](https://en.wikipedia.org/wiki/Horgen#19th_and_20th_Centuries)** (enwiki)
-  - Textile Heimindustrie und Fabrikproduktion: Baumwollspinnerei ca. 29 % der Bevölkerung 1787, 131 Musselinwebstühle, Jacquard-Betrieb von Johann Jakob Staub 1825
-  - Seidenindustrie («Klein-Lyon»): zehn Fabriken 1847, mechanische Weberei ab 1863, US-Konsularagentur 1878 (Konsulat 1882–1898), Zusammenbruch in der Zwischenkriegszeit
-  - Textilmaschinenbau, Interessengemeinschaft «Die 4 von Horgen» (1944); Bezirkshauptort seit 1831, Gemeindeparlament 1927–1938
-  - Verkehr und Infrastruktur: Seestrasse und Strasse nach Sihlbrugg 1846, Dampfschifffahrt ab 1835 und Landestelle Haab 1839, Aabach-Wasserwerkgesellschaft 1883 (32 Turbinen, 200 PS, Springbrunnen 1901), Bahnlinie 1875 mit Bahnhofrutschung, A3 ab 1966 mit Verlust von 12 ha Wald
+  - Textilheimarbeit und Industrialisierung: Baumwollspinnerei mit ca. 29 % der Bevölkerung 1787, 131 Musselinwebstühle, Jacquard-Betrieb von Johann Jakob Staub 1825
+  - Seidenindustrie («Klein-Lyon»): zehn Fabriken 1847, mechanische Weberei ab 1863, US-Konsularagentur 1878/Konsulat 1882–1898, Zusammenbruch in der Zwischenkriegszeit
+  - Textilmaschinenbau, Interessengruppe «Die 4 von Horgen» (1944); Bezirkshauptort seit 1831, Gemeindeparlament 1927–1938
+  - Verkehr und Infrastruktur: Seestrasse und Strasse nach Sihlbrugg 1846, Dampfschifffahrt ab 1835 und Schiffsteg Haab 1839, Aabach-Wasserwerk 1883 (32 Turbinen, 200 PS, Fontäne 1901), Bahnlinie 1875 mit Bahnhofrutschung, A3 ab 1966 mit Verlust von 12 ha Wald
 - **[Early Modern Era](https://en.wikipedia.org/wiki/Horgen#Early_Modern_Era)** (enwiki)
-  - Entstehung der Gemeinde Horgen aus Dorfgemeinschaften; Gemeindehaus mit Wirtshaus 1462, Ordnung 1466, Wachten als Untereinheiten, Kompetenzkonflikte (Richterwahl, Feuerpolizei vs. Feld- und Waldnutzung)
-  - Agrarsysteme: Dreifelderwirtschaft am See, Feldgraswirtschaft in Einzelhofgebieten; Beispiel Reite (Weide 1466, Ackerbau ab 1545, Rotten, Wechsel 3/7 Jahre, Pachtversteigerung ab 1911); Allmend Eggholz, 1923 an politische Gemeinde
-  - Wirtschaft und Gewerbe: Landgut Bocken 1681–1688 (Andreas Meyer), Marktrecht 1639, Ziegelei, Kalkofen Käpfnach (1400), Schmiede (vor 1452), Färberei (1591), Gerbereien
-  - Braunkohlevorkommen: Erstbeschreibung durch Johannes Stumpf 1548, verstärkter Abbau in Kriegszeiten, Einstellung 1947, Museum 1989
+  - Entstehung der Gemeinde Horgen aus Dorfgemeinschaften: Gemeindehaus mit Wirtshaus 1462, Wachten als Untereinheiten, Ordnung 1466, Kompetenzstreitigkeiten
+  - Landwirtschaftliche Nutzungsformen: Zelgen- vs. Feldgraswirtschaft, Beispiel der Allmend Reite (1466 Weide, ab 1545 Ackerbau, Rotten, ab 1911 Pachtversteigerung), Eggholz-Wald 1923 an die politische Gemeinde
+  - Gewerbe und Handel: Marktrecht 1639, Ziegelei, Kalkofen Käpfnach (1400), Schmiede (vor 1452), Färberei (1591), Gerbereien; Landsitz Bocken 1681–1688 durch Andreas Meyer
+  - Braunkohlevorkommen: Erstbeschreibung durch Johannes Stumpf 1548, Abbau in Kriegszeiten, Einstellung 1947, Museum 1989
 - **[Middle Ages](https://en.wikipedia.org/wiki/Horgen#Middle_Ages)** (enwiki)
-  - Mittelalterliche Rodung und Besiedlung vom Seeufer zum Albiswald; Fraumünster Zürich als Eigentümerin (Kaiserprivileg 952), Rodungsurkunde 1153, Meieramt 1369, Mühlen in Horgen-Dorf (1263) und Käpfnach (vor 1319)
-  - Horgen als Umschlagplatz an der Gotthardroute; Säumerweg nach Zug über Hirzel und Sihlbrugg, älteste Transportordnung 1452, Zollstätte 1528, Sust um 1558
-  - Vogtei Horgen-Maschwanden im 14. Jh. unter den Habsburgern, ab 1406 bis 1798 bei der Stadt Zürich
-  - Pfarrei Horgen (mit Hirzel bis 1620, Oberrieden bis 1760); Patronatsrechte 1345 an Johanniterkommende Klingnau, 1543 an Zürich; Kirchenumbauten und Abbruch 1780
+  - Mittelalterliche Rodung und Besiedlung des Albiswaldes; Fraumünster Zürich als Eigentümer (Reichsprivileg 952), Rodungsurkunde 1153, Meieramt 1369, Mühlen (1263, vor 1319)
+  - Horgen als Umschlagplatz an der Gotthardachse: Warenumschlag Schiff/Saumtier, Saumweg über Hirzel und Sihlbrugg, Transportordnung 1452, Zollstelle 1528, Sust um 1558
+  - Vogtei Horgen-Maschwanden: Habsburger, Sitz nach Erwerb durch Zürich 1406–1798
+  - Kirchgemeinde Horgen mit Hirzel (bis 1620) und Oberrieden (bis 1760); Patronatsrechte 1345 an Johanniter Klingnau, 1543 an Zürich; romanische Kirche 1780 abgebrochen
 - **[Prehistory](https://en.wikipedia.org/wiki/Horgen#Prehistory)** (enwiki)
-  - Ur- und frühgeschichtliche Fundstellen in Horgen; Ufersiedlung Horgen-Dampfschiffsteg/Bootshabe, entdeckt bei Kanalbaggerungen 1950, 1961, 1973 (Untersuchungen 1973, 1988)
-  - Vier Siedlungsschichten, Brandschicht, dendrochronologisch datiertes Haus 3713 v. Chr.; Keramik der mittleren und späten Pfyner Kultur; Funde: Kupferschmelztiegel, Feuerstein- und Steingeräte, Knochen-/Geweihgeräte, Holzobjekte, Rindenbehälter, Ocker
-  - Belegungsphase 2722–2695 v. Chr. (Schnurkeramik), bronzezeitliche Funde (Haken, konischer Becher)
-  - Horgen-Scheller als Typusfundstelle der Horgener Kultur (Begriff von Emil Vogt 1934); Beobachtungen ab 1914, Ausgrabungen 1987–1990; vier bis sieben Schichten, Schlagdaten 3051–3037 v. Chr., zwei benachbarte Siedlungen; Funde u. a. Holzkämme, Beil mit Griff, menschlicher Unterkiefer, Getreide- und Obstreste
+  - Archäologische Funde der Seeufersiedlung Horgen-Dampfschiffsteg/Bootshabe: Ausgrabungen 1950, 1961, 1973, 1988; vier Siedlungsschichten, Haus dendrochronologisch auf 3713 v. Chr. datiert
+  - Fundmaterial: Keramik der mittleren und späten Pfyner Kultur, Kupferschmelztiegel, Silex- und Steingeräte, Knochen-/Geweihgeräte, Holzobjekte, Rindenbehälter, Ocker
+  - Besiedlungsphase 2722–2695 v. Chr. (Schnurkeramik), bronzezeitliche Funde (Haken, konischer Becher)
+  - Station Horgen-Scheller als Typusfundort der Horgener Kultur (Benennung durch Emil Vogt 1934); Untersuchungen ab 1914, Ausgrabungen 1987–1990, Pfahlfelder mit Schlagdaten 3051–3037 v. Chr., zwei benachbarte Siedlungen
 - **[Reformed Church](https://en.wikipedia.org/wiki/Horgen#Reformed_Church)** (enwiki)
-  - Reformierte Kirche Horgen von Johann Jakob Haltiner, geweiht 1782, als Beispiel protestantischen Kirchenbaus (Querhaus als Hauptraum, kein Langhaus, Vorbild Wädenswil 1767)
-  - Bauform: querovaler Zentralraum auf Kreis von 17 m Durchmesser, Kreiskonstruktion des Grundrisses und der Raumhöhe, Übertragung in das Dach
-  - Ausstattung: Stuck von Andreas Moosbrugger, erste Glasmalereien 1865, zwei Freskenbilder neben der Kanzel 1874, erste Orgel 1884, heutige Orgel 1961
+  - Reformierte Kirche Horgen von Johann Jakob Haltiner, geweiht 1782, als Beispiel protestantischer Kirchenarchitektur (Querkirche ohne Langhaus, Vergleich Wädenswil 1767)
+  - Beschreibung der Bauform: querovaler Zentralraum, Kreis mit 17 m Durchmesser, Grundrisskonstruktion aus Kreisbögen, Raumhöhe und Dachform
+  - Ausstattung: Stuck von Andreas Moosbrugger, erste Glasmalereien 1865, Freskenmalereien 1874, Orgel 1884 bzw. 1961
 - **[Culture et patrimoine](https://fr.wikipedia.org/wiki/Horgen#Culture_et_patrimoine)** (frwiki)
-  - Reine Verweisliste zu Kultur und Erbe: Horgener Kultur, Schachturnier von Horgen
+  - Listenartige Aufzählung zu Kultur und Erbe: Horgener Kultur, Schachturnier von Horgen
 - **[Monuments et curiosités](https://fr.wikipedia.org/wiki/Horgen#Monuments_et_curiosités)** (frwiki)
-  - Aufzählung von Sehenswürdigkeiten: reformierte Kirche, Landgut Bocken, Pfarrhaus
+  - Liste von Sehenswürdigkeiten: reformierte Kirche, Landsitz Bocken, Pfarrhaus
 - **[Préhistoire](https://fr.wikipedia.org/wiki/Horgen#Préhistoire)** (frwiki)
-  - Kurzhinweis auf die Horgener Kultur, 3300–2800 v. Chr. in der Zentral- und Ostschweiz
+  - Kurzer Hinweis auf die Horgener Kultur, 3300–2800 v. Chr. in der Zentral- und Ostschweiz
   - Namensherkunft vom neolithischen Fundplatz Horgen-Scheller
 - **[Frazioni](https://it.wikipedia.org/wiki/Horgen#Frazioni)** (itwiki)
-  - Liste der Ortsteile/Fraktionen: Arn, Hirzel (mit Höchi, Kirche, Spitzen), Horgenberg, Horgen-Dorf
+  - Liste der Ortsteile: Arn, Hirzel (mit Höchi, Kirche, Spitzen), Horgenberg, Horgen-Dorf
 
 ## Angaben zum Prüfen
 
@@ -115,6 +153,48 @@ nicht falsch, nur ungeprüft.
 ## Belege dieses Artikels
 
 86 Einzelnachweis(e) · neuester datierter Beleg: 2025 · ältester: 1952 · 36 externe(r) Link(s) · 4 unter Weblinks/Literatur
+
+## Erreichbarkeit der Belege
+
+31 von 40 Link(s) geprüft · 8 tot · 0 nicht erreichbar · 0 gesperrt · 6 umgeleitet · 17 erreichbar
+
+> **Was hier nicht steht.** Eine Seite, die mit HTTP 200 auf eine
+> Fehlermeldung antwortet - «Seite nicht gefunden» im Text, aber alles in
+> Ordnung im Statuscode - wird **nicht** erkannt; nur die Umleitung auf die
+> Startseite. Und `erreichbar` sagt etwas über die URL, nicht über den
+> Inhalt: die Seite kann längst umgeschrieben sein.
+
+Was die Befunde heissen:
+
+- **tot** — Dokument ist weg (404/410)
+- **umgeleitet** — landet woanders - häufig die stille Form von «gibt es nicht mehr»
+- **nicht geprüft** — nicht angesehen
+
+| Link | Befund | Archiv |
+| --- | --- | --- |
+| <https://www.horgen.ch/_docn/1216849/Horgner_Jahrheft_1991.pdf> (Beleg) | **tot** · HTTP 404 | [Schnappschuss](http://web.archive.org/web/20241007111039/https://www.horgen.ch/_docn/1216849/Horgner_Jahrheft_1991.pdf) (2024-10-07) — selbst prüfen |
+| <https://www.horgen.ch/_docn/4921030/24_01_08_Bericht_Horgen-Hirzel_Fusions-Check_t1_final_2023.pdf> (Beleg) | **tot** · HTTP 404 | [Schnappschuss](http://web.archive.org/web/20241219160351/https://www.horgen.ch/_docn/4921030/24_01_08_Bericht_Horgen-Hirzel_Fusions-Check_t1_final_2023.pdf) (2024-12-19) — selbst prüfen |
+| <https://www.horgen.ch/de/politikverwaltung/politik/abstimmungenwahlen/vorlagen/?action=showobject&object_id=153744> (Beleg) | **tot** · HTTP 404 | [Schnappschuss](http://web.archive.org/web/20171228000052/http://www.horgen.ch/de/politikverwaltung/politik/abstimmungenwahlen/vorlagen/?action=showobject&object_id=153744) (2017-12-28) — selbst prüfen |
+| <https://www.horgen.ch/gemeinderat/3483#willkommen> (Beleg) | **tot** · HTTP 404 | — |
+| <https://www.horgen.ch/geschichte/8177> (Beleg) | **tot** · HTTP 404 | [Schnappschuss](http://web.archive.org/web/20241227141459/https://www.horgen.ch/geschichte/8177) (2024-12-27) — selbst prüfen |
+| <https://www.horgen.ch/horgeninzahlen#willkommen> (Beleg) | **tot** · HTTP 404 | [Schnappschuss](http://web.archive.org/web/20250418131050/https://www.horgen.ch/horgeninzahlen) (2025-04-18) — selbst prüfen |
+| <https://www.stadt-zuerich.ch/ted/de/index/departement/medien/medienmitteilungen/2011/mai/110504a.html> (Beleg) | **tot** · HTTP 404 | — |
+| <https://www.stadt-zuerich.ch/ted/de/index/gsz/natur-erleben/wildnispark-zuerich.html> (Beleg) | **tot** · HTTP 404 | [Schnappschuss](http://web.archive.org/web/20231101073852/https://www.stadt-zuerich.ch/ted/de/index/gsz/natur-erleben/wildnispark-zuerich.html) (2023-11-01) — selbst prüfen |
+| <http://www.ecg-horgen.ch/> (Beleg) | **umgeleitet** · HTTP 200 · landet auf einem anderen Host: www.equippers.ch · → <https://www.equippers.ch/horgen> | — |
+| <https://search.ortsnamen.ch/de/record/7026951> (Beleg) | **umgeleitet** · HTTP 200 · landet auf einem anderen Host: ortsnamen.ch · → <https://ortsnamen.ch/de/record/7026951> | — |
+| <https://search.ortsnamen.ch/de?query=gemeinde%3Ahorgen%20deutung%3A%2a> (Beleg) | **umgeleitet** · HTTP 200 · landet auf einem anderen Host: ortsnamen.ch · → <https://ortsnamen.ch/de?query=gemeinde%3Ahorgen%20deutung%3A%2a> | — |
+| <https://www.zsz.ch/horgen/das-seespital-erstellt-einen-50-millionenneubau/story/30068188> (Beleg) | **umgeleitet** · HTTP 200 · landet auf einem anderen Host: www.tagesanzeiger.ch · → <https://www.tagesanzeiger.ch/zuerichsee> | — |
+| <http://www.justizvollzug.zh.ch/docloader.php?id_pdf=64> (Beleg) · _bereits archiviert_ | **umgeleitet** · HTTP 200 · landet auf einem anderen Host: www.zh.ch · → <https://www.zh.ch/de/direktion-der-justiz-und-des-innern/justizvollzug-wiedereingliederung.html?id_pdf=64> | — |
+| <https://search.ortsnamen.ch/de/record/802000133> (Beleg) · _bereits archiviert_ | **umgeleitet** · HTTP 200 · landet auf einem anderen Host: ortsnamen.ch · → <https://ortsnamen.ch/de/record/802000133> | — |
+| <https://www.recherche.bar.admin.ch/recherche/#/de/archiv/einheit/3459083> (Beleg) | **nicht geprüft** · robots.txt verbietet den Abruf | — |
+| <https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=107,380&bfs=295> (Beleg) | **nicht geprüft** · robots.txt verbietet den Abruf | — |
+| <https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=204,205&bfs=295> (Beleg) | **nicht geprüft** · robots.txt verbietet den Abruf | — |
+| <https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=405,406,408&bfs=295> (Beleg) | **nicht geprüft** · robots.txt verbietet den Abruf | — |
+| <https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=81,83,85,87,89,91,94,95,809&bfs=295> (Beleg) | **nicht geprüft** · robots.txt verbietet den Abruf | — |
+| <https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=99,206&bfs=295> (Beleg) | **nicht geprüft** · robots.txt verbietet den Abruf | — |
+| <https://www.e-periodica.ch/digbib/view?pid=zut-001%3A1932%3A52#16> (Weblink) | **nicht geprüft** · robots.txt verbietet den Abruf | — |
+| <https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=&bfs=295> (Weblink) | **nicht geprüft** · robots.txt verbietet den Abruf | — |
+| <http://www.web.statistik.zh.ch/cms_siedlungsverzeichnis/> (Beleg) · _bereits archiviert_ | **nicht geprüft** · robots.txt verbietet den Abruf | — |
 
 ## Einstufung der zitierten Quellen
 
@@ -147,8 +227,10 @@ Domain auf keiner Liste steht - nicht, dass mit ihr etwas nicht stimmt.
 
 ## Recherche-Metadaten
 
-Modell `claude-opus-5`, Effort `medium` · 6 Aufruf(e) (davon 0 aus dem Cache) von höchstens 10
+Modell `claude-opus-5`, Effort `medium` · 9 Aufruf(e) (davon 0 aus dem Cache) von höchstens 16
 
-10 Dokument(e) gelesen, 5 davon Belege des Artikels selbst, danach Websuche
+12 Dokument(e) gelesen, 7 davon Belege des Artikels selbst, danach Websuche
+
+Von den Prüfungen verworfen — Dokument nicht lesbar: 5
 
 [Vollständiges Protokoll](85071-horgen.transcript.md)
