@@ -488,3 +488,102 @@ def test_an_unusable_agent_still_stops_the_run(
     anything else, and keeps its clean exit rather than becoming a footnote."""
     with pytest.raises(LlmUnavailableError):
         build(corpus, scope, tmp_path, llm=broken(tmp_path, LlmUnavailableError("no credentials")))
+
+
+# ------------------------------------------------- what the dossier says it did
+def briefing(**agent: Any) -> Dossier:
+    """A dossier carrying only what the agent reported, for the rendering."""
+    from wp_todo.models import AgentRun, ArticleClaims
+
+    return Dossier(
+        pageid=1,
+        title="Musterwil",
+        reference_date=dt.date(2026, 8, 1),
+        claims=ArticleClaims(pageid=1, title="Musterwil"),
+        agent=AgentRun(model="claude-opus-5", effort="medium", **agent),
+    )
+
+
+def test_each_reason_a_claim_went_unreported_gets_its_own_line(tmp_path: Path) -> None:
+    """Three different facts used to print as one sentence, and for a claim
+    whose answer a gate refused that sentence was the opposite of the truth."""
+    from wp_todo.models import ClaimOutcome
+
+    markdown = render_markdown(
+        briefing(
+            outcomes=(
+                ClaimOutcome(claim_id="a1", outcome="nothing_found", phase="web"),
+                ClaimOutcome(claim_id="b2", outcome="dropped", phase="reference"),
+                ClaimOutcome(claim_id="c3", outcome="budget"),
+            ),
+            budget_exhausted=True,
+        )
+    )
+
+    assert "keine der gelesenen Quellen sagte etwas dazu): `a1`" in markdown
+    assert "von den Prüfungen verworfen" in markdown and "`b2`" in markdown
+    assert "Budget war aufgebraucht): `c3`" in markdown
+    # And the refused answer is not swept in with the honest "nothing found".
+    nothing = next(line for line in markdown.splitlines() if "keine der gelesenen" in line)
+    assert "b2" not in nothing
+
+
+def test_an_older_dossier_still_renders_its_coarser_sentence(tmp_path: Path) -> None:
+    """`outcomes` did not exist when the committed dossiers were written. The
+    old sentence is the only honest thing left to say about them."""
+    markdown = render_markdown(briefing(unexamined=("a1",), budget_exhausted=False))
+    assert "keine Quelle sagte etwas dazu): `a1`" in markdown
+
+
+def test_laut_quelle_is_only_written_when_the_quote_carries_the_figure(tmp_path: Path) -> None:
+    """The Horgen case: "mindestens 31 Titel" printed under a quote that
+    contained no number at all."""
+    from wp_todo.models import AgentRun, ArticleClaims, Finding
+
+    def rendered(*, supports: bool) -> str:
+        return render_markdown(
+            Dossier(
+                pageid=1,
+                title="Musterwil",
+                reference_date=dt.date(2026, 8, 1),
+                claims=ArticleClaims(pageid=1, title="Musterwil"),
+                agent=AgentRun(model="claude-opus-5", effort="medium"),
+                findings=(
+                    Finding(
+                        claim_id="a1",
+                        claim_text="30-facher Meister",
+                        status="supersedes_with_newer_value",
+                        current_value="mindestens 31 Titel",
+                        quote="Die Durststrecke hat ein Ende",
+                        url="https://example.org/x",
+                        quote_supports_value=supports,
+                    ),
+                ),
+            )
+        )
+
+    assert "**Laut Quelle:**" in rendered(supports=True)
+    grounded = rendered(supports=False)
+    assert "**Laut Quelle:**" not in grounded
+    assert "Schluss des Modells (nicht im Zitat)" in grounded
+
+
+def test_a_summary_the_budget_refused_is_said_out_loud(tmp_path: Path) -> None:
+    """The headings are still listed above it, so silence there reads as
+    "nothing worth saying about them"."""
+    from wp_todo.models import Delta
+
+    gap = Delta(
+        kind="interwiki_section",
+        label="enwiki",
+        external_value="Economy",
+        source="https://en.wikipedia.org/wiki/Musterwil",
+        detail="1 Abschnitt(e) ohne Entsprechung hier",
+    )
+    listed = briefing(sections_skipped=True, budget_exhausted=True).model_copy(
+        update={"deltas": (gap,), "interwiki_checked": True, "compared_languages": ("en",)}
+    )
+    markdown = render_markdown(listed)
+
+    assert "Economy" in markdown, "the heading is listed"
+    assert "keine Zusammenfassung erstellt" in markdown, "and its missing summary is explained"

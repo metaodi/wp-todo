@@ -110,3 +110,34 @@ def test_unknown_research_key_is_rejected(tmp_path: Path) -> None:
     )
     with pytest.raises(ValidationError):
         load_scope(path)
+
+
+def test_a_call_budget_below_its_own_claim_ceilings_is_refused(tmp_path: Path) -> None:
+    """Two ceilings that cannot both be honoured is a trap, not a policy.
+
+    At the shipped defaults it was one: max_llm_calls was 10 against ceilings
+    authorising 12, so the section summaries - one call, and the most
+    substantial part of the committed dossiers - were structurally the first
+    thing starved, and nothing said so.
+    """
+    path = tmp_path / "scope.toml"
+    path.write_text(
+        "pages = ['Musterwil']\n"
+        "[meta]\ncontact = 'mail@beispiel.ch'\n"
+        "[research]\nmax_llm_calls = 4\nmax_claims = 5\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValidationError) as raised:
+        load_scope(path)
+    message = str(raised.value)
+    assert "max_llm_calls" in message
+    assert "15" in message, "the error names the number to raise it to"
+
+
+def test_the_shipped_defaults_can_pay_for_their_own_agenda(tmp_path: Path) -> None:
+    """The regression guard for the arithmetic above."""
+    path = tmp_path / "scope.toml"
+    path.write_text("pages = ['Musterwil']\n[meta]\ncontact = 'mail@beispiel.ch'\n", encoding="utf-8")
+    research = load_scope(path).research
+    assert research.max_llm_calls >= research.calls_needed

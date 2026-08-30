@@ -266,3 +266,134 @@ class TestExtractText:
         raw = "<nav>Startseite</nav><p>Die Zahl betrug 9240.</p>"
         assert "Startseite" in extract_text(raw)
         assert "Die Zahl betrug 9240." in extract_text(raw)
+
+
+# --------------------------------------------------------------------- PDF
+def minimal_pdf(text: str) -> bytes:
+    """A real, valid PDF with one text-bearing page.
+
+    Built by hand rather than mocked: the point of the test is that the
+    shipping extractor reads a genuine file, and a fixture that is not really
+    a PDF would prove nothing about that.
+    """
+    stream = f"BT /F1 12 Tf 10 100 Td ({text}) Tj ET".encode("latin-1")
+    objects = [
+        b"<</Type/Catalog/Pages 2 0 R>>",
+        b"<</Type/Pages/Kids[3 0 R]/Count 1>>",
+        b"<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 300]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>",
+        b"<</Length %d>>stream\n" % len(stream) + stream + b"\nendstream",
+        b"<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>",
+    ]
+    out = bytearray(b"%PDF-1.4\n")
+    offsets: list[int] = []
+    for number, body in enumerate(objects, start=1):
+        offsets.append(len(out))
+        out += b"%d 0 obj\n" % number + body + b"\nendobj\n"
+    start = len(out)
+    out += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objects) + 1)
+    for offset in offsets:
+        out += b"%010d 00000 n \n" % offset
+    out += b"trailer\n<</Size %d/Root 1 0 R>>\nstartxref\n%d\n%%%%EOF\n" % (len(objects) + 1, start)
+    return bytes(out)
+
+
+def test_a_pdf_reference_is_read_rather_than_skipped(meta: MetaConfig, tmp_path: Path) -> None:
+    """The largest recall hole this scope had: the statistical offices publish
+    PDF, and the reference behind a dated figure was fetched, filtered out on
+    its content type, and never mentioned."""
+    body = minimal_pdf("Wohnbevoelkerung 9240 Personen")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=body, headers={"Content-Type": "application/pdf"})
+
+    with make_client(meta, tmp_path, handler, respect_robots=False) as client:
+        document = client.fetch("https://statistik.example/zahlen.pdf")
+
+    assert document is not None, "a PDF reference must not be silently skipped"
+    assert "Wohnbevoelkerung 9240 Personen" in document.text
+    assert document.content_type == "application/pdf"
+
+
+def test_the_extracted_pdf_text_is_what_a_replay_gets(meta: MetaConfig, tmp_path: Path) -> None:
+    """The quote gate checks against the stored text, so the extraction is
+    cached rather than recomputed - if it could drift between runs the check
+    would be worth nothing."""
+    body = minimal_pdf("Wohnbevoelkerung 9240 Personen")
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(str(request.url))
+        return httpx.Response(200, content=body, headers={"Content-Type": "application/pdf"})
+
+    cache = ResponseCache(tmp_path / "web")
+    for _ in range(2):
+        with WebClient(
+            meta=meta,
+            cache=cache,
+            delay_s=0.0,
+            respect_robots=False,
+            transport=httpx.MockTransport(handler),
+            reference_date=REFERENCE,
+        ) as client:
+            document = client.fetch("https://statistik.example/zahlen.pdf")
+            assert document is not None
+            assert "9240" in document.text
+
+    assert len(calls) == 1, "the second run replayed the stored extraction"
+
+
+def test_a_pdf_with_no_text_layer_says_which_problem_it_is(meta: MetaConfig, tmp_path: Path) -> None:
+    """ "No text in the PDF" sends a reader to the document; "we cannot read
+    PDF" sends them to the install instructions. Not the same message."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200, content=b"%PDF-1.4\nnot really a pdf", headers={"Content-Type": "application/pdf"}
+        )
+
+    url = "https://statistik.example/scan.pdf"
+    with make_client(meta, tmp_path, handler, respect_robots=False) as client:
+        assert client.fetch(url) is None
+        assert "PDF" in client.skips[url]
+
+
+# ------------------------------------------------------------ skips, reported
+def test_the_reason_a_url_was_skipped_is_kept(meta: MetaConfig, tmp_path: Path) -> None:
+    """A skip is a normal outcome. A silent one is not: the dossier reports
+    every document it could not read, and this is where it learns why."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("weg"):
+            return httpx.Response(404)
+        return html_response("<p>ein Bild</p>", "image/png")
+
+    with make_client(meta, tmp_path, handler, respect_robots=False) as client:
+        assert client.fetch("https://example.org/weg") is None
+        assert client.fetch("https://example.org/bild") is None
+
+    assert client.skips["https://example.org/weg"] == "HTTP 404"
+    assert "image/png" in client.skips["https://example.org/bild"]
+
+
+def test_a_replayed_skip_still_says_why(meta: MetaConfig, tmp_path: Path) -> None:
+    """A dossier built from the cache has to say the same thing as the run that
+    paid for it."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404)
+
+    cache = ResponseCache(tmp_path / "web")
+    url = "https://example.org/weg"
+    with make_client(meta, tmp_path, handler, respect_robots=False) as client:
+        assert client.fetch(url) is None
+
+    with WebClient(
+        meta=meta,
+        cache=cache,
+        delay_s=0.0,
+        respect_robots=False,
+        offline=True,
+        reference_date=REFERENCE,
+    ) as replay:
+        assert replay.fetch(url) is None
+        assert replay.skips[url] == "HTTP 404"
