@@ -4,7 +4,11 @@
 # See docs/api-notes.md.
 
 # Titles always checked, whatever the geographic or category scope says.
-pages = []
+pages = [
+    "Museum Thalwil",
+    "Grüne Schweiz",
+    "Open Data",
+]
 
 # ----------------------------------------------------------------- politeness
 # Requests are serialised, one at a time, so delay_s is the hard ceiling on our
