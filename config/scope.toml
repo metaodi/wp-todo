@@ -96,7 +96,7 @@ radius_m = 7000
 [[geo]]
 label = "Richterswil"
 lat = 47.2080
-lon  8.7058
+lon = 8.7058
 radius_m = 5000
 
 [[geo]]
