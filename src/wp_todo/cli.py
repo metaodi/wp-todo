@@ -71,6 +71,7 @@ def _web_client(scope: ScopeConfig, cache: ResponseCache, dry_run: bool, referen
         cache=cache,
         dry_run=dry_run,
         delay_s=scope.research.delay_s,
+        max_retries=scope.research.max_retries,
         timeout_s=scope.research.timeout_s,
         max_requests=scope.research.max_fetches,
         max_bytes=scope.research.max_doc_bytes,

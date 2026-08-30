@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import datetime as dt
 import html
+import io
 import json
 import logging
 import re
@@ -51,7 +52,14 @@ log = logging.getLogger(__name__)
 
 #: Content types worth extracting text from. Anything else is recorded as
 #: skipped rather than fetched, so the dossier can say why a source is absent.
-TEXT_TYPES = ("text/html", "text/plain", "application/xhtml+xml")
+#:
+#: PDF is here because leaving it out was the largest recall hole in the
+#: research stage: the cantonal and federal statistical offices this scope
+#: leans on publish PDF, and the one reference behind Horgen's ARBEITSLOSE
+#: figure - exactly the kind of dated claim the agenda targets - was fetched,
+#: filtered out on its content type, cached as a skip, and never mentioned.
+PDF_TYPE = "application/pdf"
+TEXT_TYPES = ("text/html", "text/plain", "application/xhtml+xml", PDF_TYPE)
 JSON_TYPES = ("application/json", "application/sparql-results+json")
 
 #: Wikibase's REST read API. Not the action API, so no `action` parameter is
@@ -325,8 +333,14 @@ class WebClient:
                 truncated = True
                 break
 
-        raw = bytes(body[: self.max_bytes]).decode(response.encoding or "utf-8", errors="replace")
-        text = extract_text(raw) if content_type.startswith(TEXT_TYPES) else raw
+        payload = bytes(body[: self.max_bytes])
+        if content_type.startswith(PDF_TYPE):
+            text, reason = extract_pdf_text(payload)
+            if not text:
+                return None, reason
+        else:
+            raw = payload.decode(response.encoding or "utf-8", errors="replace")
+            text = extract_text(raw) if content_type.startswith(TEXT_TYPES) else raw
         return (
             Document(
                 url=url,
@@ -386,6 +400,40 @@ class WebClient:
         parser = RobotFileParser()
         parser.parse(text.splitlines())
         return parser
+
+
+def extract_pdf_text(payload: bytes) -> tuple[str, str]:
+    """A PDF's text, or an empty string and the reason there is none.
+
+    Every guarantee the rest of this module makes is unchanged by this: the
+    bytes were fetched with GET, after robots.txt, under the size cap, and the
+    extracted text is stored in the cache exactly as an HTML rendition is - so
+    the quote gate checks a quote against a PDF the same way it checks one
+    against a page.
+
+    A malformed, encrypted or image-only PDF is a skip with a reason, never an
+    exception. `pypdf` is an optional dependency for the same reason
+    `anthropic` is: the worklist does not need it.
+    """
+    try:
+        from pypdf import PdfReader
+    except ImportError:  # pragma: no cover - exercised by operators, not CI
+        return "", "PDF nicht lesbar: `uv sync --extra pdf`"
+
+    try:
+        reader = PdfReader(io.BytesIO(payload))
+        pages = [page.extract_text() or "" for page in reader.pages]
+    except Exception as exc:  # pypdf raises a wide family on malformed input
+        log.info("unreadable PDF: %s", exc)
+        return "", f"PDF nicht lesbar ({type(exc).__name__})"
+
+    text = _BLANK_RUN.sub("\n\n", "\n\n".join(page.strip() for page in pages if page.strip())).strip()
+    if not text:
+        # A scan with no text layer. Saying which it is matters: "no text in
+        # the PDF" sends a reader to the document, "we cannot read PDF" sends
+        # them to the install instructions.
+        return "", "PDF ohne Textebene (vermutlich ein Scan)"
+    return text, ""
 
 
 def extract_text(raw: str) -> str:

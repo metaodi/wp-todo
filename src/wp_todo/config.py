@@ -179,6 +179,10 @@ class ResearchConfig(Frozen):
     max_fetches: int = Field(default=60, ge=0)
     #: Seconds between requests *to the same host*.
     delay_s: float = Field(default=2.0, ge=0.0)
+    #: Its own, not `http.max_retries`: a cantonal website is not the action
+    #: API, and the CLI is meant to be the one place any client's politeness
+    #: settings are decided. It was silently using the WebClient default.
+    max_retries: int = Field(default=3, ge=1, le=10)
     timeout_s: float = Field(default=20.0, gt=0.0)
     max_doc_bytes: int = Field(default=2_000_000, ge=1_000)
     #: Honouring robots.txt is the default and turning it off is a decision

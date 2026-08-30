@@ -169,6 +169,8 @@ EXCERPT_CHARS = 6_000
 _WHITESPACE = re.compile(r"\s+")
 _YEAR = re.compile(r"\b(?:19|20)\d{2}\b")
 _PARAGRAPH = re.compile(r"\n\s*\n")
+#: Same shape as `claims._URL`: what a bare URL looks like inside wikitext.
+_URL = re.compile(r"https?://[^\s\|\]\}<>\"']+")
 
 #: Outcomes for one agenda claim, most informative first.
 #:
@@ -292,7 +294,7 @@ def run_agent(
     sections_pending = _sections_pending(deltas, foreign_texts)
     reserve = 1 if sections_pending else 0
 
-    docs = _reference_documents(claims, web, ledger, config, dropped)
+    docs = _reference_documents(claims, agenda, wikitext, web, ledger, config, dropped)
     findings: list[Finding] = []
     answered: set[str] = set()
     # Built once: it is the same for every claim, and it is the half the
@@ -497,18 +499,20 @@ def _sections_pending(deltas: tuple[Delta, ...], foreign_texts: dict[str, tuple[
 # ---------------------------------------------------------------- documents
 def _reference_documents(
     claims: ArticleClaims,
+    agenda: list[AgendaItem],
+    wikitext: str,
     web: WebClient,
     ledger: SourceLedger,
     config: ScopeConfig,
     dropped: list[DroppedFinding],
 ) -> list[SourceDoc]:
-    """Fetch the article's own references, best standing first.
+    """Fetch the article's own references, most likely to answer first.
 
     Capped, and the cap is why the order matters: an official statistics office
     is far likelier to carry a current figure than the eighth blog post, so the
     budget goes there. What was left unread is in the transcript.
     """
-    urls = _ordered_references(claims, ledger)
+    urls = _ordered_references(claims, ledger, _urls_beside(wikitext, agenda))
     return _fetch_urls(
         urls[: config.research.max_reference_docs],
         web,
@@ -520,13 +524,41 @@ def _reference_documents(
     )
 
 
-def _ordered_references(claims: ArticleClaims, ledger: SourceLedger) -> list[str]:
+def _urls_beside(wikitext: str, agenda: list[AgendaItem]) -> frozenset[str]:
+    """URLs on the same line as a claim the agent is about to ask about.
+
+    The strongest signal available about which of forty references answers a
+    question, and it was going unused: an editor writing "Stand 2018" usually
+    puts the source for it in the same sentence. Standing alone could rank
+    that reference tenth on a page with nine official-suffix links elsewhere,
+    and `max_reference_docs` would then never fetch it.
+
+    Matched by line number rather than out of `Claim.text`, which is condensed
+    and can cut a URL in half.
+    """
+    lines = wikitext.splitlines()
+    wanted: set[str] = set()
+    for item in agenda:
+        index = item.claim.line_no - 1
+        if 0 <= index < len(lines):
+            wanted.update(_URL.findall(lines[index]))
+    return frozenset(wanted)
+
+
+def _ordered_references(
+    claims: ArticleClaims, ledger: SourceLedger, beside: frozenset[str] = frozenset()
+) -> list[str]:
     """Every document the article points at, cited or merely linked.
 
     `Weblinks` and `Literatur` are included because an article can cite forty
     books, carry no fetchable reference at all, and still link the one document
     worth reading. Standing still orders them, so a `Weblinks` entry on an
     official host outranks a cited blog rather than being appended at the end.
+
+    Ahead of standing sits one article-derived signal: a reference cited on the
+    same line as a claim we are about to ask about. It is the same argument
+    `sources.py` makes for the two free signals - what this article does with a
+    source says more than any suffix table can.
     """
     official = _official_website(claims)
     seen: set[str] = set()
@@ -537,7 +569,11 @@ def _ordered_references(claims: ArticleClaims, ledger: SourceLedger) -> list[str
             unique.append(url)
     return sorted(
         unique,
-        key=lambda url: (standing(url, ledger=ledger, article_official=official).sort_key, url),
+        key=lambda url: (
+            0 if url in beside else 1,
+            standing(url, ledger=ledger, article_official=official).sort_key,
+            url,
+        ),
     )
 
 

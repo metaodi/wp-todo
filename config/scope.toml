@@ -195,6 +195,7 @@ max_fetches = 60
 # Sekunden zwischen zwei Anfragen *an denselben Host*. Hosts werden getrennt
 # getaktet: die Höflichkeitspause bei einem ist kein Freibrief beim nächsten.
 delay_s = 2.0
+max_retries = 3
 timeout_s = 20.0
 max_doc_bytes = 2_000_000
 # robots.txt zu beachten ist die Voreinstellung; das Abschalten muss jemand
