@@ -115,6 +115,57 @@
       "title": "Uetikon am See"
     },
     {
+      "base_score": 65.31,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Flughafen_Zürich&action=edit",
+      "last_edit": "2026-07-12",
+      "last_substantive_edit": "2026-07-12",
+      "last_substantive_edit_days": 20,
+      "monthly_pageviews": 4333,
+      "pageid": 2613863,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "maintenance",
+          "detail": "Veraltet nach Jahr 2027",
+          "evidence": null,
+          "points": 45.0
+        },
+        {
+          "code": "marker:stand_year",
+          "detail": "1982 is 44a old",
+          "evidence": "Der Rettungsdienst am Flughafen Zürich entstand um 1982 als ursprüngliche «Löschzugambulanz». Er diente also in erster Linie der Absicherung von Feuerwehrpersonal bei Brandeinsätzen, in zweiter Linie ",
+          "points": 12.0
+        },
+        {
+          "code": "marker:derzeit",
+          "detail": "1985 is 41a old",
+          "evidence": "Der Flughafen Zürich plant ab 2030 den kompletten Ersatz des seit 1985 genutzten Dock A, das derzeit 33 Gates umfasst. Für rund 700 Mio. CHF entsteht ein nachhaltiger Neubau mit einer Geschossfläche v",
+          "points": 8.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "20d since a substantive edit (2026-07-12)",
+          "evidence": null,
+          "points": 0.31
+        },
+        {
+          "code": "zukunft_offen",
+          "detail": "faellig ab 2027-03-01",
+          "evidence": null,
+          "points": 0.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 97.48,
+      "subscores": {
+        "attention": 1.49,
+        "edit_age": 0.31,
+        "maintenance": 45.0,
+        "markers": 20.0
+      },
+      "title": "Flughafen Zürich"
+    },
+    {
       "base_score": 78.32,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Bahnhof_Zürich_Enge&action=edit",
       "last_edit": "2026-07-12",
@@ -152,6 +203,51 @@
         "markers": 0.0
       },
       "title": "Bahnhof Zürich Enge"
+    },
+    {
+      "base_score": 62.24,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Kloten&action=edit",
+      "last_edit": "2026-08-22",
+      "last_substantive_edit": "2026-07-16",
+      "last_substantive_edit_days": 16,
+      "monthly_pageviews": 1240,
+      "pageid": 4458203,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "maintenance",
+          "detail": "Veraltet",
+          "evidence": null,
+          "points": 50.0
+        },
+        {
+          "code": "marker:stand_year",
+          "detail": "2018 is 8a old",
+          "evidence": "Vom 1928&nbsp;[[Hektar|ha]] grossen Gemeindeareal entfallen 28,7 % auf Landwirtschaftsflächen, 25,6 % auf Wald, 27,1 % auf [[Verkehrsinfrastruktur]]en (v.&nbsp;a. Flughafen) und 17,4 % auf Siedlungsge",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "16d since a substantive edit (2026-07-16)",
+          "evidence": null,
+          "points": 0.24
+        },
+        {
+          "code": "veraltet_seit",
+          "detail": "seit 2026 (0a)",
+          "evidence": null,
+          "points": 0.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 79.1,
+      "subscores": {
+        "attention": 1.27,
+        "edit_age": 0.24,
+        "maintenance": 50.0,
+        "markers": 12.0
+      },
+      "title": "Kloten"
     },
     {
       "base_score": 62.0,
@@ -248,6 +344,45 @@
         "markers": 8.0
       },
       "title": "Küsnachter Dorfbach"
+    },
+    {
+      "base_score": 41.88,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Open_Data&action=edit",
+      "last_edit": "2026-07-10",
+      "last_substantive_edit": "2026-03-26",
+      "last_substantive_edit_days": 128,
+      "monthly_pageviews": 572,
+      "pageid": 5333328,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "maintenance",
+          "detail": "Lückenhaft",
+          "evidence": null,
+          "points": 25.0
+        },
+        {
+          "code": "maintenance",
+          "detail": "Belege fehlen",
+          "evidence": null,
+          "points": 15.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "128d since a substantive edit (2026-03-26)",
+          "evidence": null,
+          "points": 1.88
+        }
+      ],
+      "scope_label": "Explizit",
+      "score": 48.81,
+      "subscores": {
+        "attention": 1.17,
+        "edit_age": 1.88,
+        "maintenance": 40.0,
+        "markers": 0.0
+      },
+      "title": "Open Data"
     },
     {
       "base_score": 37.76,
@@ -1222,6 +1357,63 @@
       "title": "Richterswil"
     },
     {
+      "base_score": 26.38,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Hochfelden_ZH&action=edit",
+      "last_edit": "2026-07-07",
+      "last_substantive_edit": "2026-07-07",
+      "last_substantive_edit_days": 25,
+      "monthly_pageviews": 145,
+      "pageid": 4160130,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "1979 is 47a old",
+          "evidence": "* Dorfweiher mit Kinderspielplatz und Brunnenskulptur von [[Robert Lienhard]]. Entstanden 1979 anlässlich der Glattkorrektion.",
+          "points": 12.0
+        },
+        {
+          "code": "marker:derzeit",
+          "detail": "1978 is 48a old",
+          "evidence": "In Hochfelden gibt es seit 1978 eine Gemeindebibliothek. Zurzeit (Stand 2010) umfasst das Angebot der Bibliothek rund 5600 Medien (Bücher, CDs, Kassetten, Spiele).",
+          "points": 8.0
+        },
+        {
+          "code": "maintenance",
+          "detail": "Weblink offline",
+          "evidence": null,
+          "points": 4.0
+        },
+        {
+          "code": "maintenance",
+          "detail": "Defekte Weblinks/Ungeprüfte Botmarkierungen 2025-06",
+          "evidence": null,
+          "points": 1.0
+        },
+        {
+          "code": "maintenance",
+          "detail": "Weblink offline IABot",
+          "evidence": null,
+          "points": 1.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "25d since a substantive edit (2026-07-07)",
+          "evidence": null,
+          "points": 0.38
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 27.84,
+      "subscores": {
+        "attention": 1.06,
+        "edit_age": 0.38,
+        "maintenance": 6.0,
+        "markers": 20.0
+      },
+      "title": "Hochfelden ZH"
+    },
+    {
       "base_score": 27.14,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Helmhaus_(Hotel)&action=edit",
       "last_edit": "2025-01-22",
@@ -1594,6 +1786,78 @@
       "title": "Museum Bellerive"
     },
     {
+      "base_score": 22.77,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Neftenbach&action=edit",
+      "last_edit": "2026-01-17",
+      "last_substantive_edit": "2024-03-13",
+      "last_substantive_edit_days": 871,
+      "monthly_pageviews": 517,
+      "pageid": 512817,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "2020 is 6a old",
+          "evidence": "Der siebenköpfige Gemeinderat setzt sich aus sechs Männern und einer Frau zusammen. Parteizusammensetzung: 4 ''Freie Wähler Neftenbach'', 2 [[Schweizerische Volkspartei|SVP]] und 1 [[Freisinnig-Demokr",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "871d since a substantive edit (2024-03-13)",
+          "evidence": null,
+          "points": 9.77
+        },
+        {
+          "code": "maintenance",
+          "detail": "Defekte Weblinks/Ungeprüfte Archivlinks 2019-05",
+          "evidence": null,
+          "points": 1.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 26.29,
+      "subscores": {
+        "attention": 1.15,
+        "edit_age": 9.77,
+        "maintenance": 1.0,
+        "markers": 12.0
+      },
+      "title": "Neftenbach"
+    },
+    {
+      "base_score": 25.11,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Dreifaltigkeitskirche_(Bülach)&action=edit",
+      "last_edit": "2026-04-14",
+      "last_substantive_edit": "2022-10-17",
+      "last_substantive_edit_days": 1384,
+      "monthly_pageviews": 60,
+      "pageid": 7799979,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1384d since a substantive edit (2022-10-17)",
+          "evidence": null,
+          "points": 13.11
+        },
+        {
+          "code": "marker:stand_year",
+          "detail": "1923 is 103a old",
+          "evidence": "Zur Zeit der Einweihung der Kirche im Jahr 1902 fehlten aufgrund Geldmangels noch wesentliche Elemente der heutigen Ausstattung. Lediglich der heutige [[Taufbecken|Taufstein]], geschaffen vom Steinbil",
+          "points": 12.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 25.73,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 13.11,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "Dreifaltigkeitskirche (Bülach)"
+    },
+    {
       "base_score": 25.11,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Maria_Krönung_(Zürich-Witikon)&action=edit",
       "last_edit": "2026-08-10",
@@ -1709,6 +1973,39 @@
         "markers": 0.0
       },
       "title": "Zürcher Kantonalbank"
+    },
+    {
+      "base_score": 22.37,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Bachenbülach&action=edit",
+      "last_edit": "2026-06-01",
+      "last_substantive_edit": "2023-12-26",
+      "last_substantive_edit_days": 949,
+      "monthly_pageviews": 468,
+      "pageid": 509928,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "2018 is 8a old",
+          "evidence": "Die Gemeindefläche verteilt sich auf 38,5 % Wald, 32,9 % Landwirtschaft und 26,7 % Siedlung/Verkehr (Stand 2018).<ref>[https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=2018&indikatoren=44,18",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "949d since a substantive edit (2023-12-26)",
+          "evidence": null,
+          "points": 10.37
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 25.58,
+      "subscores": {
+        "attention": 1.14,
+        "edit_age": 10.37,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "Bachenbülach"
     },
     {
       "base_score": 24.97,
@@ -1877,6 +2174,39 @@
     },
     {
       "base_score": 25.11,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=St._Pirminius_(Pfungen)&action=edit",
+      "last_edit": "2026-04-18",
+      "last_substantive_edit": "2022-10-18",
+      "last_substantive_edit_days": 1383,
+      "monthly_pageviews": 18,
+      "pageid": 7938682,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1383d since a substantive edit (2022-10-18)",
+          "evidence": null,
+          "points": 13.11
+        },
+        {
+          "code": "marker:stand_year",
+          "detail": "2021 is 5a old",
+          "evidence": "Die Pfarrei St. Pirminius ist mit ihren 2'869 Mitgliedern (Stand 2021) eine der kleineren katholischen Kirchgemeinden des Kantons Zürich.<ref>Katholische Kirche des Kantons Zürich (Hrsg.): ''Jahresber",
+          "points": 12.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 25.3,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 13.11,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "St. Pirminius (Pfungen)"
+    },
+    {
+      "base_score": 25.11,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=St._Anna_(Wädenswil)&action=edit",
       "last_edit": "2022-10-18",
       "last_substantive_edit": "2022-10-18",
@@ -1940,6 +2270,39 @@
         "markers": 12.0
       },
       "title": "St. Franziskus (Maur-Ebmatingen)"
+    },
+    {
+      "base_score": 25.11,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=St._Petrus_Embrachertal&action=edit",
+      "last_edit": "2024-06-24",
+      "last_substantive_edit": "2022-10-18",
+      "last_substantive_edit_days": 1383,
+      "monthly_pageviews": 16,
+      "pageid": 7796768,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1383d since a substantive edit (2022-10-18)",
+          "evidence": null,
+          "points": 13.11
+        },
+        {
+          "code": "marker:stand_year",
+          "detail": "2021 is 5a old",
+          "evidence": "Die Pfarrei St. Petrus Embrachertal ist mit ihren 4'183 Mitgliedern (Stand 2021) eine der mittelgrossen katholischen Kirchgemeinden des Kantons Zürich.<ref>Katholische Kirche im Kanton Zürich (Hrsg.):",
+          "points": 12.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 25.28,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 13.11,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "St. Petrus Embrachertal"
     },
     {
       "base_score": 25.11,
@@ -2338,6 +2701,39 @@
       "title": "Park im Grüene"
     },
     {
+      "base_score": 22.37,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Oberglatt_ZH&action=edit",
+      "last_edit": "2026-01-17",
+      "last_substantive_edit": "2023-12-26",
+      "last_substantive_edit_days": 949,
+      "monthly_pageviews": 259,
+      "pageid": 231811,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "2018 is 8a old",
+          "evidence": "Die Gemeinde Oberglatt umfasst den beidseits der [[Glatt (Rhein)|Glatt]] gelegenen gleichnamigen Ort, den Ortsteil [[Hofstetten (Oberglatt)|Hofstetten]], eine ehemalige [[Zivilgemeinde (Kanton Zürich)",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "949d since a substantive edit (2023-12-26)",
+          "evidence": null,
+          "points": 10.37
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 24.4,
+      "subscores": {
+        "attention": 1.09,
+        "edit_age": 10.37,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "Oberglatt ZH"
+    },
+    {
       "base_score": 24.03,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Trinkbrunnen_mit_Känguru&action=edit",
       "last_edit": "2025-12-30",
@@ -2606,6 +3002,39 @@
         "markers": 12.0
       },
       "title": "Hl. Dreifaltigkeit (Zollikon)"
+    },
+    {
+      "base_score": 22.57,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Oberembrach&action=edit",
+      "last_edit": "2026-01-17",
+      "last_substantive_edit": "2023-11-29",
+      "last_substantive_edit_days": 976,
+      "monthly_pageviews": 117,
+      "pageid": 2587475,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "2018 is 8a old",
+          "evidence": "Von der Gemeindefläche dienen 58,3 % der Landwirtschaft, 34,2 % sind mit Wald bedeckt, 2,8 % sind Verkehrsfläche und 4,4 % Siedlungsgebiet. 0,1 % sind Gewässer und 0,2 % unproduktive Fläche (Stand 201",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "976d since a substantive edit (2023-11-29)",
+          "evidence": null,
+          "points": 10.57
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 23.6,
+      "subscores": {
+        "attention": 1.05,
+        "edit_age": 10.57,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "Oberembrach"
     },
     {
       "base_score": 21.45,
@@ -3739,6 +4168,39 @@
       "title": "Blaue Ente (Zürich)"
     },
     {
+      "base_score": 20.22,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Christkönig_(Kloten)&action=edit",
+      "last_edit": "2026-08-21",
+      "last_substantive_edit": "2024-09-13",
+      "last_substantive_edit_days": 687,
+      "monthly_pageviews": 40,
+      "pageid": 8047223,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "2021 is 5a old",
+          "evidence": "Die Pfarrei Christkönig gehört staatsrechtlich zur katholischen Kirchgemeinde Kloten, zu der auch die politischen Gemeinden Nürensdorf und Bassersdorf dazugehören. Die letzten beiden politischen Gemei",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "687d since a substantive edit (2024-09-13)",
+          "evidence": null,
+          "points": 8.22
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 20.56,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 8.22,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "Christkönig (Kloten)"
+    },
+    {
       "base_score": 20.24,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=St._Georg_(Küsnacht)&action=edit",
       "last_edit": "2026-01-19",
@@ -4247,6 +4709,33 @@
         "markers": 12.0
       },
       "title": "St. Marien (Herrliberg)"
+    },
+    {
+      "base_score": 19.76,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=St.-Anna-Kirche_(Schindellegi)&action=edit",
+      "last_edit": "2024-10-10",
+      "last_substantive_edit": "2010-10-23",
+      "last_substantive_edit_days": 5761,
+      "monthly_pageviews": 33,
+      "pageid": 4826196,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "5761d since a substantive edit (2010-10-23)",
+          "evidence": null,
+          "points": 19.76
+        }
+      ],
+      "scope_label": "Richterswil",
+      "score": 20.04,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 19.76,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "St.-Anna-Kirche (Schindellegi)"
     },
     {
       "base_score": 19.81,
@@ -4852,6 +5341,33 @@
       "title": "Manesseplatz"
     },
     {
+      "base_score": 19.66,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Römischer_Gutshof_in_Neftenbach&action=edit",
+      "last_edit": "2024-01-14",
+      "last_substantive_edit": "2012-02-08",
+      "last_substantive_edit_days": 5288,
+      "monthly_pageviews": 19,
+      "pageid": 6413201,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "5288d since a substantive edit (2012-02-08)",
+          "evidence": null,
+          "points": 19.66
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 19.82,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 19.66,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Römischer Gutshof in Neftenbach"
+    },
+    {
       "base_score": 19.33,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Reformierte_Kirche_Küsnacht&action=edit",
       "last_edit": "2024-12-30",
@@ -4966,6 +5482,33 @@
       "title": "Endingerturm"
     },
     {
+      "base_score": 19.37,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Filmstudios_Glattfelden&action=edit",
+      "last_edit": "2026-01-19",
+      "last_substantive_edit": "2014-04-14",
+      "last_substantive_edit_days": 4492,
+      "monthly_pageviews": 42,
+      "pageid": 790787,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "4492d since a substantive edit (2014-04-14)",
+          "evidence": null,
+          "points": 19.37
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 19.71,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 19.37,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Filmstudios Glattfelden"
+    },
+    {
       "base_score": 15.26,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Horgen&action=edit",
       "last_edit": "2026-07-27",
@@ -5024,6 +5567,33 @@
         "markers": 0.0
       },
       "title": "Reformierte Kirche Rapperswil"
+    },
+    {
+      "base_score": 18.66,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Irchel&action=edit",
+      "last_edit": "2025-08-31",
+      "last_substantive_edit": "2016-12-20",
+      "last_substantive_edit_days": 3511,
+      "monthly_pageviews": 144,
+      "pageid": 922075,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "3511d since a substantive edit (2016-12-20)",
+          "evidence": null,
+          "points": 18.66
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 19.69,
+      "subscores": {
+        "attention": 1.05,
+        "edit_age": 18.66,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Irchel"
     },
     {
       "base_score": 19.37,
@@ -5132,6 +5702,33 @@
         "markers": 0.0
       },
       "title": "St. Pankratius (Bollingen)"
+    },
+    {
+      "base_score": 19.3,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Gräslikon&action=edit",
+      "last_edit": "2026-04-05",
+      "last_substantive_edit": "2014-08-26",
+      "last_substantive_edit_days": 4358,
+      "monthly_pageviews": 41,
+      "pageid": 8373220,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "4358d since a substantive edit (2014-08-26)",
+          "evidence": null,
+          "points": 19.3
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 19.63,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 19.3,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Gräslikon"
     },
     {
       "base_score": 19.52,
@@ -5446,6 +6043,33 @@
       "title": "Centre Le Corbusier"
     },
     {
+      "base_score": 19.44,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Raat-Schüpfheim&action=edit",
+      "last_edit": "2026-08-06",
+      "last_substantive_edit": "2013-11-08",
+      "last_substantive_edit_days": 4649,
+      "monthly_pageviews": 9,
+      "pageid": 2291366,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "4649d since a substantive edit (2013-11-08)",
+          "evidence": null,
+          "points": 19.44
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 19.52,
+      "subscores": {
+        "attention": 1.0,
+        "edit_age": 19.44,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Raat-Schüpfheim"
+    },
+    {
       "base_score": 19.28,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Reformierte_Kirche_Stäfa&action=edit",
       "last_edit": "2021-02-14",
@@ -5525,6 +6149,60 @@
         "markers": 0.0
       },
       "title": "Reformierte Kirche Zollikerberg"
+    },
+    {
+      "base_score": 18.93,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Aussichtsturm_Petersboden&action=edit",
+      "last_edit": "2026-07-19",
+      "last_substantive_edit": "2016-03-09",
+      "last_substantive_edit_days": 3797,
+      "monthly_pageviews": 71,
+      "pageid": 7300315,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "3797d since a substantive edit (2016-03-09)",
+          "evidence": null,
+          "points": 18.93
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 19.47,
+      "subscores": {
+        "attention": 1.03,
+        "edit_age": 18.93,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Aussichtsturm Petersboden"
+    },
+    {
+      "base_score": 19.36,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Reformierte_Kirche_Rorbas&action=edit",
+      "last_edit": "2025-08-01",
+      "last_substantive_edit": "2014-04-29",
+      "last_substantive_edit_days": 4477,
+      "monthly_pageviews": 13,
+      "pageid": 8211999,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "4477d since a substantive edit (2014-04-29)",
+          "evidence": null,
+          "points": 19.36
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 19.47,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 19.36,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Reformierte Kirche Rorbas"
     },
     {
       "base_score": 19.3,
@@ -5830,6 +6508,33 @@
       "title": "Finter Bank Zürich"
     },
     {
+      "base_score": 18.87,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Nussbaumen_ZH&action=edit",
+      "last_edit": "2023-04-16",
+      "last_substantive_edit": "2016-05-09",
+      "last_substantive_edit_days": 3736,
+      "monthly_pageviews": 49,
+      "pageid": 4158237,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "3736d since a substantive edit (2016-05-09)",
+          "evidence": null,
+          "points": 18.87
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 19.26,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 18.87,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Nussbaumen ZH"
+    },
+    {
       "base_score": 19.05,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Gamlikon&action=edit",
       "last_edit": "2017-12-17",
@@ -5855,6 +6560,33 @@
         "markers": 0.0
       },
       "title": "Gamlikon"
+    },
+    {
+      "base_score": 18.78,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Neuburg_(Winterthur)&action=edit",
+      "last_edit": "2026-02-10",
+      "last_substantive_edit": "2016-08-17",
+      "last_substantive_edit_days": 3636,
+      "monthly_pageviews": 38,
+      "pageid": 6148417,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "3636d since a substantive edit (2016-08-17)",
+          "evidence": null,
+          "points": 18.78
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 19.08,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 18.78,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Neuburg (Winterthur)"
     },
     {
       "base_score": 18.95,
@@ -6031,6 +6763,60 @@
       "title": "Kantonsschule Enge"
     },
     {
+      "base_score": 18.79,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Hardau_(Winterthur)&action=edit",
+      "last_edit": "2026-02-10",
+      "last_substantive_edit": "2016-08-11",
+      "last_substantive_edit_days": 3642,
+      "monthly_pageviews": 22,
+      "pageid": 1046922,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "3642d since a substantive edit (2016-08-11)",
+          "evidence": null,
+          "points": 18.79
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.97,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 18.79,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Hardau (Winterthur)"
+    },
+    {
+      "base_score": 18.77,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Taggenberg&action=edit",
+      "last_edit": "2026-02-10",
+      "last_substantive_edit": "2016-08-31",
+      "last_substantive_edit_days": 3622,
+      "monthly_pageviews": 17,
+      "pageid": 9572320,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "3622d since a substantive edit (2016-08-31)",
+          "evidence": null,
+          "points": 18.77
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.91,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 18.77,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Taggenberg"
+    },
+    {
       "base_score": 18.31,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Spital_Männedorf&action=edit",
       "last_edit": "2025-02-27",
@@ -6056,6 +6842,33 @@
         "markers": 0.0
       },
       "title": "Spital Männedorf"
+    },
+    {
+      "base_score": 18.78,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Mülibach_(Töss)&action=edit",
+      "last_edit": "2025-11-26",
+      "last_substantive_edit": "2016-08-17",
+      "last_substantive_edit_days": 3636,
+      "monthly_pageviews": 12,
+      "pageid": 9555972,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "3636d since a substantive edit (2016-08-17)",
+          "evidence": null,
+          "points": 18.78
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.88,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 18.78,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Mülibach (Töss)"
     },
     {
       "base_score": 17.96,
@@ -6110,6 +6923,78 @@
         "markers": 0.0
       },
       "title": "Widder Hotel"
+    },
+    {
+      "base_score": 14.4,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Bülach&action=edit",
+      "last_edit": "2026-08-11",
+      "last_substantive_edit": "2026-07-06",
+      "last_substantive_edit_days": 26,
+      "monthly_pageviews": 1536,
+      "pageid": 47517,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "2013 is 13a old",
+          "evidence": "Die ältesten Spuren der [[Alamannen|alemannischen]] Dorfbildung stammen aus dem 6. und frühen 7. Jahrhundert. In der Nähe des Stadtkerns wurden 1919–1928 ''Im Füchsli'' [[Gräberfeld|alemannische Gräbe",
+          "points": 12.0
+        },
+        {
+          "code": "maintenance",
+          "detail": "Defekte Weblinks/Ungeprüfte Botmarkierungen 2026-08",
+          "evidence": null,
+          "points": 1.0
+        },
+        {
+          "code": "maintenance",
+          "detail": "Weblink offline IABot",
+          "evidence": null,
+          "points": 1.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "26d since a substantive edit (2026-07-06)",
+          "evidence": null,
+          "points": 0.4
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.79,
+      "subscores": {
+        "attention": 1.3,
+        "edit_age": 0.4,
+        "maintenance": 2.0,
+        "markers": 12.0
+      },
+      "title": "Bülach"
+    },
+    {
+      "base_score": 18.6,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Sternwarte_Bülach&action=edit",
+      "last_edit": "2025-02-22",
+      "last_substantive_edit": "2017-02-13",
+      "last_substantive_edit_days": 3456,
+      "monthly_pageviews": 22,
+      "pageid": 1392175,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "3456d since a substantive edit (2017-02-13)",
+          "evidence": null,
+          "points": 18.6
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.78,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 18.6,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Sternwarte Bülach"
     },
     {
       "base_score": 18.49,
@@ -6601,6 +7486,33 @@
       "title": "Rapperswil SG"
     },
     {
+      "base_score": 16.04,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Schloss_Wart&action=edit",
+      "last_edit": "2026-07-26",
+      "last_substantive_edit": "2020-10-29",
+      "last_substantive_edit_days": 2102,
+      "monthly_pageviews": 471,
+      "pageid": 11508981,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "2102d since a substantive edit (2020-10-29)",
+          "evidence": null,
+          "points": 16.04
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.35,
+      "subscores": {
+        "attention": 1.14,
+        "edit_age": 16.04,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Schloss Wart"
+    },
+    {
       "base_score": 17.19,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Schutz_und_Rettung_Zürich&action=edit",
       "last_edit": "2026-04-30",
@@ -6661,6 +7573,60 @@
       "title": "Schweiz Tourismus"
     },
     {
+      "base_score": 17.78,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Aussichtsturm_Irchel&action=edit",
+      "last_edit": "2025-10-04",
+      "last_substantive_edit": "2018-10-07",
+      "last_substantive_edit_days": 2855,
+      "monthly_pageviews": 69,
+      "pageid": 8246063,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "2855d since a substantive edit (2018-10-07)",
+          "evidence": null,
+          "points": 17.78
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.28,
+      "subscores": {
+        "attention": 1.03,
+        "edit_age": 17.78,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Aussichtsturm Irchel"
+    },
+    {
+      "base_score": 18.02,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Wespi-Mühle&action=edit",
+      "last_edit": "2022-03-25",
+      "last_substantive_edit": "2018-05-14",
+      "last_substantive_edit_days": 3001,
+      "monthly_pageviews": 35,
+      "pageid": 7511674,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "3001d since a substantive edit (2018-05-14)",
+          "evidence": null,
+          "points": 18.02
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.28,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 18.02,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Wespi-Mühle"
+    },
+    {
       "base_score": 18.17,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Nähmaschinenmuseum_am_Pilgersteg&action=edit",
       "last_edit": "2025-06-11",
@@ -6686,6 +7652,39 @@
         "markers": 0.0
       },
       "title": "Nähmaschinenmuseum am Pilgersteg"
+    },
+    {
+      "base_score": 16.95,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Eulach&action=edit",
+      "last_edit": "2025-11-26",
+      "last_substantive_edit": "2022-11-16",
+      "last_substantive_edit_days": 1354,
+      "monthly_pageviews": 205,
+      "pageid": 727634,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1354d since a substantive edit (2022-11-16)",
+          "evidence": null,
+          "points": 12.95
+        },
+        {
+          "code": "maintenance",
+          "detail": "Weblink offline",
+          "evidence": null,
+          "points": 4.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.22,
+      "subscores": {
+        "attention": 1.07,
+        "edit_age": 12.95,
+        "maintenance": 4.0,
+        "markers": 0.0
+      },
+      "title": "Eulach"
     },
     {
       "base_score": 17.32,
@@ -6766,6 +7765,33 @@
       "title": "Curti-Haus"
     },
     {
+      "base_score": 17.52,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Gebirgsinfanteriebrigade_12&action=edit",
+      "last_edit": "2026-05-19",
+      "last_substantive_edit": "2019-03-01",
+      "last_substantive_edit_days": 2710,
+      "monthly_pageviews": 93,
+      "pageid": 3905085,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "2710d since a substantive edit (2019-03-01)",
+          "evidence": null,
+          "points": 17.52
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.17,
+      "subscores": {
+        "attention": 1.04,
+        "edit_age": 17.52,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Gebirgsinfanteriebrigade 12"
+    },
+    {
       "base_score": 18.08,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Ignaz-Heim-Denkmal&action=edit",
       "last_edit": "2025-07-28",
@@ -6799,6 +7825,33 @@
       "title": "Ignaz-Heim-Denkmal"
     },
     {
+      "base_score": 17.56,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Spinnerei_Hard&action=edit",
+      "last_edit": "2025-10-29",
+      "last_substantive_edit": "2019-02-06",
+      "last_substantive_edit_days": 2733,
+      "monthly_pageviews": 83,
+      "pageid": 3951348,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "2733d since a substantive edit (2019-02-06)",
+          "evidence": null,
+          "points": 17.56
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.15,
+      "subscores": {
+        "attention": 1.03,
+        "edit_age": 17.56,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Spinnerei Hard"
+    },
+    {
       "base_score": 17.7,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Türler-Uhr&action=edit",
       "last_edit": "2025-12-01",
@@ -6824,6 +7877,33 @@
         "markers": 0.0
       },
       "title": "Türler-Uhr"
+    },
+    {
+      "base_score": 18.06,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Befestigte_Höhensiedlung_Beerenberg&action=edit",
+      "last_edit": "2021-10-23",
+      "last_substantive_edit": "2018-04-14",
+      "last_substantive_edit_days": 3031,
+      "monthly_pageviews": 9,
+      "pageid": 9705436,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "3031d since a substantive edit (2018-04-14)",
+          "evidence": null,
+          "points": 18.06
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.13,
+      "subscores": {
+        "attention": 1.0,
+        "edit_age": 18.06,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Befestigte Höhensiedlung Beerenberg"
     },
     {
       "base_score": 16.42,
@@ -6905,6 +7985,33 @@
         "markers": 0.0
       },
       "title": "Schulhaus Brunnenmoos"
+    },
+    {
+      "base_score": 17.37,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Tössegg&action=edit",
+      "last_edit": "2021-06-04",
+      "last_substantive_edit": "2019-05-14",
+      "last_substantive_edit_days": 2636,
+      "monthly_pageviews": 97,
+      "pageid": 3430390,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "2636d since a substantive edit (2019-05-14)",
+          "evidence": null,
+          "points": 17.37
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 18.04,
+      "subscores": {
+        "attention": 1.04,
+        "edit_age": 17.37,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Tössegg"
     },
     {
       "base_score": 17.19,
@@ -7360,6 +8467,87 @@
       "title": "Neue Kirche Witikon"
     },
     {
+      "base_score": 17.33,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Härti&action=edit",
+      "last_edit": "2026-02-10",
+      "last_substantive_edit": "2019-06-03",
+      "last_substantive_edit_days": 2616,
+      "monthly_pageviews": 12,
+      "pageid": 10807881,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "2616d since a substantive edit (2019-06-03)",
+          "evidence": null,
+          "points": 17.33
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 17.42,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 17.33,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Härti"
+    },
+    {
+      "base_score": 17.33,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Niederfeld_(Winterthur)&action=edit",
+      "last_edit": "2026-02-10",
+      "last_substantive_edit": "2019-06-06",
+      "last_substantive_edit_days": 2613,
+      "monthly_pageviews": 12,
+      "pageid": 10824724,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "2613d since a substantive edit (2019-06-06)",
+          "evidence": null,
+          "points": 17.33
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 17.42,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 17.33,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Niederfeld (Winterthur)"
+    },
+    {
+      "base_score": 17.27,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Chorherrenstift_St._Peter_Embrach&action=edit",
+      "last_edit": "2023-08-01",
+      "last_substantive_edit": "2019-07-02",
+      "last_substantive_edit_days": 2587,
+      "monthly_pageviews": 17,
+      "pageid": 7795984,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "2587d since a substantive edit (2019-07-02)",
+          "evidence": null,
+          "points": 17.27
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 17.4,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 17.27,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Chorherrenstift St. Peter Embrach"
+    },
+    {
       "base_score": 17.18,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Belvedere_Zollikon&action=edit",
       "last_edit": "2026-01-11",
@@ -7592,6 +8780,39 @@
         "markers": 0.0
       },
       "title": "Schlossanlage Pfäffikon"
+    },
+    {
+      "base_score": 15.83,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Freienstein-Teufen&action=edit",
+      "last_edit": "2026-03-21",
+      "last_substantive_edit": "2025-10-29",
+      "last_substantive_edit_days": 276,
+      "monthly_pageviews": 235,
+      "pageid": 1051933,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "2018 is 8a old",
+          "evidence": "Die politische Gemeinde ist 8,34&nbsp;km² gross, davon sind 50,0 % Wald, 37,6 % Landwirtschaft, 7,0 % Siedlungs- und 3,2 % Verkehrsfläche. 2,0 % sind Gewässer und 0,1 % unproduktive Fläche (Stand 2018",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "276d since a substantive edit (2025-10-29)",
+          "evidence": null,
+          "points": 3.83
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 17.15,
+      "subscores": {
+        "attention": 1.08,
+        "edit_age": 3.83,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "Freienstein-Teufen"
     },
     {
       "base_score": 16.66,
@@ -7967,6 +9188,39 @@
         "markers": 0.0
       },
       "title": "Altes Zeughaus (Rapperswil)"
+    },
+    {
+      "base_score": 13.82,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Embrach&action=edit",
+      "last_edit": "2026-05-02",
+      "last_substantive_edit": "2026-03-30",
+      "last_substantive_edit_days": 124,
+      "monthly_pageviews": 820,
+      "pageid": 3838729,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "1920 is 106a old",
+          "evidence": "Das Gemeindehaus an der Dorfstrasse entstand 1920. Der Chlostergumpen wurde während der Wirtschaftskrise mit einer [[Arbeitsbeschaffung]]smassnahme 1934 zum Schwimmbad «Zwinggi» hergerichtet, mit Spru",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "124d since a substantive edit (2026-03-30)",
+          "evidence": null,
+          "points": 1.82
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 16.74,
+      "subscores": {
+        "attention": 1.21,
+        "edit_age": 1.82,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "Embrach"
     },
     {
       "base_score": 16.27,
@@ -8381,6 +9635,33 @@
         "markers": 0.0
       },
       "title": "Knies Kinderzoo"
+    },
+    {
+      "base_score": 16.31,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Alte_Brücke_(Rorbas-Freienstein)&action=edit",
+      "last_edit": "2024-12-06",
+      "last_substantive_edit": "2020-07-30",
+      "last_substantive_edit_days": 2193,
+      "monthly_pageviews": 6,
+      "pageid": 810654,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "2193d since a substantive edit (2020-07-30)",
+          "evidence": null,
+          "points": 16.31
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 16.35,
+      "subscores": {
+        "attention": 1.0,
+        "edit_age": 16.31,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Alte Brücke (Rorbas-Freienstein)"
     },
     {
       "base_score": 16.04,
@@ -8798,6 +10079,39 @@
         "markers": 0.0
       },
       "title": "Wohnsiedlung Döltschihalde"
+    },
+    {
+      "base_score": 14.83,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Lufingen&action=edit",
+      "last_edit": "2026-01-17",
+      "last_substantive_edit": "2026-01-15",
+      "last_substantive_edit_days": 198,
+      "monthly_pageviews": 214,
+      "pageid": 509951,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "2018 is 8a old",
+          "evidence": "Lufingen liegt zwischen dem [[Glatttal]] und dem [[Töss (Fluss)|Töss]]tal im [[Zürcher Unterland]]. Zur Gemeinde Lufingen gehört auch die Ortschaft [[Augwil]]. Der Landwirtschaft dienen 42,1 % der Gem",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "198d since a substantive edit (2026-01-15)",
+          "evidence": null,
+          "points": 2.83
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 15.98,
+      "subscores": {
+        "attention": 1.08,
+        "edit_age": 2.83,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "Lufingen"
     },
     {
       "base_score": 15.81,
@@ -9544,6 +10858,33 @@
       "title": "Bank Julius Bär"
     },
     {
+      "base_score": 15.6,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Chomberg&action=edit",
+      "last_edit": "2021-03-15",
+      "last_substantive_edit": "2021-03-15",
+      "last_substantive_edit_days": 1965,
+      "monthly_pageviews": 12,
+      "pageid": 10601054,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1965d since a substantive edit (2021-03-15)",
+          "evidence": null,
+          "points": 15.6
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 15.68,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 15.6,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Chomberg"
+    },
+    {
       "base_score": 15.55,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Parkdeck_Stauffacherquai&action=edit",
       "last_edit": "2025-10-26",
@@ -9596,6 +10937,33 @@
         "markers": 0.0
       },
       "title": "Tiefenhöfe"
+    },
+    {
+      "base_score": 15.46,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Höhenbefestigung_Rhinsberg&action=edit",
+      "last_edit": "2023-04-30",
+      "last_substantive_edit": "2021-04-25",
+      "last_substantive_edit_days": 1924,
+      "monthly_pageviews": 23,
+      "pageid": 11526157,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1924d since a substantive edit (2021-04-25)",
+          "evidence": null,
+          "points": 15.46
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 15.61,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 15.46,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Höhenbefestigung Rhinsberg"
     },
     {
       "base_score": 12.23,
@@ -9941,6 +11309,33 @@
         "markers": 0.0
       },
       "title": "Reformierte Kirche Hausen am Albis"
+    },
+    {
+      "base_score": 14.7,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Waffenplatz_Kloten-Bülach&action=edit",
+      "last_edit": "2026-06-09",
+      "last_substantive_edit": "2021-11-10",
+      "last_substantive_edit_days": 1725,
+      "monthly_pageviews": 85,
+      "pageid": 11616989,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1725d since a substantive edit (2021-11-10)",
+          "evidence": null,
+          "points": 14.7
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 15.2,
+      "subscores": {
+        "attention": 1.03,
+        "edit_age": 14.7,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Waffenplatz Kloten-Bülach"
     },
     {
       "base_score": 14.71,
@@ -10291,6 +11686,39 @@
       "title": "Tonhalle Zürich"
     },
     {
+      "base_score": 14.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Bundesamt_für_Meteorologie_und_Klimatologie&action=edit",
+      "last_edit": "2026-03-17",
+      "last_substantive_edit": "2026-03-17",
+      "last_substantive_edit_days": 137,
+      "monthly_pageviews": 138,
+      "pageid": 591007,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "2007 is 19a old",
+          "evidence": "== Personalbestand ab 2007 ==",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "137d since a substantive edit (2026-03-17)",
+          "evidence": null,
+          "points": 2.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 14.74,
+      "subscores": {
+        "attention": 1.05,
+        "edit_age": 2.0,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "Bundesamt für Meteorologie und Klimatologie"
+    },
+    {
       "base_score": 14.58,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Bahnhof_Richterswil&action=edit",
       "last_edit": "2026-02-20",
@@ -10492,6 +11920,39 @@
       "title": "Stadtspital Triemli"
     },
     {
+      "base_score": 13.62,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Berg_am_Irchel&action=edit",
+      "last_edit": "2026-04-13",
+      "last_substantive_edit": "2026-04-13",
+      "last_substantive_edit_days": 110,
+      "monthly_pageviews": 191,
+      "pageid": 510079,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "2010 is 16a old",
+          "evidence": "Die [[Greifvogelstation Berg am Irchel]] wurde 1956 gegründet. In Zusammenarbeit mit dem ''Zürcher Tierspital'' und der [[Vogelwarte Sempach]] ist eine Pflegestation für Greifvögel entstanden. Die Pfl",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "110d since a substantive edit (2026-04-13)",
+          "evidence": null,
+          "points": 1.62
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 14.58,
+      "subscores": {
+        "attention": 1.07,
+        "edit_age": 1.62,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "Berg am Irchel"
+    },
+    {
       "base_score": 13.9,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Bank_von_Roll&action=edit",
       "last_edit": "2025-11-15",
@@ -10517,6 +11978,39 @@
         "markers": 0.0
       },
       "title": "Bank von Roll"
+    },
+    {
+      "base_score": 13.62,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Buch_am_Irchel&action=edit",
+      "last_edit": "2026-08-27",
+      "last_substantive_edit": "2026-04-13",
+      "last_substantive_edit_days": 110,
+      "monthly_pageviews": 165,
+      "pageid": 510176,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "2018 is 8a old",
+          "evidence": "Buch am Irchel liegt im [[Zürcher Weinland]] und am Fuss des [[Irchel]]s. Auf dem Irchel steht ein Aussichtsturm. Der ganze Bergrücken ist stark bewaldet. Die Waldfläche beträgt 38,1 %, die Landwirtsc",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "110d since a substantive edit (2026-04-13)",
+          "evidence": null,
+          "points": 1.62
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 14.47,
+      "subscores": {
+        "attention": 1.06,
+        "edit_age": 1.62,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "Buch am Irchel"
     },
     {
       "base_score": 14.15,
@@ -10856,6 +12350,33 @@
         "markers": 0.0
       },
       "title": "Bürgerspital (Rapperswil)"
+    },
+    {
+      "base_score": 14.18,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Niederfeldbach_(Töss)&action=edit",
+      "last_edit": "2025-11-26",
+      "last_substantive_edit": "2022-03-12",
+      "last_substantive_edit_days": 1603,
+      "monthly_pageviews": 4,
+      "pageid": 11027824,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1603d since a substantive edit (2022-03-12)",
+          "evidence": null,
+          "points": 14.18
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 14.21,
+      "subscores": {
+        "attention": 1.0,
+        "edit_age": 14.18,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Niederfeldbach (Töss)"
     },
     {
       "base_score": 13.89,
@@ -11614,6 +13135,39 @@
       "title": "Schweizerische Epilepsie-Stiftung"
     },
     {
+      "base_score": 12.38,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Höri_ZH&action=edit",
+      "last_edit": "2026-07-07",
+      "last_substantive_edit": "2026-07-07",
+      "last_substantive_edit_days": 25,
+      "monthly_pageviews": 245,
+      "pageid": 305229,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "marker:stand_year",
+          "detail": "2018 is 8a old",
+          "evidence": "Von der Gemeindefläche von 477&nbsp;[[Hektar|ha]] sind 277,1&nbsp;ha (58,1 %) Landwirtschafts-, 62,0&nbsp;ha (13,0 %) Siedlungs-, 61,1&nbsp;ha (12,8 %) Wald- und 32,0&nbsp;ha (6,7 %) Verkehrsfläche. 4",
+          "points": 12.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "25d since a substantive edit (2026-07-07)",
+          "evidence": null,
+          "points": 0.38
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 13.45,
+      "subscores": {
+        "attention": 1.09,
+        "edit_age": 0.38,
+        "maintenance": 0.0,
+        "markers": 12.0
+      },
+      "title": "Höri ZH"
+    },
+    {
       "base_score": 13.26,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Reformierte_Kirche_Zürich-Leimbach&action=edit",
       "last_edit": "2025-08-01",
@@ -11966,6 +13520,33 @@
         "markers": 0.0
       },
       "title": "Tramwartepavillon Bellevue"
+    },
+    {
+      "base_score": 12.83,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Ruine_Freienstein&action=edit",
+      "last_edit": "2023-06-01",
+      "last_substantive_edit": "2022-12-08",
+      "last_substantive_edit_days": 1332,
+      "monthly_pageviews": 67,
+      "pageid": 469401,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1332d since a substantive edit (2022-12-08)",
+          "evidence": null,
+          "points": 12.83
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 13.18,
+      "subscores": {
+        "attention": 1.03,
+        "edit_age": 12.83,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Ruine Freienstein"
     },
     {
       "base_score": 12.96,
@@ -12638,6 +14219,87 @@
     },
     {
       "base_score": 12.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Villa_Rustica_(Kloten)&action=edit",
+      "last_edit": "2025-05-28",
+      "last_substantive_edit": "2023-04-30",
+      "last_substantive_edit_days": 1189,
+      "monthly_pageviews": 49,
+      "pageid": 8260331,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1189d since a substantive edit (2023-04-30)",
+          "evidence": null,
+          "points": 12.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 12.24,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 12.0,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Villa Rustica (Kloten)"
+    },
+    {
+      "base_score": 11.81,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Reformierte_Kirche_Bülach&action=edit",
+      "last_edit": "2025-10-03",
+      "last_substantive_edit": "2023-05-29",
+      "last_substantive_edit_days": 1160,
+      "monthly_pageviews": 81,
+      "pageid": 7799941,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1160d since a substantive edit (2023-05-29)",
+          "evidence": null,
+          "points": 11.81
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 12.2,
+      "subscores": {
+        "attention": 1.03,
+        "edit_age": 11.81,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Reformierte Kirche Bülach"
+    },
+    {
+      "base_score": 12.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Burgstelle_Wart&action=edit",
+      "last_edit": "2023-11-20",
+      "last_substantive_edit": "2023-04-30",
+      "last_substantive_edit_days": 1189,
+      "monthly_pageviews": 31,
+      "pageid": 11511250,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1189d since a substantive edit (2023-04-30)",
+          "evidence": null,
+          "points": 12.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 12.15,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 12.0,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Burgstelle Wart"
+    },
+    {
+      "base_score": 12.0,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=St._Felix_und_Regula_(Thalwil)&action=edit",
       "last_edit": "2026-08-07",
       "last_substantive_edit": "2026-08-07",
@@ -12662,6 +14324,195 @@
         "markers": 12.0
       },
       "title": "St. Felix und Regula (Thalwil)"
+    },
+    {
+      "base_score": 12.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Burgstelle_Multberg&action=edit",
+      "last_edit": "2026-05-30",
+      "last_substantive_edit": "2023-04-30",
+      "last_substantive_edit_days": 1189,
+      "monthly_pageviews": 22,
+      "pageid": 11511784,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1189d since a substantive edit (2023-04-30)",
+          "evidence": null,
+          "points": 12.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 12.11,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 12.0,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Burgstelle Multberg"
+    },
+    {
+      "base_score": 12.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Burgstelle_Heidegg&action=edit",
+      "last_edit": "2025-09-19",
+      "last_substantive_edit": "2023-04-30",
+      "last_substantive_edit_days": 1189,
+      "monthly_pageviews": 19,
+      "pageid": 11508035,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1189d since a substantive edit (2023-04-30)",
+          "evidence": null,
+          "points": 12.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 12.09,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 12.0,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Burgstelle Heidegg"
+    },
+    {
+      "base_score": 12.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Burgstelle_Schlossbuck&action=edit",
+      "last_edit": "2025-11-16",
+      "last_substantive_edit": "2023-04-30",
+      "last_substantive_edit_days": 1189,
+      "monthly_pageviews": 18,
+      "pageid": 11538232,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1189d since a substantive edit (2023-04-30)",
+          "evidence": null,
+          "points": 12.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 12.09,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 12.0,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Burgstelle Schlossbuck"
+    },
+    {
+      "base_score": 12.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Burgstelle_Hohenteufen&action=edit",
+      "last_edit": "2023-10-22",
+      "last_substantive_edit": "2023-04-30",
+      "last_substantive_edit_days": 1189,
+      "monthly_pageviews": 16,
+      "pageid": 11529623,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1189d since a substantive edit (2023-04-30)",
+          "evidence": null,
+          "points": 12.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 12.08,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 12.0,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Burgstelle Hohenteufen"
+    },
+    {
+      "base_score": 12.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Burgstelle_Obere_Heidenburg&action=edit",
+      "last_edit": "2023-04-30",
+      "last_substantive_edit": "2023-04-30",
+      "last_substantive_edit_days": 1189,
+      "monthly_pageviews": 13,
+      "pageid": 11541296,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1189d since a substantive edit (2023-04-30)",
+          "evidence": null,
+          "points": 12.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 12.06,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 12.0,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Burgstelle Obere Heidenburg"
+    },
+    {
+      "base_score": 12.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Burgstelle_Radegg&action=edit",
+      "last_edit": "2024-05-06",
+      "last_substantive_edit": "2023-04-30",
+      "last_substantive_edit_days": 1189,
+      "monthly_pageviews": 12,
+      "pageid": 11538208,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1189d since a substantive edit (2023-04-30)",
+          "evidence": null,
+          "points": 12.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 12.06,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 12.0,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Burgstelle Radegg"
+    },
+    {
+      "base_score": 12.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Burgstelle_Untere_Heidenburg&action=edit",
+      "last_edit": "2025-10-17",
+      "last_substantive_edit": "2023-04-30",
+      "last_substantive_edit_days": 1189,
+      "monthly_pageviews": 13,
+      "pageid": 11542777,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1189d since a substantive edit (2023-04-30)",
+          "evidence": null,
+          "points": 12.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 12.06,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 12.0,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Burgstelle Untere Heidenburg"
     },
     {
       "base_score": 11.95,
@@ -12701,6 +14552,60 @@
         "markers": 0.0
       },
       "title": "Stadtarchiv Rapperswil"
+    },
+    {
+      "base_score": 11.79,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Europäische_Vegetarier-Union&action=edit",
+      "last_edit": "2025-05-06",
+      "last_substantive_edit": "2023-06-02",
+      "last_substantive_edit_days": 1156,
+      "monthly_pageviews": 39,
+      "pageid": 759423,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1156d since a substantive edit (2023-06-02)",
+          "evidence": null,
+          "points": 11.79
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 11.98,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 11.79,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Europäische Vegetarier-Union"
+    },
+    {
+      "base_score": 11.77,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Burgstelle_Hoh-Wülflingen&action=edit",
+      "last_edit": "2023-09-08",
+      "last_substantive_edit": "2023-06-05",
+      "last_substantive_edit_days": 1153,
+      "monthly_pageviews": 31,
+      "pageid": 5367412,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1153d since a substantive edit (2023-06-05)",
+          "evidence": null,
+          "points": 11.77
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 11.92,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 11.77,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Burgstelle Hoh-Wülflingen"
     },
     {
       "base_score": 11.8,
@@ -12877,6 +14782,33 @@
       "title": "Heilig Kreuz (Lachen SZ)"
     },
     {
+      "base_score": 11.12,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Kantonsschule_Zürcher_Unterland&action=edit",
+      "last_edit": "2025-11-14",
+      "last_substantive_edit": "2023-09-12",
+      "last_substantive_edit_days": 1054,
+      "monthly_pageviews": 123,
+      "pageid": 6944401,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "1054d since a substantive edit (2023-09-12)",
+          "evidence": null,
+          "points": 11.12
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 11.65,
+      "subscores": {
+        "attention": 1.05,
+        "edit_age": 11.12,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Kantonsschule Zürcher Unterland"
+    },
+    {
       "base_score": 10.92,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Kaufleuten&action=edit",
       "last_edit": "2025-03-18",
@@ -12902,6 +14834,33 @@
         "markers": 0.0
       },
       "title": "Kaufleuten"
+    },
+    {
+      "base_score": 10.57,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Rorbas&action=edit",
+      "last_edit": "2026-02-26",
+      "last_substantive_edit": "2023-11-29",
+      "last_substantive_edit_days": 976,
+      "monthly_pageviews": 269,
+      "pageid": 437880,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "976d since a substantive edit (2023-11-29)",
+          "evidence": null,
+          "points": 10.57
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 11.56,
+      "subscores": {
+        "attention": 1.09,
+        "edit_age": 10.57,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Rorbas"
     },
     {
       "base_score": 11.35,
@@ -13096,6 +15055,33 @@
       "title": "Spinnerei Brändlin"
     },
     {
+      "base_score": 10.37,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Niederglatt_ZH&action=edit",
+      "last_edit": "2026-01-17",
+      "last_substantive_edit": "2023-12-26",
+      "last_substantive_edit_days": 949,
+      "monthly_pageviews": 218,
+      "pageid": 421590,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "949d since a substantive edit (2023-12-26)",
+          "evidence": null,
+          "points": 10.37
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 11.19,
+      "subscores": {
+        "attention": 1.08,
+        "edit_age": 10.37,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Niederglatt ZH"
+    },
+    {
       "base_score": 10.9,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Reformierte_Kirche_Wädenswil&action=edit",
       "last_edit": "2026-03-27",
@@ -13148,6 +15134,39 @@
         "markers": 0.0
       },
       "title": "Schanzengraben (Zürich)"
+    },
+    {
+      "base_score": 10.75,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Bahnhof_Bülach&action=edit",
+      "last_edit": "2026-08-24",
+      "last_substantive_edit": "2024-03-16",
+      "last_substantive_edit_days": 868,
+      "monthly_pageviews": 66,
+      "pageid": 9493521,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "868d since a substantive edit (2024-03-16)",
+          "evidence": null,
+          "points": 9.75
+        },
+        {
+          "code": "maintenance",
+          "detail": "Defekte Weblinks/Ungeprüfte Archivlinks 2023-06",
+          "evidence": null,
+          "points": 1.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 11.04,
+      "subscores": {
+        "attention": 1.03,
+        "edit_age": 9.75,
+        "maintenance": 1.0,
+        "markers": 0.0
+      },
+      "title": "Bahnhof Bülach"
     },
     {
       "base_score": 9.83,
@@ -13291,6 +15310,33 @@
       "title": "Lützelsee"
     },
     {
+      "base_score": 10.67,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Dättenberg&action=edit",
+      "last_edit": "2023-11-15",
+      "last_substantive_edit": "2023-11-15",
+      "last_substantive_edit_days": 990,
+      "monthly_pageviews": 34,
+      "pageid": 6650722,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "990d since a substantive edit (2023-11-15)",
+          "evidence": null,
+          "points": 10.67
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 10.82,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 10.67,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Dättenberg"
+    },
+    {
       "base_score": 10.6,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Sportanlage_Sihlhölzli&action=edit",
       "last_edit": "2026-04-17",
@@ -13382,6 +15428,33 @@
         "markers": 0.0
       },
       "title": "St. Jakobus (Feusisberg)"
+    },
+    {
+      "base_score": 9.75,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Bahnhof_Zürich_Flughafen&action=edit",
+      "last_edit": "2024-05-19",
+      "last_substantive_edit": "2024-03-16",
+      "last_substantive_edit_days": 868,
+      "monthly_pageviews": 275,
+      "pageid": 5832157,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "868d since a substantive edit (2024-03-16)",
+          "evidence": null,
+          "points": 9.75
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 10.68,
+      "subscores": {
+        "attention": 1.1,
+        "edit_age": 9.75,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Bahnhof Zürich Flughafen"
     },
     {
       "base_score": 10.58,
@@ -14485,6 +16558,33 @@
       "title": "Bahnhof Thalwil"
     },
     {
+      "base_score": 9.91,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Bahnhof_Winterthur_Wülflingen&action=edit",
+      "last_edit": "2025-03-24",
+      "last_substantive_edit": "2024-02-25",
+      "last_substantive_edit_days": 888,
+      "monthly_pageviews": 21,
+      "pageid": 5639155,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "888d since a substantive edit (2024-02-25)",
+          "evidence": null,
+          "points": 9.91
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 10.0,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 9.91,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Bahnhof Winterthur Wülflingen"
+    },
+    {
       "base_score": 10.0,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Mosenbach_(Kleine_Aa)&action=edit",
       "last_edit": "2026-08-17",
@@ -14543,6 +16643,33 @@
         "markers": 0.0
       },
       "title": "Egelsee (Bubikon)"
+    },
+    {
+      "base_score": 9.88,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Burgstelle_Mangoldsburg&action=edit",
+      "last_edit": "2024-03-01",
+      "last_substantive_edit": "2024-02-29",
+      "last_substantive_edit_days": 884,
+      "monthly_pageviews": 22,
+      "pageid": 13009396,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "884d since a substantive edit (2024-02-29)",
+          "evidence": null,
+          "points": 9.88
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 9.97,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 9.88,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Burgstelle Mangoldsburg"
     },
     {
       "base_score": 9.73,
@@ -15760,6 +17887,39 @@
       "title": "Rote Fabrik"
     },
     {
+      "base_score": 5.14,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Crossair-Flug_3597&action=edit",
+      "last_edit": "2026-08-23",
+      "last_substantive_edit": "2026-05-17",
+      "last_substantive_edit_days": 76,
+      "monthly_pageviews": 8648,
+      "pageid": 982951,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "maintenance",
+          "detail": "Weblink offline",
+          "evidence": null,
+          "points": 4.0
+        },
+        {
+          "code": "stale_edit",
+          "detail": "76d since a substantive edit (2026-05-17)",
+          "evidence": null,
+          "points": 1.14
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 8.38,
+      "subscores": {
+        "attention": 1.63,
+        "edit_age": 1.14,
+        "maintenance": 4.0,
+        "markers": 0.0
+      },
+      "title": "Crossair-Flug 3597"
+    },
+    {
       "base_score": 7.33,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Albis&action=edit",
       "last_edit": "2025-08-31",
@@ -16933,6 +19093,93 @@
       "title": "Ufenau"
     },
     {
+      "base_score": 6.62,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Swissveg&action=edit",
+      "last_edit": "2025-10-03",
+      "last_substantive_edit": "2025-05-30",
+      "last_substantive_edit_days": 428,
+      "monthly_pageviews": 32,
+      "pageid": 8401640,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "428d since a substantive edit (2025-05-30)",
+          "evidence": null,
+          "points": 5.62
+        },
+        {
+          "code": "maintenance",
+          "detail": "Defekte Weblinks/Ungeprüfte Archivlinks 2024-05",
+          "evidence": null,
+          "points": 1.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 6.71,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 5.62,
+        "maintenance": 1.0,
+        "markers": 0.0
+      },
+      "title": "Swissveg"
+    },
+    {
+      "base_score": 6.58,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Totentäli&action=edit",
+      "last_edit": "2025-08-31",
+      "last_substantive_edit": "2025-03-01",
+      "last_substantive_edit_days": 518,
+      "monthly_pageviews": 42,
+      "pageid": 13077315,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "518d since a substantive edit (2025-03-01)",
+          "evidence": null,
+          "points": 6.58
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 6.69,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 6.58,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Totentäli"
+    },
+    {
+      "base_score": 6.51,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Kloster_Beerenberg&action=edit",
+      "last_edit": "2026-07-20",
+      "last_substantive_edit": "2025-03-08",
+      "last_substantive_edit_days": 511,
+      "monthly_pageviews": 62,
+      "pageid": 4104144,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "511d since a substantive edit (2025-03-08)",
+          "evidence": null,
+          "points": 6.51
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 6.67,
+      "subscores": {
+        "attention": 1.03,
+        "edit_age": 6.51,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Kloster Beerenberg"
+    },
+    {
       "base_score": 6.25,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Zunfthaus_zur_Zimmerleuten&action=edit",
       "last_edit": "2026-02-27",
@@ -16991,6 +19238,33 @@
         "markers": 0.0
       },
       "title": "Strauhof"
+    },
+    {
+      "base_score": 6.56,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Papierfabrik_Wülflingen&action=edit",
+      "last_edit": "2025-09-19",
+      "last_substantive_edit": "2025-03-03",
+      "last_substantive_edit_days": 516,
+      "monthly_pageviews": 4,
+      "pageid": 13406032,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "516d since a substantive edit (2025-03-03)",
+          "evidence": null,
+          "points": 6.56
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 6.57,
+      "subscores": {
+        "attention": 1.0,
+        "edit_age": 6.56,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Papierfabrik Wülflingen"
     },
     {
       "base_score": 6.43,
@@ -17063,6 +19337,57 @@
         "markers": 0.0
       },
       "title": "St. Annahof (Zürich)"
+    },
+    {
+      "base_score": 5.22,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Grüne_Schweiz&action=edit",
+      "last_edit": "2026-08-24",
+      "last_substantive_edit": "2026-05-11",
+      "last_substantive_edit_days": 82,
+      "monthly_pageviews": 1063,
+      "pageid": 159403,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "82d since a substantive edit (2026-05-11)",
+          "evidence": null,
+          "points": 1.22
+        },
+        {
+          "code": "maintenance",
+          "detail": "Defekte Weblinks/Ungeprüfte Archivlinks 2018-04",
+          "evidence": null,
+          "points": 1.0
+        },
+        {
+          "code": "maintenance",
+          "detail": "Defekte Weblinks/Ungeprüfte Archivlinks 2025-06",
+          "evidence": null,
+          "points": 1.0
+        },
+        {
+          "code": "maintenance",
+          "detail": "Defekte Weblinks/Ungeprüfte Botmarkierungen 2018-04",
+          "evidence": null,
+          "points": 1.0
+        },
+        {
+          "code": "maintenance",
+          "detail": "Weblink offline IABot",
+          "evidence": null,
+          "points": 1.0
+        }
+      ],
+      "scope_label": "Explizit",
+      "score": 6.52,
+      "subscores": {
+        "attention": 1.25,
+        "edit_age": 1.22,
+        "maintenance": 4.0,
+        "markers": 0.0
+      },
+      "title": "Grüne Schweiz"
     },
     {
       "base_score": 6.22,
@@ -18169,6 +20494,60 @@
       "title": "Grüningen ZH"
     },
     {
+      "base_score": 5.66,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Gefecht_bei_Schindellegi&action=edit",
+      "last_edit": "2026-06-01",
+      "last_substantive_edit": "2025-05-26",
+      "last_substantive_edit_days": 432,
+      "monthly_pageviews": 63,
+      "pageid": 2551508,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "432d since a substantive edit (2025-05-26)",
+          "evidence": null,
+          "points": 5.66
+        }
+      ],
+      "scope_label": "Richterswil",
+      "score": 5.81,
+      "subscores": {
+        "attention": 1.03,
+        "edit_age": 5.66,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Gefecht bei Schindellegi"
+    },
+    {
+      "base_score": 5.45,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Schloss_Teufen&action=edit",
+      "last_edit": "2025-12-02",
+      "last_substantive_edit": "2025-06-14",
+      "last_substantive_edit_days": 413,
+      "monthly_pageviews": 180,
+      "pageid": 11269685,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "413d since a substantive edit (2025-06-14)",
+          "evidence": null,
+          "points": 5.45
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 5.81,
+      "subscores": {
+        "attention": 1.07,
+        "edit_age": 5.45,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Schloss Teufen"
+    },
+    {
       "base_score": 5.44,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Stadthaus_Zürich&action=edit",
       "last_edit": "2025-12-29",
@@ -18221,6 +20600,33 @@
         "markers": 0.0
       },
       "title": "Witikon"
+    },
+    {
+      "base_score": 5.66,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Ruine_Wagenburg_(Oberembrach)&action=edit",
+      "last_edit": "2026-01-17",
+      "last_substantive_edit": "2025-05-26",
+      "last_substantive_edit_days": 432,
+      "monthly_pageviews": 22,
+      "pageid": 11544025,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "432d since a substantive edit (2025-05-26)",
+          "evidence": null,
+          "points": 5.66
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 5.71,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 5.66,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Ruine Wagenburg (Oberembrach)"
     },
     {
       "base_score": 4.89,
@@ -18437,6 +20843,60 @@
         "markers": 0.0
       },
       "title": "Binz (Maur)"
+    },
+    {
+      "base_score": 5.43,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Glasi-Quartier&action=edit",
+      "last_edit": "2026-06-09",
+      "last_substantive_edit": "2025-06-16",
+      "last_substantive_edit_days": 411,
+      "monthly_pageviews": 46,
+      "pageid": 13323839,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "411d since a substantive edit (2025-06-16)",
+          "evidence": null,
+          "points": 5.43
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 5.53,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 5.43,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Glasi-Quartier"
+    },
+    {
+      "base_score": 5.46,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Burgstelle_Altenteufen&action=edit",
+      "last_edit": "2025-06-13",
+      "last_substantive_edit": "2025-06-13",
+      "last_substantive_edit_days": 414,
+      "monthly_pageviews": 17,
+      "pageid": 11529198,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "414d since a substantive edit (2025-06-13)",
+          "evidence": null,
+          "points": 5.46
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 5.5,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 5.46,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Burgstelle Altenteufen"
     },
     {
       "base_score": 5.18,
@@ -18985,6 +21445,33 @@
       "title": "Geschäftshaus Ober"
     },
     {
+      "base_score": 4.87,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Reformierte_Kirche_Embrach&action=edit",
+      "last_edit": "2025-08-05",
+      "last_substantive_edit": "2025-08-04",
+      "last_substantive_edit_days": 362,
+      "monthly_pageviews": 23,
+      "pageid": 6477924,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "362d since a substantive edit (2025-08-04)",
+          "evidence": null,
+          "points": 4.87
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 4.91,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 4.87,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Reformierte Kirche Embrach"
+    },
+    {
       "base_score": 4.67,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Friedhof_Manegg&action=edit",
       "last_edit": "2026-05-30",
@@ -19402,6 +21889,33 @@
       "title": "Wolfhausen ZH"
     },
     {
+      "base_score": 4.24,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Villa_Rustica_(Seeb)&action=edit",
+      "last_edit": "2026-07-14",
+      "last_substantive_edit": "2025-09-26",
+      "last_substantive_edit_days": 309,
+      "monthly_pageviews": 37,
+      "pageid": 8250024,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "309d since a substantive edit (2025-09-26)",
+          "evidence": null,
+          "points": 4.24
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 4.3,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 4.24,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Villa Rustica (Seeb)"
+    },
+    {
       "base_score": 4.1,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Verzweigung_Zürich-West&action=edit",
       "last_edit": "2025-10-07",
@@ -19429,6 +21943,33 @@
       "title": "Verzweigung Zürich-West"
     },
     {
+      "base_score": 3.83,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Winkel_ZH&action=edit",
+      "last_edit": "2026-06-02",
+      "last_substantive_edit": "2025-10-29",
+      "last_substantive_edit_days": 276,
+      "monthly_pageviews": 313,
+      "pageid": 357952,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "276d since a substantive edit (2025-10-29)",
+          "evidence": null,
+          "points": 3.83
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 4.23,
+      "subscores": {
+        "attention": 1.11,
+        "edit_age": 3.83,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Winkel ZH"
+    },
+    {
       "base_score": 4.15,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Johanniterhaus_Küsnacht&action=edit",
       "last_edit": "2026-06-16",
@@ -19454,6 +21995,33 @@
         "markers": 0.0
       },
       "title": "Johanniterhaus Küsnacht"
+    },
+    {
+      "base_score": 3.78,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Skymetro&action=edit",
+      "last_edit": "2025-11-02",
+      "last_substantive_edit": "2025-11-02",
+      "last_substantive_edit_days": 272,
+      "monthly_pageviews": 353,
+      "pageid": 480332,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "272d since a substantive edit (2025-11-02)",
+          "evidence": null,
+          "points": 3.78
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 4.22,
+      "subscores": {
+        "attention": 1.12,
+        "edit_age": 3.78,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Skymetro"
     },
     {
       "base_score": 3.88,
@@ -19913,6 +22481,33 @@
         "markers": 0.0
       },
       "title": "Seefeld (Stadt Zürich)"
+    },
+    {
+      "base_score": 3.79,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Sporthalle_Ruebisbach&action=edit",
+      "last_edit": "2025-11-01",
+      "last_substantive_edit": "2025-11-01",
+      "last_substantive_edit_days": 273,
+      "monthly_pageviews": 11,
+      "pageid": 9756151,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "273d since a substantive edit (2025-11-01)",
+          "evidence": null,
+          "points": 3.79
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 3.81,
+      "subscores": {
+        "attention": 1.0,
+        "edit_age": 3.79,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Sporthalle Ruebisbach"
     },
     {
       "base_score": 3.63,
@@ -20834,6 +23429,39 @@
         "markers": 0.0
       },
       "title": "Herrschaft Grüningen"
+    },
+    {
+      "base_score": 2.72,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Himmelbach_(Glatt)&action=edit",
+      "last_edit": "2026-04-06",
+      "last_substantive_edit": "2026-04-06",
+      "last_substantive_edit_days": 117,
+      "monthly_pageviews": 18,
+      "pageid": 9042285,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "117d since a substantive edit (2026-04-06)",
+          "evidence": null,
+          "points": 1.72
+        },
+        {
+          "code": "maintenance",
+          "detail": "Defekte Weblinks/Ungeprüfte Archivlinks 2025-06",
+          "evidence": null,
+          "points": 1.0
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 2.74,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 1.72,
+        "maintenance": 1.0,
+        "markers": 0.0
+      },
+      "title": "Himmelbach (Glatt)"
     },
     {
       "base_score": 2.35,
@@ -21760,6 +24388,33 @@
       "title": "Wädenswiler Berg"
     },
     {
+      "base_score": 1.86,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Führungsunterstützungsbrigade_41&action=edit",
+      "last_edit": "2026-03-28",
+      "last_substantive_edit": "2026-03-27",
+      "last_substantive_edit_days": 127,
+      "monthly_pageviews": 353,
+      "pageid": 4555777,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "127d since a substantive edit (2026-03-27)",
+          "evidence": null,
+          "points": 1.86
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 2.08,
+      "subscores": {
+        "attention": 1.12,
+        "edit_age": 1.86,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Führungsunterstützungsbrigade 41"
+    },
+    {
       "base_score": 1.79,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Hirzel&action=edit",
       "last_edit": "2026-07-31",
@@ -21893,6 +24548,33 @@
         "markers": 0.0
       },
       "title": "Straßenradsport-Weltmeisterschaften 2024"
+    },
+    {
+      "base_score": 1.58,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Töss_(Fluss)&action=edit",
+      "last_edit": "2026-04-16",
+      "last_substantive_edit": "2026-04-16",
+      "last_substantive_edit_days": 107,
+      "monthly_pageviews": 466,
+      "pageid": 252042,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "107d since a substantive edit (2026-04-16)",
+          "evidence": null,
+          "points": 1.58
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 1.81,
+      "subscores": {
+        "attention": 1.14,
+        "edit_age": 1.58,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Töss (Fluss)"
     },
     {
       "base_score": 1.71,
@@ -22366,6 +25048,33 @@
       "title": "Kinderspital Zürich"
     },
     {
+      "base_score": 1.05,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Alte_Spinnerei_Jakobstal&action=edit",
+      "last_edit": "2026-05-23",
+      "last_substantive_edit": "2026-05-23",
+      "last_substantive_edit_days": 70,
+      "monthly_pageviews": 166,
+      "pageid": 13343094,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "70d since a substantive edit (2026-05-23)",
+          "evidence": null,
+          "points": 1.05
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 1.12,
+      "subscores": {
+        "attention": 1.06,
+        "edit_age": 1.05,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Alte Spinnerei Jakobstal"
+    },
+    {
       "base_score": 1.06,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Spital_Zollikerberg&action=edit",
       "last_edit": "2026-05-22",
@@ -22418,6 +25127,33 @@
         "markers": 0.0
       },
       "title": "Octapharma"
+    },
+    {
+      "base_score": 0.76,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Wülflingen&action=edit",
+      "last_edit": "2026-08-24",
+      "last_substantive_edit": "2026-06-12",
+      "last_substantive_edit_days": 50,
+      "monthly_pageviews": 491,
+      "pageid": 1492713,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "50d since a substantive edit (2026-06-12)",
+          "evidence": null,
+          "points": 0.76
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 0.87,
+      "subscores": {
+        "attention": 1.15,
+        "edit_age": 0.76,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Wülflingen"
     },
     {
       "base_score": 0.79,
@@ -22501,6 +25237,60 @@
       "title": "Schauspielhaus Zürich"
     },
     {
+      "base_score": 0.67,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Mechanisierte_Brigade_11&action=edit",
+      "last_edit": "2026-06-18",
+      "last_substantive_edit": "2026-06-18",
+      "last_substantive_edit_days": 44,
+      "monthly_pageviews": 424,
+      "pageid": 2790916,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "44d since a substantive edit (2026-06-18)",
+          "evidence": null,
+          "points": 0.67
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 0.76,
+      "subscores": {
+        "attention": 1.13,
+        "edit_age": 0.67,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Mechanisierte Brigade 11"
+    },
+    {
+      "base_score": 0.74,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Kammerspiele_Seeb&action=edit",
+      "last_edit": "2026-06-13",
+      "last_substantive_edit": "2026-06-13",
+      "last_substantive_edit_days": 49,
+      "monthly_pageviews": 25,
+      "pageid": 13802367,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "49d since a substantive edit (2026-06-13)",
+          "evidence": null,
+          "points": 0.74
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 0.75,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 0.74,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Kammerspiele Seeb"
+    },
+    {
       "base_score": 0.65,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Bad_Schönbrunn&action=edit",
       "last_edit": "2026-06-19",
@@ -22528,6 +25318,33 @@
       "title": "Bad Schönbrunn"
     },
     {
+      "base_score": 0.5,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Schindellegi&action=edit",
+      "last_edit": "2026-08-26",
+      "last_substantive_edit": "2026-06-29",
+      "last_substantive_edit_days": 33,
+      "monthly_pageviews": 1334,
+      "pageid": 1007710,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "33d since a substantive edit (2026-06-29)",
+          "evidence": null,
+          "points": 0.5
+        }
+      ],
+      "scope_label": "Richterswil",
+      "score": 0.64,
+      "subscores": {
+        "attention": 1.28,
+        "edit_age": 0.5,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Schindellegi"
+    },
+    {
       "base_score": 0.47,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Küsnacht&action=edit",
       "last_edit": "2026-07-01",
@@ -22553,6 +25370,33 @@
         "markers": 0.0
       },
       "title": "Küsnacht"
+    },
+    {
+      "base_score": 0.52,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Dättlikon&action=edit",
+      "last_edit": "2026-06-28",
+      "last_substantive_edit": "2026-06-28",
+      "last_substantive_edit_days": 34,
+      "monthly_pageviews": 116,
+      "pageid": 146430,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "34d since a substantive edit (2026-06-28)",
+          "evidence": null,
+          "points": 0.52
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 0.54,
+      "subscores": {
+        "attention": 1.05,
+        "edit_age": 0.52,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Dättlikon"
     },
     {
       "base_score": 0.34,
@@ -22825,6 +25669,60 @@
       "title": "Lindenhof (Zürcher Hügelzug)"
     },
     {
+      "base_score": 0.17,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Spital_Bülach&action=edit",
+      "last_edit": "2026-07-21",
+      "last_substantive_edit": "2026-07-21",
+      "last_substantive_edit_days": 11,
+      "monthly_pageviews": 82,
+      "pageid": 10263562,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "11d since a substantive edit (2026-07-21)",
+          "evidence": null,
+          "points": 0.17
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 0.17,
+      "subscores": {
+        "attention": 1.03,
+        "edit_age": 0.17,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Spital Bülach"
+    },
+    {
+      "base_score": 0.15,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Naturschutzgebiet_Altläufe_der_Glatt&action=edit",
+      "last_edit": "2026-07-22",
+      "last_substantive_edit": "2026-07-22",
+      "last_substantive_edit_days": 10,
+      "monthly_pageviews": 38,
+      "pageid": 13003992,
+      "provisional": false,
+      "reasons": [
+        {
+          "code": "stale_edit",
+          "detail": "10d since a substantive edit (2026-07-22)",
+          "evidence": null,
+          "points": 0.15
+        }
+      ],
+      "scope_label": "Embrachertal",
+      "score": 0.16,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 0.15,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Naturschutzgebiet Altläufe der Glatt"
+    },
+    {
       "base_score": 0.06,
       "edit_url": "https://de.wikipedia.org/w/index.php?title=Reformierte_Kirche_Rüti&action=edit",
       "last_edit": "2026-07-28",
@@ -22937,6 +25835,26 @@
         "markers": 0.0
       },
       "title": "Villa Bürgli"
+    },
+    {
+      "base_score": 0.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=ARA_Winterthur-Hard&action=edit",
+      "last_edit": "2026-08-18",
+      "last_substantive_edit": "2026-08-12",
+      "last_substantive_edit_days": -11,
+      "monthly_pageviews": 31,
+      "pageid": 10947134,
+      "provisional": false,
+      "reasons": [],
+      "scope_label": "Embrachertal",
+      "score": 0.0,
+      "subscores": {
+        "attention": 1.01,
+        "edit_age": 0.0,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "ARA Winterthur-Hard"
     },
     {
       "base_score": 0.0,
@@ -23117,6 +26035,46 @@
         "markers": 0.0
       },
       "title": "Museum Thalwil"
+    },
+    {
+      "base_score": 0.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Pfungen&action=edit",
+      "last_edit": "2026-08-22",
+      "last_substantive_edit": "2026-08-22",
+      "last_substantive_edit_days": -21,
+      "monthly_pageviews": 262,
+      "pageid": 1810393,
+      "provisional": false,
+      "reasons": [],
+      "scope_label": "Embrachertal",
+      "score": 0.0,
+      "subscores": {
+        "attention": 1.09,
+        "edit_age": 0.0,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Pfungen"
+    },
+    {
+      "base_score": 0.0,
+      "edit_url": "https://de.wikipedia.org/w/index.php?title=Reformierte_Kirche_Kloten&action=edit",
+      "last_edit": "2026-08-08",
+      "last_substantive_edit": "2026-08-08",
+      "last_substantive_edit_days": -7,
+      "monthly_pageviews": 37,
+      "pageid": 6977075,
+      "provisional": false,
+      "reasons": [],
+      "scope_label": "Embrachertal",
+      "score": 0.0,
+      "subscores": {
+        "attention": 1.02,
+        "edit_age": 0.0,
+        "maintenance": 0.0,
+        "markers": 0.0
+      },
+      "title": "Reformierte Kirche Kloten"
     },
     {
       "base_score": 0.0,
