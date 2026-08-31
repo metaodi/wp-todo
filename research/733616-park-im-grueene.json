@@ -1,22 +1,36 @@
 {
   "agent": {
-    "budget": 10,
+    "budget": 16,
     "budget_exhausted": false,
     "cached_calls": 0,
-    "calls": 4,
-    "documents": 6,
+    "calls": 5,
+    "documents": 10,
     "dropped": [
       {
-        "claim_id": "marker_stand_year-7eeca412",
-        "detail": "nennt Wikipedia bzw. CC-BY-SA als Quelle",
-        "gate": "circularity",
-        "url": "https://en.wikipedia.org/wiki/Park_im_Gr%C3%BCene"
+        "claim_id": "",
+        "detail": "HTTP 404",
+        "gate": "unreadable",
+        "url": "https://www.parkimgruene.ch/de/informationen/anfahrt.html"
       }
     ],
     "effort": "medium",
+    "failed": "",
     "model": "claude-opus-5",
-    "reference_documents": 1,
+    "outcomes": [
+      {
+        "claim_id": "infobox_field-5f6fe9ca",
+        "outcome": "found",
+        "phase": "reference"
+      },
+      {
+        "claim_id": "marker_stand_year-7eeca412",
+        "outcome": "nothing_found",
+        "phase": "web"
+      }
+    ],
+    "reference_documents": 4,
     "searched": true,
+    "sections_skipped": false,
     "transcript": "733616-park-im-grueene.transcript.md",
     "unexamined": [
       "marker_stand_year-7eeca412"
@@ -52,9 +66,13 @@
         "https://www.gdi.ch/de/ueber-uns/stiftung-und-traegerschaft",
         "https://www.parkimgruene.ch/de/informationen/anfahrt.html"
       ],
+      "linked_urls": [
+        "https://www.orangergarten.ch/",
+        "https://www.parkimgruene.ch/"
+      ],
       "newest_year": 2019,
       "oldest_year": 1962,
-      "total": 12,
+      "total": 11,
       "with_year": 5
     },
     "sections": [
@@ -85,10 +103,85 @@
     }
   ],
   "edit_url": "https://de.wikipedia.org/w/index.php?title=Park_im_Grüene&action=edit",
-  "findings": [],
+  "findings": [
+    {
+      "as_of": 1946,
+      "cited_sources": [],
+      "claim_id": "infobox_field-5f6fe9ca",
+      "claim_text": "FLÄCHE = 4,5 Hektaren",
+      "confidence": 0.78,
+      "current_value": "4,5 Hektaren",
+      "demoted": "nicht im Zitat belegt: 1946",
+      "from_reference": true,
+      "host": "www.gdi.ch",
+      "interwiki_lang": "",
+      "matches_wikidata": false,
+      "quote": "transferred their enormous ‘Langhalden’ estate near Rüschlikon, comprising 4.5 hectares, to the ‘Im Grüene’ foundation",
+      "quote_supports_value": false,
+      "standing": "nicht eingestuft · im Artikel bereits zitiert",
+      "status": "confirms_current",
+      "url": "https://www.gdi.ch/de/ueber-uns/stiftung-und-traegerschaft"
+    }
+  ],
   "interwiki_checked": true,
+  "link_summary": {
+    "blocked": 0,
+    "budget_exhausted": false,
+    "checked": 4,
+    "dead": 1,
+    "reachable": 3,
+    "redirected": 0,
+    "total": 4,
+    "unreachable": 0
+  },
+  "links": [
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "2022-04-02",
+      "snapshot_url": "http://web.archive.org/web/20220402150411/https://www.parkimgruene.ch/de/informationen/anfahrt.html",
+      "status": 404,
+      "url": "https://www.parkimgruene.ch/de/informationen/anfahrt.html",
+      "verdict": "tot"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.gdi.ch/de/ueber-uns/stiftung-und-traegerschaft",
+      "verdict": "erreichbar"
+    },
+    {
+      "archived_in_article": false,
+      "cited": false,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.orangergarten.ch/",
+      "verdict": "erreichbar"
+    },
+    {
+      "archived_in_article": false,
+      "cited": false,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.parkimgruene.ch/",
+      "verdict": "erreichbar"
+    }
+  ],
   "pageid": 733616,
-  "reference_date": "2026-08-29",
+  "reference_date": "2026-08-31",
   "reference_standing": [
     {
       "decided": null,
@@ -115,8 +208,7 @@
   "section_notes": [
     {
       "bullets": [
-        "Literaturangabe zu einem Titel: 'Gartenbiografien: Orte erzählen'",
-        "Verlag vdf Hochschulverlag AG, ETH Zürich, Zürich 2013, mit ISBN-Angabe"
+        "Literaturangabe: 'Gartenbiografien: Orte erzählen', vdf Hochschulverlag, ETH Zürich, 2013, ISBN 978-3-7281-3579-7"
       ],
       "heading": "Literature",
       "lang": "en",
@@ -125,8 +217,8 @@
     {
       "bullets": [
         "Lage des Parks in der Gemeinde Rüschlikon, Kanton Zürich, auf dem nördlichen Zimmerberg-Plateau",
-        "Aussicht auf Zürichsee und Sihltal",
-        "Anbindung mit öffentlichem Verkehr: VBZ-Buslinie 165 ab Bürkliplatz Zürich und Arboretum Zürich bis Haltestelle 'Belvoir'; S-Bahn Zürich Linie S8 zum Bahnhof Rüschlikon"
+        "Aussicht über Zürichsee und Sihltal",
+        "Anreise: VBZ-Buslinie 165 ab Bürkliplatz/Arboretum Zürich bis Haltestelle Belvoir; S-Bahn-Linie S8 bis Bahnhof Rüschlikon"
       ],
       "heading": "Location",
       "lang": "en",
@@ -134,8 +226,8 @@
     },
     {
       "bullets": [
-        "Erklärung des schweizerdeutschen Parknamens, wörtlich 'Park im Grünen'",
-        "Verbreiteter Übername 'Dutti-Park', abgeleitet vom Spitznamen Gottlieb Duttweilers"
+        "Bedeutung des schweizerdeutschen Namens ('Park im Grünen')",
+        "Gebräuchlicher Übername 'Dutti-Park' nach dem Spitznamen von Gottlieb Duttweiler"
       ],
       "heading": "Name",
       "lang": "en",
@@ -143,10 +235,10 @@
     },
     {
       "bullets": [
-        "Einrichtungen im Park: Restaurant, Badeanlage, Duttweiler-Museum",
+        "Einrichtungen im Park: Restaurant, Bad, Duttweiler-Museum",
         "Grosse Rasenflächen und weitläufiger Kinderspielplatz",
-        "Sommerangebote: Puppentheater, Eselreiten, Spielzeugeisenbahn, Wasserspiel sowie verschiedene Kulturveranstaltungen",
-        "Belege: badi-info.ch und migros-kulturprozent.ch (Zugriff 2015)"
+        "Sommerangebote: Puppentheater, Eselreiten, Spielzeugeisenbahn, Wasserspiel",
+        "Kulturveranstaltungen in den Sommermonaten (Verweise auf badi-info.ch und Migros-Kulturprozent)"
       ],
       "heading": "Points of interest",
       "lang": "en",

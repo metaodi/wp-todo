@@ -12,9 +12,9 @@
 
 [Dossier](./733616-park-im-grueene.md) · [Artikel](https://de.wikipedia.org/wiki/Park_im_Grüene)
 
-Modell: `claude-opus-5` · Effort: `medium` · 4 Aufruf(e), davon 0 aus dem Cache · Budget: 10
+Modell: `claude-opus-5` · Effort: `medium` · 5 Aufruf(e), davon 0 aus dem Cache · Budget: 16
 
-Dokumente vorgelegt: 6 (1 davon Belege des Artikels selbst) · Websuche: ja
+Dokumente vorgelegt: 10 (4 davon Belege des Artikels selbst) · Websuche: ja
 
 ## Aufrufe
 
@@ -41,18 +41,52 @@ Geantwortet:
 ```json
 {
   "as_of": null,
-  "confidence": 0.6,
+  "confidence": 0.78,
   "current_value": null,
   "document": 0,
   "quote": "",
-  "reasoning": "Das Dokument beschreibt die Geschichte des GDI und nennt die Übertragung des 4,5 Hektar grossen Anwesens 'Langhalden' an die Stiftung 'Im Grüene' 1946. Zum konkreten Vorgang des schrittweisen Erwerbs von Parzellen der Genossenschaft Langhalden durch Gottlieb und Adele Duttweiler (Stand 1933) macht es keine abweichende oder neuere Angabe.",
+  "reasoning": "Die Artikelangabe betrifft den Erwerb weiterer Parzellen von der Genossenschaft Langhalden bzw. den Baubeginn 1933. Dokument 1 (GDI-Geschichte) nennt nur die Übertragung des 4,5 ha grossen Langhalden-Anwesens an die Stiftung 'Im Grüene' an Weihnachten 1946 und sagt nichts zur Vergrösserung des Anwesens oder zu 1933. Dokumente 2 und 3 (Oranger Garten, Park im Grüene) enthalten dazu keine Angaben. Dokument 4 ist die englische Sprachversion des Artikels und damit kein Beleg. Kein Dokument liefert also eine neuere oder abweichende Angabe zu genau dieser Aussage.",
   "status": "nothing_found"
 }
 ```
 
-Tokens: 241 rein, 408 raus
+Tokens: 239 rein, 445 raus
 
-### 2. search — `Park im Grüene` (neu angefragt)
+### 2. reference_check — `infobox_field-5f6fe9ca` (neu angefragt)
+
+<details><summary>Gefragt</summary>
+
+```
+Artikel: Park im Grüene
+Abschnitt: FLÄCHE
+Kein Stand angegeben
+
+Angabe im Artikel:
+FLÄCHE = 4,5 Hektaren
+
+Die Dokumente sind die Belege, die der Artikel selbst zitiert.
+Sagt eines der Dokumente etwas Neueres oder Abweichendes zu genau dieser Angabe? Wenn nicht: status = nothing_found.
+```
+
+</details>
+
+Geantwortet:
+
+```json
+{
+  "as_of": 1946,
+  "confidence": 0.78,
+  "current_value": "4,5 Hektaren",
+  "document": 1,
+  "quote": "transferred their enormous ‘Langhalden’ estate near Rüschlikon, comprising 4.5 hectares, to the ‘Im Grüene’ foundation",
+  "reasoning": "Dokument 1 (bereits im Artikel zitiert) nennt für das der Stiftung «Im Grüene» übertragene Langhalden-Areal 4,5 Hektaren und bestätigt damit die Angabe im Artikel. Nichts Neueres oder Abweichendes; Dokument 4 ist nur die englische Artikelversion und kein Beleg, Dokumente 2 und 3 äussern sich nicht zur Fläche.",
+  "status": "confirms_current"
+}
+```
+
+Tokens: 155 rein, 345 raus
+
+### 3. search — `Park im Grüene` (neu angefragt)
 
 <details><summary>Gefragt</summary>
 
@@ -69,45 +103,43 @@ Suche nach aktuellen, möglichst amtlichen deutschsprachigen Quellen zu diesen A
 
 Von der Websuche zurückgegeben (aus den Ergebnisblöcken gelesen, nicht aus dem Antworttext):
 
+- <https://de.wikipedia.org/wiki/Park_im_Gr%C3%BCnen>
 - <https://en.wikipedia.org/wiki/Adele_Duttweiler>
+- <https://de.wikipedia.org/wiki/Adele_Duttweiler-Bertschi>
+- <https://engagement.migros.ch/en/projects/community/park-im-grueene-rueschlikon>
 - <https://www.parkimgruene.ch/der-park/geschichte>
 - <https://famigros.migros.ch/de/ausfluege-und-freizeit/ausflugsziele/park-im-gruene-grillplaetze>
-- <https://engagement.migros.ch/en/projects/community/park-im-grueene-rueschlikon>
-- <https://zuerich.migros.ch/de/medienkontakt-zuerich/show/news/medienmitteilungen/2021/75-jahre-park-im-gruene~id=821c0510-92d8-4ac4-9b08-7000e3848ad5~.html>
 - <https://en.wikipedia.org/wiki/Park_im_Gr%C3%BCene>
-- <https://de.wikipedia.org/wiki/Adele_Duttweiler-Bertschi>
-- <https://www.rueschlikon.ch/_docn/1211549/Trakt5_Park_im_Grueene_Teil_West_Anhang_2.pdf>
+- <https://www.freizeit.ch/freizeit/17116/park-im-gruene-in-ruschlikon>
 - <https://unseregeschichte.ch/entries/jJp0OoV20Mk>
-- <https://www.nzz.ch/wirtschaft/jungmillionaer-migros-gruender-systemsprenger-gottlieb-duttweiler-setzte-sich-zwischen-alle-stuehle-ld.1820194>
-- <https://www.woz.ch/duttweilers-idee/die-migros-geschichte>
-- <https://gdi.ch/en/about-us/gdi/history>
-- <https://corporate.migros.ch/de/ueber-uns/unsere-geschichte/gottlieb-duttweiler>
+- <https://zuerich.migros.ch/de/medienkontakt-zuerich/show/news/medienmitteilungen/2021/75-jahre-park-im-gruene~id=821c0510-92d8-4ac4-9b08-7000e3848ad5~.html>
 - <https://www.rueschlikon.ch/firmenverzeichnis/13829>
+- <https://gdi.ch/en/about-us/gdi/history>
+- <https://en.wikipedia.org/wiki/Gottlieb_Duttweiler_Institute>
 - <https://www.facebook.com/GDInstitute/>
-- <https://migros.ch/de/unternehmen/medien/mitteilungen/show/news/medienmitteilungen/2021/75-jahre-park-im-gruene~id=821c0510-92d8-4ac4-9b08-7000e3848ad5~.html>
-- <https://www.parkimgruene.ch/der-park/geschichte/75-jahre-park-im-grueene-beginn>
-- <https://de.wikipedia.org/wiki/Park_im_Gr%C3%BCnen>
-- <https://trek.zone/en/switzerland/places/142172/park-im-gruene-zurich>
+- <https://en.wikipedia.org/wiki/Gottlieb_Duttweiler>
+- <https://corporate.migros.ch/de/medien/mitteilungen/show/news/medienmitteilungen/2021/75-jahre-park-im-gruene~id=821c0510-92d8-4ac4-9b08-7000e3848ad5~.html>
 - <https://search.ch/tel/rueschlikon/langhaldenstrasse-21/gottlieb-duttweiler-institute-gdi>
-- <https://www.eventinc.ch/eventlocation/zuerich/gottlieb-duttweiler-institute>
+- <https://www.myswitzerland.com/en-us/experiences/gdi-gottlieb-duttweiler-institute/>
 
 Geantwortet:
 
 ```json
 {
-  "note": "Gesucht wurde nach deutschsprachigen Quellen zum Landerwerb des Ehepaars Duttweiler von der Genossenschaft Langhalden und zur Grösse des Anwesens (Stand 1933). Gefunden wurden vor allem Migros-eigene Darstellungen (parkimgruene.ch/Geschichte, Medienmitteilung zum 75-Jahr-Jubiläum mit Angabe eines 4,5 Hektaren grossen Landguts) sowie ein Eintrag auf unseregeschichte.ch, der die Formulierung des Artikels praktisch identisch enthält – also mutmasslich die Ursprungsquelle bzw. eine Übernahme. Amtliche Quellen (Gemeinde Rüschlikon, Grundbuch, Kantonsarchiv) zur Parzellenzahl und Fläche per 1933 liessen sich nicht auffinden. Die Bewertung, ob ein konkretes Dokument die Angabe überholt, kann erst erfolgen, wenn die numerierten Dokumente vorgelegt werden; ohne diese ist 'nothing_found' der Stand.",
+  "note": "Die Suche lieferte v. a. Wikipedia-Spiegel, Migros-/Parkseiten und ein Archivbild-Portal; das Suchbudget wurde bei den letzten drei Anfragen erreicht, deren Trefferinhalte konnten nicht mehr ausgewertet werden. Zur konkreten Angabe (Erwerb mehrerer Parzellen mit Wiesen, Wald und Äckern von der Genossenschaft Langhalden, Flächenstand 1933) fand sich in den geprüften Ergebnissen keine amtliche oder anderweitig belastbare deutschsprachige Quelle. Nach den vorliegenden Dokumenten lautet die korrekte Antwort daher 'nothing_found' - eine wörtlich zitierbare Belegstelle liegt nicht vor, und geraten wird nicht. Empfehlung für einen weiteren Versuch: Gemeindearchiv Rüschlikon, Grundbuch-/Kataster-Unterlagen sowie Migros-Genossenschaftsbund-Archiv gezielt ansprechen.",
   "queries": [
-    "Park im Grüene Rüschlikon Gottlieb Duttweiler Adele Duttweiler-Bertschi Genossenschaft Langhalden Parzellen",
-    "Genossenschaft Langhalden Rüschlikon Landverkauf Duttweiler 1933",
-    "Duttweiler Rüschlikon Gut Langhalden Hektaren Anwesen Geschichte 1933 Park im Grüene",
-    "\"Langhalden\" Rüschlikon Duttweiler Wiesen Wald Äcker erworben"
+    "Park im Grüene Rüschlikon Duttweiler Adele Duttweiler-Bertschi Anwesen",
+    "Gottlieb Duttweiler Rüschlikon Genossenschaft Langhalden Parzellen erwarben",
+    "Duttweiler 1933 Rüschlikon Landgut Hektaren Wiesen Wald Äcker Langhalden",
+    "\"Langhalden\" Rüschlikon Genossenschaft Duttweiler Grundstück Geschichte",
+    "Park im Grüene Geschichte 1933 Duttweiler Bauernhof erworben Fläche"
   ]
 }
 ```
 
-Tokens: 22292 rein, 1059 raus
+Tokens: 21001 rein, 1381 raus
 
-### 3. web_check — `marker_stand_year-7eeca412` (neu angefragt)
+### 4. web_check — `marker_stand_year-7eeca412` (neu angefragt)
 
 <details><summary>Gefragt</summary>
 
@@ -129,24 +161,24 @@ Geantwortet:
 
 ```json
 {
-  "as_of": 1933,
-  "confidence": 0.6,
-  "current_value": "Bau der Parkanlage bzw. des Strohhauses begann 1933",
-  "document": 5,
-  "quote": "The construction works for the park area and of the so-called Strohhaus building started in 1933 as the private estate of the Duttweiler Institute.",
-  "reasoning": "Nur Dokument 5 (englische Wikipedia-Version zum Park im Grüene) nennt überhaupt die Jahresangabe 1933 im Zusammenhang mit dem Ausbau des Anwesens/Strohhauses und bestätigt damit den Stand des Artikels. Die übrigen Dokumente behandeln nur die Schenkung 1946/47 bzw. allgemeine Parkinformationen und sagen nichts Neueres oder Abweichendes zu dieser Angabe. Zu beachten: Dokument 5 ist selbst ein Wikipedia-Artikel und damit kein unabhängiger Beleg.",
-  "status": "confirms_current"
+  "as_of": null,
+  "confidence": 0.82,
+  "current_value": null,
+  "document": 0,
+  "quote": "",
+  "reasoning": "Die Artikelangabe betrifft den schrittweisen Zukauf von Parzellen der Genossenschaft Langhalden durch das Ehepaar Duttweiler (Stand 1933). Keines der Dokumente behandelt diesen Erwerb von Parzellen. Dokument 5 nennt lediglich die Grösse des Gutes (rund 4,5 Hektaren) und die Schenkung von 1946, Dokument 2 ebenfalls nur das 4,5-ha-Anwesen und die Stiftungsgründung, Dokumente 1, 3, 4 und 6 nur die Eröffnung/Schenkung und allgemeine Parkgeschichte. Damit liegt keine neuere oder abweichende Information zu genau dieser Angabe vor.",
+  "status": "nothing_found"
 }
 ```
 
-Tokens: 232 rein, 485 raus
+Tokens: 230 rein, 415 raus
 
-### 4. sections — `fehlende Abschnitte` (neu angefragt)
+### 5. sections — `fehlende Abschnitte` (neu angefragt)
 
 <details><summary>Gefragt</summary>
 
 ```
-Fasse jeden Abschnitt in zwei bis vier Stichpunkten zusammen: worüber er handelt, welche Zahlen oder Ereignisse darin vorkommen. Kein Fliesstext, keine Wertung.
+Fasse jeden Abschnitt in zwei bis vier Stichpunkten zusammen: worüber er handelt, welche Zahlen oder Ereignisse darin vorkommen. Kein Fliesstext, keine Wertung. Gib zu jedem Abschnitt seine Nummer aus der Liste an.
 ```
 
 </details>
@@ -159,46 +191,41 @@ Geantwortet:
     {
       "bullets": [
         "Lage des Parks in der Gemeinde Rüschlikon, Kanton Zürich, auf dem nördlichen Zimmerberg-Plateau",
-        "Aussicht auf Zürichsee und Sihltal",
-        "Anbindung mit öffentlichem Verkehr: VBZ-Buslinie 165 ab Bürkliplatz Zürich und Arboretum Zürich bis Haltestelle 'Belvoir'; S-Bahn Zürich Linie S8 zum Bahnhof Rüschlikon"
+        "Aussicht über Zürichsee und Sihltal",
+        "Anreise: VBZ-Buslinie 165 ab Bürkliplatz/Arboretum Zürich bis Haltestelle Belvoir; S-Bahn-Linie S8 bis Bahnhof Rüschlikon"
       ],
-      "heading": "Location",
-      "lang": "en"
+      "section": 1
     },
     {
       "bullets": [
-        "Erklärung des schweizerdeutschen Parknamens, wörtlich 'Park im Grünen'",
-        "Verbreiteter Übername 'Dutti-Park', abgeleitet vom Spitznamen Gottlieb Duttweilers"
+        "Bedeutung des schweizerdeutschen Namens ('Park im Grünen')",
+        "Gebräuchlicher Übername 'Dutti-Park' nach dem Spitznamen von Gottlieb Duttweiler"
       ],
-      "heading": "Name",
-      "lang": "en"
+      "section": 2
     },
     {
       "bullets": [
-        "Einrichtungen im Park: Restaurant, Badeanlage, Duttweiler-Museum",
+        "Einrichtungen im Park: Restaurant, Bad, Duttweiler-Museum",
         "Grosse Rasenflächen und weitläufiger Kinderspielplatz",
-        "Sommerangebote: Puppentheater, Eselreiten, Spielzeugeisenbahn, Wasserspiel sowie verschiedene Kulturveranstaltungen",
-        "Belege: badi-info.ch und migros-kulturprozent.ch (Zugriff 2015)"
+        "Sommerangebote: Puppentheater, Eselreiten, Spielzeugeisenbahn, Wasserspiel",
+        "Kulturveranstaltungen in den Sommermonaten (Verweise auf badi-info.ch und Migros-Kulturprozent)"
       ],
-      "heading": "Points of interest",
-      "lang": "en"
+      "section": 3
     },
     {
       "bullets": [
-        "Literaturangabe zu einem Titel: 'Gartenbiografien: Orte erzählen'",
-        "Verlag vdf Hochschulverlag AG, ETH Zürich, Zürich 2013, mit ISBN-Angabe"
+        "Literaturangabe: 'Gartenbiografien: Orte erzählen', vdf Hochschulverlag, ETH Zürich, 2013, ISBN 978-3-7281-3579-7"
       ],
-      "heading": "Literature",
-      "lang": "en"
+      "section": 4
     }
   ]
 }
 ```
 
-Tokens: 85 rein, 606 raus
+Tokens: 111 rein, 515 raus
 
 ## Von den Prüfungen verworfen
 
 | Prüfung | Angabe | Detail | Dokument |
 | --- | --- | --- | --- |
-| Zirkelbezug: das Dokument ist eine Kopie des Artikels | `marker_stand_year-7eeca412` | nennt Wikipedia bzw. CC-BY-SA als Quelle | <https://en.wikipedia.org/wiki/Park_im_Gr%C3%BCene> |
+| unreadable | `—` | HTTP 404 | <https://www.parkimgruene.ch/de/informationen/anfahrt.html> |

@@ -6,13 +6,26 @@
 
 [Artikel](https://de.wikipedia.org/wiki/Park_im_Grüene) · [bearbeiten](https://de.wikipedia.org/w/index.php?title=Park_im_Grüene&action=edit) · [Wikidata](https://www.wikidata.org/wiki/Q1729273)
 
-Stand der Daten: 2026-08-29
+Stand der Daten: 2026-08-31
 
 ## Wahrscheinlich veraltet
 
-_Nichts gefunden: in den Belegen des Artikels und der Websuche stand zu diesen Angaben nichts Neueres._
+> **Jede Angabe in diesem Abschnitt ist ungeprüft.** Sie stammt von einem
+> Sprachmodell, das ein Dokument gelesen hat - nicht von einer Person, die es
+> beurteilt hat. Das Zitat wurde maschinell wörtlich im Dokument wiedergefunden;
+> das heisst, dass es dort steht, und sonst nichts. Ob es die Angabe im Artikel
+> wirklich überholt, weisst du erst, wenn du den Beleg selbst geöffnet hast.
 
-_Nicht abschliessend geprüft (keine Quelle sagte etwas dazu): `marker_stand_year-7eeca412`._
+### FLÄCHE = 4,5 Hektaren
+
+*bestätigt den Artikel · Beleg des Artikels*
+
+- **Kein Update:** nicht im Zitat belegt: 1946
+- **Schluss des Modells (nicht im Zitat):** 4,5 Hektaren (Stand 1946)
+- **Beleg:** <https://www.gdi.ch/de/ueber-uns/stiftung-und-traegerschaft> — nicht eingestuft · im Artikel bereits zitiert
+- **Zitat:** „transferred their enormous ‘Langhalden’ estate near Rüschlikon, comprising 4.5 hectares, to the ‘Im Grüene’ foundation“
+
+_Nicht abschliessend geprüft (keine der gelesenen Quellen sagte etwas dazu): `marker_stand_year-7eeca412`._
 
 ## Abweichungen gegenüber Wikidata
 
@@ -36,20 +49,19 @@ Sprachmodell aus dem dortigen Text, nicht aus eigenem Wissen, und deshalb
 ebenso ungeprüft wie alles andere Maschinelle hier:
 
 - **[Literature](https://en.wikipedia.org/wiki/Park_im_Grüene#Literature)** (enwiki)
-  - Literaturangabe zu einem Titel: 'Gartenbiografien: Orte erzählen'
-  - Verlag vdf Hochschulverlag AG, ETH Zürich, Zürich 2013, mit ISBN-Angabe
+  - Literaturangabe: 'Gartenbiografien: Orte erzählen', vdf Hochschulverlag, ETH Zürich, 2013, ISBN 978-3-7281-3579-7
 - **[Location](https://en.wikipedia.org/wiki/Park_im_Grüene#Location)** (enwiki)
   - Lage des Parks in der Gemeinde Rüschlikon, Kanton Zürich, auf dem nördlichen Zimmerberg-Plateau
-  - Aussicht auf Zürichsee und Sihltal
-  - Anbindung mit öffentlichem Verkehr: VBZ-Buslinie 165 ab Bürkliplatz Zürich und Arboretum Zürich bis Haltestelle 'Belvoir'; S-Bahn Zürich Linie S8 zum Bahnhof Rüschlikon
+  - Aussicht über Zürichsee und Sihltal
+  - Anreise: VBZ-Buslinie 165 ab Bürkliplatz/Arboretum Zürich bis Haltestelle Belvoir; S-Bahn-Linie S8 bis Bahnhof Rüschlikon
 - **[Name](https://en.wikipedia.org/wiki/Park_im_Grüene#Name)** (enwiki)
-  - Erklärung des schweizerdeutschen Parknamens, wörtlich 'Park im Grünen'
-  - Verbreiteter Übername 'Dutti-Park', abgeleitet vom Spitznamen Gottlieb Duttweilers
+  - Bedeutung des schweizerdeutschen Namens ('Park im Grünen')
+  - Gebräuchlicher Übername 'Dutti-Park' nach dem Spitznamen von Gottlieb Duttweiler
 - **[Points of interest](https://en.wikipedia.org/wiki/Park_im_Grüene#Points_of_interest)** (enwiki)
-  - Einrichtungen im Park: Restaurant, Badeanlage, Duttweiler-Museum
+  - Einrichtungen im Park: Restaurant, Bad, Duttweiler-Museum
   - Grosse Rasenflächen und weitläufiger Kinderspielplatz
-  - Sommerangebote: Puppentheater, Eselreiten, Spielzeugeisenbahn, Wasserspiel sowie verschiedene Kulturveranstaltungen
-  - Belege: badi-info.ch und migros-kulturprozent.ch (Zugriff 2015)
+  - Sommerangebote: Puppentheater, Eselreiten, Spielzeugeisenbahn, Wasserspiel
+  - Kulturveranstaltungen in den Sommermonaten (Verweise auf badi-info.ch und Migros-Kulturprozent)
 
 ## Angaben zum Prüfen
 
@@ -64,7 +76,25 @@ nicht falsch, nur ungeprüft.
 
 ## Belege dieses Artikels
 
-12 Einzelnachweis(e) · neuester datierter Beleg: 2019, 7 Jahre alt · ältester: 1962 · 2 externe(r) Link(s)
+11 Einzelnachweis(e) · neuester datierter Beleg: 2019, 7 Jahre alt · ältester: 1962 · 2 externe(r) Link(s) · 2 unter Weblinks/Literatur
+
+## Erreichbarkeit der Belege
+
+4 von 4 Link(s) geprüft · 1 tot · 0 nicht erreichbar · 0 gesperrt · 0 umgeleitet · 3 erreichbar
+
+> **Was hier nicht steht.** Eine Seite, die mit HTTP 200 auf eine
+> Fehlermeldung antwortet - «Seite nicht gefunden» im Text, aber alles in
+> Ordnung im Statuscode - wird **nicht** erkannt; nur die Umleitung auf die
+> Startseite. Und `erreichbar` sagt etwas über die URL, nicht über den
+> Inhalt: die Seite kann längst umgeschrieben sein.
+
+Was die Befunde heissen:
+
+- **tot** — Dokument ist weg (404/410)
+
+| Link | Befund | Archiv |
+| --- | --- | --- |
+| <https://www.parkimgruene.ch/de/informationen/anfahrt.html> (Beleg) | **tot** · HTTP 404 | [Schnappschuss](http://web.archive.org/web/20220402150411/https://www.parkimgruene.ch/de/informationen/anfahrt.html) (2022-04-02) — selbst prüfen |
 
 ## Einstufung der zitierten Quellen
 
@@ -78,10 +108,10 @@ Domain auf keiner Liste steht - nicht, dass mit ihr etwas nicht stimmt.
 
 ## Recherche-Metadaten
 
-Modell `claude-opus-5`, Effort `medium` · 4 Aufruf(e) (davon 0 aus dem Cache) von höchstens 10
+Modell `claude-opus-5`, Effort `medium` · 5 Aufruf(e) (davon 0 aus dem Cache) von höchstens 16
 
-6 Dokument(e) gelesen, 1 davon Belege des Artikels selbst, danach Websuche
+10 Dokument(e) gelesen, 4 davon Belege des Artikels selbst, danach Websuche
 
-Von den Prüfungen verworfen — Kopie des Artikels: 1
+Von den Prüfungen verworfen — Dokument nicht lesbar: 1
 
 [Vollständiges Protokoll](733616-park-im-grueene.transcript.md)
