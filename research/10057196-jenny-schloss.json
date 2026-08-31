@@ -1,0 +1,287 @@
+{
+  "agent": {
+    "budget": 16,
+    "budget_exhausted": false,
+    "cached_calls": 0,
+    "calls": 1,
+    "documents": 3,
+    "dropped": [
+      {
+        "claim_id": "",
+        "detail": "HTTP 410",
+        "gate": "unreadable",
+        "url": "https://www.tagesanzeiger.ch/zuerich/JennySchloss-wird-saniert/story/15512856"
+      },
+      {
+        "claim_id": "",
+        "detail": "robots.txt verbietet den Abruf",
+        "gate": "unreadable",
+        "url": "https://books.google.ch/books?id=AOUXAQAAIAAJ&q=jenny+schloss+thalwil&dq=jenny+schloss+thalwil&hl=es&sa=X&ved=0ahUKEwiGmNbIxMLWAhVJKlAKHVONBDkQ6AEIMzAC"
+      },
+      {
+        "claim_id": "",
+        "detail": "robots.txt verbietet den Abruf",
+        "gate": "unreadable",
+        "url": "https://books.google.ch/books?id=J9RxAAAAIAAJ&q=jenny+schloss+thalwil&dq=jenny+schloss+thalwil&hl=es&sa=X&ved=0ahUKEwiGmNbIxMLWAhVJKlAKHVONBDkQ6AEIJzAA"
+      },
+      {
+        "claim_id": "",
+        "detail": "robots.txt verbietet den Abruf",
+        "gate": "unreadable",
+        "url": "https://books.google.ch/books?id=LdXGaOdkJpYC&pg=PA76&dq=jenny+schloss+thalwil&hl=es&sa=X&ved=0ahUKEwiGmNbIxMLWAhVJKlAKHVONBDkQ6AEIPzAE#v=onepage&q=jenny%20schloss%20thalwil&f=false"
+      },
+      {
+        "claim_id": "",
+        "detail": "nach 3 Versuch(en) nicht erreichbar",
+        "gate": "unreadable",
+        "url": "https://psicologialenguaje.wikispaces.com/file/view/JungAI.pdf"
+      },
+      {
+        "claim_id": "",
+        "detail": "HTTP 404",
+        "gate": "unreadable",
+        "url": "https://www.daimon.ch/catalog/product_info.php?products_id=5749&language=de&tellRegion=1"
+      }
+    ],
+    "effort": "medium",
+    "failed": "",
+    "model": "claude-opus-5",
+    "outcomes": [],
+    "reference_documents": 3,
+    "searched": false,
+    "sections_skipped": false,
+    "transcript": "10057196-jenny-schloss.transcript.md",
+    "unexamined": []
+  },
+  "claims": {
+    "claims": [],
+    "infobox": null,
+    "pageid": 10057196,
+    "references": {
+      "external_urls": [
+        "https://books.google.ch/books?id=AOUXAQAAIAAJ&q=jenny+schloss+thalwil&dq=jenny+schloss+thalwil&hl=es&sa=X&ved=0ahUKEwiGmNbIxMLWAhVJKlAKHVONBDkQ6AEIMzAC",
+        "https://books.google.ch/books?id=J9RxAAAAIAAJ&q=jenny+schloss+thalwil&dq=jenny+schloss+thalwil&hl=es&sa=X&ved=0ahUKEwiGmNbIxMLWAhVJKlAKHVONBDkQ6AEIJzAA",
+        "https://books.google.ch/books?id=LdXGaOdkJpYC&pg=PA76&dq=jenny+schloss+thalwil&hl=es&sa=X&ved=0ahUKEwiGmNbIxMLWAhVJKlAKHVONBDkQ6AEIPzAE#v=onepage&q=jenny%20schloss%20thalwil&f=false",
+        "https://psicologialenguaje.wikispaces.com/file/view/JungAI.pdf",
+        "https://web.archive.org/web/20181016165043/https://www.daimon.ch/catalog/product_info.php?products_id=5749&language=de&tellRegion=1",
+        "https://www.daimon.ch/catalog/product_info.php?products_id=5749&language=de&tellRegion=1",
+        "https://www.nzz.ch/articleCTM73-1.144542",
+        "https://www.tagesanzeiger.ch/zuerich/JennySchloss-wird-saniert/story/15512856"
+      ],
+      "linked_urls": [],
+      "newest_year": 2017,
+      "oldest_year": 1979,
+      "total": 7,
+      "with_year": 7
+    },
+    "sections": [
+      "Geschichte",
+      "Familie Jenny",
+      "Einzelnachweise"
+    ],
+    "title": "Jenny-Schloss"
+  },
+  "compared_languages": [
+    "en"
+  ],
+  "deltas": [
+    {
+      "agrees": false,
+      "article_as_of": null,
+      "article_value": null,
+      "claim_id": null,
+      "detail": "1 Abschnitt(e) ohne Entsprechung hier",
+      "external_as_of": null,
+      "external_value": "Personalities",
+      "field": null,
+      "kind": "interwiki_section",
+      "label": "enwiki",
+      "source": "https://en.wikipedia.org/wiki/Jenny_Estate"
+    }
+  ],
+  "edit_url": "https://de.wikipedia.org/w/index.php?title=Jenny-Schloss&action=edit",
+  "findings": [],
+  "interwiki_checked": true,
+  "link_summary": {
+    "blocked": 0,
+    "budget_exhausted": false,
+    "checked": 5,
+    "dead": 2,
+    "reachable": 2,
+    "redirected": 0,
+    "total": 8,
+    "unreachable": 1
+  },
+  "links": [
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "2018-10-16",
+      "snapshot_url": "http://web.archive.org/web/20181016165239/https://www.tagesanzeiger.ch/zuerich/JennySchloss-wird-saniert/story/15512856",
+      "status": 410,
+      "url": "https://www.tagesanzeiger.ch/zuerich/JennySchloss-wird-saniert/story/15512856",
+      "verdict": "tot"
+    },
+    {
+      "archived_in_article": true,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "2018-10-16",
+      "snapshot_url": "http://web.archive.org/web/20181016165043/https://www.daimon.ch/catalog/product_info.php?products_id=5749&language=de&tellRegion=1",
+      "status": 404,
+      "url": "https://www.daimon.ch/catalog/product_info.php?products_id=5749&language=de&tellRegion=1",
+      "verdict": "tot"
+    },
+    {
+      "archived_in_article": true,
+      "cited": true,
+      "detail": "nach 3 Versuch(en) nicht erreichbar",
+      "final_url": "",
+      "snapshot_date": "2018-07-29",
+      "snapshot_url": "http://web.archive.org/web/20180729071907/https://psicologialenguaje.wikispaces.com/file/view/JungAI.pdf",
+      "status": null,
+      "url": "https://psicologialenguaje.wikispaces.com/file/view/JungAI.pdf",
+      "verdict": "nicht erreichbar"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "robots.txt verbietet den Abruf",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": null,
+      "url": "https://books.google.ch/books?id=J9RxAAAAIAAJ&q=jenny+schloss+thalwil&dq=jenny+schloss+thalwil&hl=es&sa=X&ved=0ahUKEwiGmNbIxMLWAhVJKlAKHVONBDkQ6AEIJzAA",
+      "verdict": "nicht geprüft"
+    },
+    {
+      "archived_in_article": true,
+      "cited": true,
+      "detail": "robots.txt verbietet den Abruf",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": null,
+      "url": "https://books.google.ch/books?id=AOUXAQAAIAAJ&q=jenny+schloss+thalwil&dq=jenny+schloss+thalwil&hl=es&sa=X&ved=0ahUKEwiGmNbIxMLWAhVJKlAKHVONBDkQ6AEIMzAC",
+      "verdict": "nicht geprüft"
+    },
+    {
+      "archived_in_article": true,
+      "cited": true,
+      "detail": "robots.txt verbietet den Abruf",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": null,
+      "url": "https://books.google.ch/books?id=LdXGaOdkJpYC&pg=PA76&dq=jenny+schloss+thalwil&hl=es&sa=X&ved=0ahUKEwiGmNbIxMLWAhVJKlAKHVONBDkQ6AEIPzAE#v=onepage&q=jenny%20schloss%20thalwil&f=false",
+      "verdict": "nicht geprüft"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://web.archive.org/web/20181016165043/https://www.daimon.ch/catalog/product_info.php?products_id=5749&language=de&tellRegion=1",
+      "verdict": "erreichbar"
+    },
+    {
+      "archived_in_article": true,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.nzz.ch/articleCTM73-1.144542",
+      "verdict": "erreichbar"
+    }
+  ],
+  "pageid": 10057196,
+  "reference_date": "2026-08-31",
+  "reference_standing": [
+    {
+      "decided": null,
+      "host": "www.nzz.ch",
+      "label": "Presse/Wissenschaft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "press_academic",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.tagesanzeiger.ch",
+      "label": "Presse/Wissenschaft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "press_academic",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "books.google.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 3,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "psicologialenguaje.wikispaces.com",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "web.archive.org",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.daimon.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    }
+  ],
+  "scope_label": "Recherche",
+  "section_notes": [
+    {
+      "bullets": [
+        "Überblick über weitere bekannte Mitglieder der Familie Jenny neben Hans Jenny",
+        "Schwester Tina Keller-Jenny: Psychotherapeutin, frühe Klientin von C. G. Jung, verheiratet mit dem Theologen Adolf Keller (Freund Sigmund Freuds)",
+        "Schwester Elisabeth Alice Jenny: verheiratet mit Politiker Paul Lachenal (1884–1955), Mitbegründer des Orchestre de la Suisse Romande",
+        "Sohn Caspar Konrad Jenny-Caflisch (1888–1944): Schweizer Botschafter in Buenos Aires"
+      ],
+      "heading": "Personalities",
+      "lang": "en",
+      "source": "https://en.wikipedia.org/wiki/Jenny_Estate#Personalities"
+    }
+  ],
+  "title": "Jenny-Schloss",
+  "wikidata_checked": true,
+  "wikidata_comparable": 0,
+  "wikidata_item": "Q6179252"
+}
