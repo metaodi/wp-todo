@@ -1,4 +1,47 @@
 {
+  "agent": {
+    "budget": 16,
+    "budget_exhausted": false,
+    "cached_calls": 0,
+    "calls": 4,
+    "documents": 12,
+    "dropped": [
+      {
+        "claim_id": "",
+        "detail": "HTTP 404",
+        "gate": "unreadable",
+        "url": "http://www.kath-horgen.ch/aktuell/einzelansicht/news/altar-und-kirchweihe-st-josef.html"
+      },
+      {
+        "claim_id": "",
+        "detail": "HTTP 404",
+        "gate": "unreadable",
+        "url": "https://www.sakralbauten.ch/horgen-st-josef/"
+      }
+    ],
+    "effort": "medium",
+    "failed": "",
+    "model": "claude-opus-5",
+    "outcomes": [
+      {
+        "claim_id": "marker_derzeit-634359b4",
+        "outcome": "nothing_found",
+        "phase": "web"
+      },
+      {
+        "claim_id": "marker_stand_year-a733d72b",
+        "outcome": "found",
+        "phase": "reference"
+      }
+    ],
+    "reference_documents": 6,
+    "searched": true,
+    "sections_skipped": false,
+    "transcript": "8418392-st-josef-horgen.transcript.md",
+    "unexamined": [
+      "marker_derzeit-634359b4"
+    ]
+  },
   "claims": {
     "claims": [
       {
@@ -34,9 +77,12 @@
         "https://www.zsz.ch/horgen/die-katholische-kirche-wird-fuer-34-millionen-franken-aufgefrischt/story/29928486",
         "https://www.zsz.ch/horgen/katholische-kirche-erstrahlt-in-neuem-glanz/story/15085013"
       ],
+      "linked_urls": [
+        "https://www.sakralbauten.ch/horgen-st-josef/"
+      ],
       "newest_year": 2022,
       "oldest_year": 1950,
-      "total": 28,
+      "total": 27,
       "with_year": 15
     },
     "sections": [
@@ -63,9 +109,129 @@
   "compared_languages": [],
   "deltas": [],
   "edit_url": "https://de.wikipedia.org/w/index.php?title=St._Josef_(Horgen)&action=edit",
+  "findings": [
+    {
+      "as_of": 2026,
+      "cited_sources": [],
+      "claim_id": "marker_stand_year-a733d72b",
+      "claim_text": "Seit dem 1. Januar 2020 ist die Kirchgemeinde Horgen auch für die Kirche [[St. Antonius (Hirzel)]] zuständig, nach dem Anschluss von Hirzel an die politische Gemeinde Horgen auch die Auflösung der Kir",
+      "confidence": 0.6,
+      "current_value": "Die Kirchgemeinde Horgen ist (weiterhin) auch für die Pfarrei/Kirche St. Antonius Hirzel zuständig; beide Pfarreien werden gemeinsam geführt.",
+      "demoted": "",
+      "from_reference": true,
+      "host": "www.kath-horgen.ch",
+      "interwiki_lang": "",
+      "matches_wikidata": false,
+      "quote": "Mit grosser Freude durften wir am 27. Juni 2026 acht neue Minis in die Ministrantenscharen von St. Josef Horgen und St. Antonius Hirzel im Familiengottesdienst aufnehmen und ihnen ihre Diplome überreichen, die sie voller Stolz entgegennahmen.",
+      "quote_supports_value": true,
+      "standing": "nicht eingestuft · im Artikel bereits zitiert",
+      "status": "confirms_current",
+      "url": "https://www.kath-horgen.ch/"
+    }
+  ],
   "interwiki_checked": true,
+  "link_summary": {
+    "blocked": 0,
+    "budget_exhausted": false,
+    "checked": 8,
+    "dead": 2,
+    "reachable": 4,
+    "redirected": 2,
+    "total": 8,
+    "unreachable": 0
+  },
+  "links": [
+    {
+      "archived_in_article": false,
+      "cited": false,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "2025-04-12",
+      "snapshot_url": "http://web.archive.org/web/20250412120459/https://www.sakralbauten.ch/horgen-st-josef/",
+      "status": 404,
+      "url": "https://www.sakralbauten.ch/horgen-st-josef/",
+      "verdict": "tot"
+    },
+    {
+      "archived_in_article": true,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "2017-11-29",
+      "snapshot_url": "http://web.archive.org/web/20171129045030/http://www.kath-horgen.ch:80/aktuell/einzelansicht/news/altar-und-kirchweihe-st-josef.html",
+      "status": 404,
+      "url": "http://www.kath-horgen.ch/aktuell/einzelansicht/news/altar-und-kirchweihe-st-josef.html",
+      "verdict": "tot"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "landet auf einem anderen Host: www.tagesanzeiger.ch",
+      "final_url": "https://www.tagesanzeiger.ch/zuerichsee",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.zsz.ch/horgen/katholische-kirche-erstrahlt-in-neuem-glanz/story/15085013",
+      "verdict": "umgeleitet"
+    },
+    {
+      "archived_in_article": true,
+      "cited": true,
+      "detail": "landet auf einem anderen Host: www.tagesanzeiger.ch",
+      "final_url": "https://www.tagesanzeiger.ch/zuerichsee",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.zsz.ch/horgen/die-katholische-kirche-wird-fuer-34-millionen-franken-aufgefrischt/story/29928486",
+      "verdict": "umgeleitet"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://orgelverzeichnis.ch/ZHProfile3/zh_horgen_kath1950.htm",
+      "verdict": "erreichbar"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://orgelverzeichnis.ch/ZHProfile3/zh_horgen_kath1979.htm",
+      "verdict": "erreichbar"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.metzler-orgelbau.ch/htm/organs/horgen-j.htm",
+      "verdict": "erreichbar"
+    },
+    {
+      "archived_in_article": true,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.kath-horgen.ch/",
+      "verdict": "erreichbar"
+    }
+  ],
   "pageid": 8418392,
-  "reference_date": "2026-08-29",
+  "reference_date": "2026-09-07",
   "reference_standing": [
     {
       "decided": null,
@@ -109,7 +275,9 @@
     }
   ],
   "scope_label": "Recherche",
+  "section_notes": [],
   "title": "St. Josef (Horgen)",
   "wikidata_checked": true,
+  "wikidata_comparable": 0,
   "wikidata_item": "Q19309373"
 }
