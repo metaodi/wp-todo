@@ -1,0 +1,660 @@
+{
+  "agent": {
+    "budget": 16,
+    "budget_exhausted": false,
+    "cached_calls": 0,
+    "calls": 10,
+    "documents": 11,
+    "dropped": [
+      {
+        "claim_id": "",
+        "detail": "robots.txt verbietet den Abruf",
+        "gate": "unreadable",
+        "url": "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=2022&indikatoren=405,406,408&bfs=4"
+      },
+      {
+        "claim_id": "",
+        "detail": "robots.txt verbietet den Abruf",
+        "gate": "unreadable",
+        "url": "https://app.statistik.zh.ch/wahlen_abstimmungen/prod/Actual/Det/0_0_20231022/247586"
+      },
+      {
+        "claim_id": "",
+        "detail": "nach 3 Versuch(en) nicht erreichbar",
+        "gate": "unreadable",
+        "url": "http://dav0.bgdi.admin.ch/kogis_web/downloads/ivs/beschr/fr/ZH11230000.pdf"
+      },
+      {
+        "claim_id": "",
+        "detail": "robots.txt verbietet den Abruf",
+        "gate": "unreadable",
+        "url": "https://oerebdocs.zh.ch/getDoc?docid=10095"
+      },
+      {
+        "claim_id": "",
+        "detail": "robots.txt verbietet den Abruf",
+        "gate": "unreadable",
+        "url": "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=&bfs=4"
+      },
+      {
+        "claim_id": "",
+        "detail": "robots.txt verbietet den Abruf",
+        "gate": "unreadable",
+        "url": "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=2022&indikatoren=133&bfs=4"
+      }
+    ],
+    "effort": "medium",
+    "failed": "",
+    "model": "claude-opus-5",
+    "outcomes": [
+      {
+        "claim_id": "infobox_field-2b259aae",
+        "outcome": "found",
+        "phase": "web"
+      },
+      {
+        "claim_id": "infobox_field-62028a67",
+        "outcome": "found",
+        "phase": "reference"
+      },
+      {
+        "claim_id": "infobox_field-6ae0c0fc",
+        "outcome": "nothing_found",
+        "phase": "web"
+      },
+      {
+        "claim_id": "infobox_field-e377f032",
+        "outcome": "found",
+        "phase": "reference"
+      },
+      {
+        "claim_id": "marker_stand_year-36e33e74",
+        "outcome": "found",
+        "phase": "web"
+      }
+    ],
+    "reference_documents": 5,
+    "searched": true,
+    "sections_skipped": false,
+    "transcript": "422720-hausen-am-albis.transcript.md",
+    "unexamined": [
+      "infobox_field-6ae0c0fc"
+    ]
+  },
+  "claims": {
+    "claims": [
+      {
+        "as_of_year": null,
+        "asserted_value": "13.64",
+        "field": "FLÄCHE",
+        "id": "infobox_field-6ae0c0fc",
+        "kind": "infobox_field",
+        "line_no": 16,
+        "section": null,
+        "text": "FLÄCHE = 13.64"
+      },
+      {
+        "as_of_year": 2007,
+        "asserted_value": "3235",
+        "field": "EINWOHNER",
+        "id": "infobox_field-2b259aae",
+        "kind": "infobox_field",
+        "line_no": 21,
+        "section": null,
+        "text": "EINWOHNER = 3235"
+      },
+      {
+        "as_of_year": null,
+        "asserted_value": "Stefan Gyseler ([[FDP.Die Liberalen|FDP]])",
+        "field": "GEMEINDEPRÄSIDENT",
+        "id": "infobox_field-e377f032",
+        "kind": "infobox_field",
+        "line_no": 26,
+        "section": null,
+        "text": "GEMEINDEPRÄSIDENT = Stefan Gyseler ([[FDP.Die Liberalen|FDP]])"
+      },
+      {
+        "as_of_year": null,
+        "asserted_value": "www.hausen.ch",
+        "field": "WEBSITE",
+        "id": "infobox_field-62028a67",
+        "kind": "infobox_field",
+        "line_no": 29,
+        "section": null,
+        "text": "WEBSITE = www.hausen.ch"
+      },
+      {
+        "as_of_year": 2022,
+        "asserted_value": null,
+        "field": null,
+        "id": "marker_stand_year-36e33e74",
+        "kind": "marker:stand_year",
+        "line_no": 138,
+        "section": "Bevölkerung",
+        "text": "* Konfessionszugehörigkeit: 32,15 % [[Reformierte Kirchen|evangelisch-reformiert]], 25,93 % [[Römisch-katholische Kirche|römisch-katholisch]], 41,92 % andere oder keine konfessionelle Zugehörigkeit (S"
+      }
+    ],
+    "infobox": "Infobox Ort in der Schweiz",
+    "pageid": 422720,
+    "references": {
+      "external_urls": [
+        "http://www.hausen.ch/xml_1/internet/de/intro.cfm",
+        "http://www.ref.ch/hausen/default/index/index/id/4862",
+        "https://app.statistik.zh.ch/wahlen_abstimmungen/prod/Actual/Det/0_0_20231022/247586",
+        "https://dfg-viewer.de/show?tx_dlf%5Bdouble%5D=0&tx_dlf%5Bid%5D=https%3A%2F%2Fcontent.staatsbibliothek-berlin.de%2Fzefys%2FSNP27646518-19050912-0-0-0-0.xml&tx_dlf%5Bpage%5D=9&cHash=e708cd7c8a9362ac47e1eb1d0d4ea366",
+        "https://oerebdocs.zh.ch/getDoc?docid=10095",
+        "https://web.archive.org/web/20160224114323/hausen.ch/de/",
+        "https://www.e-chartae.ch/de/charters/view/214",
+        "https://www.hausen.ch/gemeinderat/11785",
+        "https://www.wahlen.zh.ch/wahlen2019/public/dist/index.html#/nrw/listen/Gemeinden/Parteien/4",
+        "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=2022&indikatoren=133&bfs=4",
+        "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=2022&indikatoren=405,406,408&bfs=4",
+        "https://www.web.statistik.zh.ch/ogd/daten/ressourcen/KTZH_00000037_00001173.xls"
+      ],
+      "linked_urls": [
+        "http://dav0.bgdi.admin.ch/kogis_web/downloads/ivs/beschr/fr/ZH11230000.pdf",
+        "http://www.are.zh.ch/internet/baudirektion/are/de/archaeologie/archaeologie/ausflug-tipps/_jcr_content/contentPar/downloadlist_1308912453278/downloaditems/vom_albispass_zum_kl.spooler.download.1317373393800.pdf/27_Albispass_Kloster_Kappel.pdf",
+        "https://ekds.ch/library/book:007",
+        "https://www.hausen.ch/",
+        "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=&bfs=4"
+      ],
+      "newest_year": 2023,
+      "oldest_year": 1905,
+      "total": 16,
+      "with_year": 11
+    },
+    "sections": [
+      "Geographie",
+      "Ortsteile und Weiler",
+      "Heisch",
+      "Ebertswil",
+      "Sihlbrugg",
+      "Husertal",
+      "Türlen",
+      "Geschichte",
+      "Herrschaftsverhältnisse im Mittelalter",
+      "Reformation",
+      "Industrialisierung",
+      "Wappen und Fahne",
+      "Bevölkerung",
+      "Politik",
+      "Sehenswürdigkeiten",
+      "Albisbrunn",
+      "Persönlichkeiten",
+      "Literatur",
+      "Weblinks",
+      "Einzelnachweise"
+    ],
+    "title": "Hausen am Albis"
+  },
+  "compared_languages": [
+    "en",
+    "fr",
+    "it"
+  ],
+  "deltas": [
+    {
+      "agrees": false,
+      "article_as_of": 2007,
+      "article_value": "3235",
+      "claim_id": "infobox_field-2b259aae",
+      "detail": "",
+      "external_as_of": 2017,
+      "external_value": "3646",
+      "field": "EINWOHNER",
+      "kind": "wikidata",
+      "label": "Einwohnerzahl",
+      "source": "https://www.wikidata.org/wiki/Q65231#P1082"
+    },
+    {
+      "agrees": false,
+      "article_as_of": null,
+      "article_value": "13.64",
+      "claim_id": "infobox_field-6ae0c0fc",
+      "detail": "",
+      "external_as_of": 2007,
+      "external_value": "13.6",
+      "field": "FLÄCHE",
+      "kind": "wikidata",
+      "label": "Fläche",
+      "source": "https://www.wikidata.org/wiki/Q65231#P2046"
+    },
+    {
+      "agrees": true,
+      "article_as_of": null,
+      "article_value": "www.hausen.ch",
+      "claim_id": "infobox_field-62028a67",
+      "detail": "",
+      "external_as_of": null,
+      "external_value": "http://www.hausen.ch",
+      "field": "WEBSITE",
+      "kind": "wikidata",
+      "label": "offizielle Website",
+      "source": "https://www.wikidata.org/wiki/Q65231#P856"
+    },
+    {
+      "agrees": false,
+      "article_as_of": null,
+      "article_value": null,
+      "claim_id": null,
+      "detail": "2 Abschnitt(e) ohne Entsprechung hier",
+      "external_as_of": null,
+      "external_value": "Personnalités liées; Références",
+      "field": null,
+      "kind": "interwiki_section",
+      "label": "frwiki",
+      "source": "https://fr.wikipedia.org/wiki/Hausen_am_Albis"
+    },
+    {
+      "agrees": false,
+      "article_as_of": null,
+      "article_value": null,
+      "claim_id": null,
+      "detail": "1 Abschnitt(e) ohne Entsprechung hier",
+      "external_as_of": null,
+      "external_value": "Società",
+      "field": null,
+      "kind": "interwiki_section",
+      "label": "itwiki",
+      "source": "https://it.wikipedia.org/wiki/Hausen_am_Albis"
+    }
+  ],
+  "edit_url": "https://de.wikipedia.org/w/index.php?title=Hausen_am_Albis&action=edit",
+  "findings": [
+    {
+      "as_of": 2025,
+      "cited_sources": [],
+      "claim_id": "infobox_field-2b259aae",
+      "claim_text": "EINWOHNER = 3235",
+      "confidence": 0.9,
+      "current_value": "3950 Einwohner (Stand 31.12.2025)",
+      "demoted": "",
+      "from_reference": false,
+      "host": "www.hausen.ch",
+      "interwiki_lang": "",
+      "matches_wikidata": false,
+      "quote": "Einwohnerstatistik per 31.12.2025\n\n2024\n2025\nDifferenz\n\nEinwohner\n3933\n3950\n+ 0.43 %",
+      "quote_supports_value": true,
+      "standing": "nicht eingestuft · offizielle Website des Artikelgegenstands · im Artikel bereits zitiert",
+      "status": "supersedes_with_newer_value",
+      "url": "https://www.hausen.ch/gemeindeinzahlen"
+    },
+    {
+      "as_of": null,
+      "cited_sources": [],
+      "claim_id": "infobox_field-e377f032",
+      "claim_text": "GEMEINDEPRÄSIDENT = Stefan Gyseler ([[FDP.Die Liberalen|FDP]])",
+      "confidence": 0.5,
+      "current_value": "René Hess",
+      "demoted": "",
+      "from_reference": false,
+      "host": "fr.wikipedia.org",
+      "interwiki_lang": "fr",
+      "matches_wikidata": false,
+      "quote": "| syndic/maire        = René Hess",
+      "quote_supports_value": true,
+      "standing": "andere Sprachversion dieses Artikels - kein Beleg, sondern ein Hinweis",
+      "status": "contradicts_current",
+      "url": "https://fr.wikipedia.org/wiki/Hausen_am_Albis"
+    },
+    {
+      "as_of": null,
+      "cited_sources": [],
+      "claim_id": "infobox_field-62028a67",
+      "claim_text": "WEBSITE = www.hausen.ch",
+      "confidence": 0.6,
+      "current_value": "www.hausen.ch",
+      "demoted": "",
+      "from_reference": false,
+      "host": "en.wikipedia.org",
+      "interwiki_lang": "en",
+      "matches_wikidata": true,
+      "quote": "| website               = www.hausen.ch",
+      "quote_supports_value": true,
+      "standing": "andere Sprachversion dieses Artikels - kein Beleg, sondern ein Hinweis",
+      "status": "confirms_current",
+      "url": "https://en.wikipedia.org/wiki/Hausen_am_Albis"
+    },
+    {
+      "as_of": 2025,
+      "cited_sources": [],
+      "claim_id": "marker_stand_year-36e33e74",
+      "claim_text": "* Konfessionszugehörigkeit: 32,15 % [[Reformierte Kirchen|evangelisch-reformiert]], 25,93 % [[Römisch-katholische Kirche|römisch-katholisch]], 41,92 % andere oder keine konfessionelle Zugehörigkeit (S",
+      "confidence": 0.72,
+      "current_value": "Per 31.12.2025: 1159 reformierte Einwohner (29,3 %) und 904 katholische Einwohner (22,9 %) von insgesamt 3950 Einwohnern",
+      "demoted": "nicht im Zitat belegt: 31.12.2025, 29,3, 22,9, 3950, 2025",
+      "from_reference": false,
+      "host": "www.hausen.ch",
+      "interwiki_lang": "",
+      "matches_wikidata": false,
+      "quote": "Reformierte Einwohner\n1208\n1159\n- 4.06 %\n\nKatholische Einwohner\n949\n904\n- 4.74 %",
+      "quote_supports_value": false,
+      "standing": "nicht eingestuft · offizielle Website des Artikelgegenstands · im Artikel bereits zitiert",
+      "status": "supersedes_with_newer_value",
+      "url": "https://www.hausen.ch/gemeindeinzahlen"
+    }
+  ],
+  "interwiki_checked": true,
+  "link_summary": {
+    "blocked": 0,
+    "budget_exhausted": false,
+    "checked": 11,
+    "dead": 2,
+    "reachable": 6,
+    "redirected": 1,
+    "total": 17,
+    "unreachable": 2
+  },
+  "links": [
+    {
+      "archived_in_article": true,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "2015-10-11",
+      "snapshot_url": "http://web.archive.org/web/20151011161644/http://www.hausen.ch:80/xml_1/internet/de/intro.cfm",
+      "status": 404,
+      "url": "http://www.hausen.ch/xml_1/internet/de/intro.cfm",
+      "verdict": "tot"
+    },
+    {
+      "archived_in_article": true,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 404,
+      "url": "http://www.ref.ch/hausen/default/index/index/id/4862",
+      "verdict": "tot"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "nach 3 Versuch(en) nicht erreichbar",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": null,
+      "url": "https://dfg-viewer.de/show?tx_dlf%5Bdouble%5D=0&tx_dlf%5Bid%5D=https%3A%2F%2Fcontent.staatsbibliothek-berlin.de%2Fzefys%2FSNP27646518-19050912-0-0-0-0.xml&tx_dlf%5Bpage%5D=9&cHash=e708cd7c8a9362ac47e1eb1d0d4ea366",
+      "verdict": "nicht erreichbar"
+    },
+    {
+      "archived_in_article": true,
+      "cited": false,
+      "detail": "nach 3 Versuch(en) nicht erreichbar",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": null,
+      "url": "http://dav0.bgdi.admin.ch/kogis_web/downloads/ivs/beschr/fr/ZH11230000.pdf",
+      "verdict": "nicht erreichbar"
+    },
+    {
+      "archived_in_article": true,
+      "cited": false,
+      "detail": "landet auf einem anderen Host: www.zh.ch",
+      "final_url": "https://www.zh.ch/de/baudirektion/amt-fuer-raumentwicklung.html",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "http://www.are.zh.ch/internet/baudirektion/are/de/archaeologie/archaeologie/ausflug-tipps/_jcr_content/contentPar/downloadlist_1308912453278/downloaditems/vom_albispass_zum_kl.spooler.download.1317373393800.pdf/27_Albispass_Kloster_Kappel.pdf",
+      "verdict": "umgeleitet"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "robots.txt verbietet den Abruf",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": null,
+      "url": "https://app.statistik.zh.ch/wahlen_abstimmungen/prod/Actual/Det/0_0_20231022/247586",
+      "verdict": "nicht geprüft"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "robots.txt verbietet den Abruf",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": null,
+      "url": "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=2022&indikatoren=133&bfs=4",
+      "verdict": "nicht geprüft"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "robots.txt verbietet den Abruf",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": null,
+      "url": "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=2022&indikatoren=405,406,408&bfs=4",
+      "verdict": "nicht geprüft"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "robots.txt verbietet den Abruf",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": null,
+      "url": "https://www.web.statistik.zh.ch/ogd/daten/ressourcen/KTZH_00000037_00001173.xls",
+      "verdict": "nicht geprüft"
+    },
+    {
+      "archived_in_article": false,
+      "cited": false,
+      "detail": "robots.txt verbietet den Abruf",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": null,
+      "url": "https://www.web.statistik.zh.ch/gpv2/?tab=indikatoren&jahr=0&indikatoren=&bfs=4",
+      "verdict": "nicht geprüft"
+    },
+    {
+      "archived_in_article": true,
+      "cited": true,
+      "detail": "robots.txt verbietet den Abruf",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": null,
+      "url": "https://oerebdocs.zh.ch/getDoc?docid=10095",
+      "verdict": "nicht geprüft"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://web.archive.org/web/20160224114323/hausen.ch/de/",
+      "verdict": "erreichbar"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.e-chartae.ch/de/charters/view/214",
+      "verdict": "erreichbar"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.hausen.ch/gemeinderat/11785",
+      "verdict": "erreichbar"
+    },
+    {
+      "archived_in_article": false,
+      "cited": true,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.wahlen.zh.ch/wahlen2019/public/dist/index.html#/nrw/listen/Gemeinden/Parteien/4",
+      "verdict": "erreichbar"
+    },
+    {
+      "archived_in_article": false,
+      "cited": false,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://ekds.ch/library/book:007",
+      "verdict": "erreichbar"
+    },
+    {
+      "archived_in_article": false,
+      "cited": false,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.hausen.ch/",
+      "verdict": "erreichbar"
+    }
+  ],
+  "pageid": 422720,
+  "reference_date": "2026-09-16",
+  "reference_standing": [
+    {
+      "decided": null,
+      "host": "www.web.statistik.zh.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 3,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "app.statistik.zh.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "oerebdocs.zh.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.wahlen.zh.ch",
+      "label": "amtlich",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "official",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.hausen.ch",
+      "label": "nicht eingestuft · offizielle Website des Artikelgegenstands",
+      "reason": "",
+      "references": 2,
+      "signals": [
+        "article_official"
+      ],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "dfg-viewer.de",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "web.archive.org",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.e-chartae.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    },
+    {
+      "decided": null,
+      "host": "www.ref.ch",
+      "label": "nicht eingestuft",
+      "reason": "",
+      "references": 1,
+      "signals": [],
+      "tier": "unrated",
+      "verdict": null
+    }
+  ],
+  "scope_label": "Recherche",
+  "section_notes": [
+    {
+      "bullets": [
+        "Auflistung von Personen mit Bezug zum Ort",
+        "Nennt Wilhelm Scheuchzer (1803–1866), Schweizer Landschaftsmaler",
+        "Angabe: geboren in Hausen am Albis"
+      ],
+      "heading": "Personnalités liées",
+      "lang": "fr",
+      "source": "https://fr.wikipedia.org/wiki/Hausen_am_Albis#Personnalités_liées"
+    },
+    {
+      "bullets": [
+        "Reiner Apparat-Abschnitt: Einzelnachweis-Liste (references-Tag)",
+        "Zusätzlich Verweis auf Schwesterprojekte: Commons-Kategorie zu Hausen am Albis",
+        "Kein inhaltlicher Text, nichts zu übersetzen"
+      ],
+      "heading": "Références",
+      "lang": "fr",
+      "source": "https://fr.wikipedia.org/wiki/Hausen_am_Albis#Références"
+    }
+  ],
+  "title": "Hausen am Albis",
+  "wikidata_checked": true,
+  "wikidata_comparable": 4,
+  "wikidata_item": "Q65231"
+}
