@@ -1,27 +1,58 @@
 {
   "agent": {
-    "budget": 10,
+    "budget": 16,
     "budget_exhausted": false,
     "cached_calls": 0,
-    "calls": 0,
-    "documents": 0,
-    "dropped": [],
+    "calls": 1,
+    "documents": 1,
+    "dropped": [
+      {
+        "claim_id": "",
+        "detail": "PDF nicht lesbar (PdfStreamError)",
+        "gate": "unreadable",
+        "url": "https://www.kilchberg.ch/fileadmin/user_upload/gemeinde/Neujahrsblatt_Nr_058_2017_optimiert.pdf"
+      }
+    ],
     "effort": "medium",
+    "failed": "",
     "model": "claude-opus-5",
-    "reference_documents": 0,
+    "outcomes": [
+      {
+        "claim_id": "belege_fehlen-314b7853",
+        "outcome": "found",
+        "phase": "reference"
+      }
+    ],
+    "reference_documents": 1,
     "searched": false,
+    "sections_skipped": false,
     "transcript": "11926686-sanatorium-kilchberg.transcript.md",
     "unexamined": []
   },
   "claims": {
-    "claims": [],
+    "claims": [
+      {
+        "as_of_year": null,
+        "asserted_value": null,
+        "field": null,
+        "id": "belege_fehlen-314b7853",
+        "kind": "belege_fehlen",
+        "line_no": 2,
+        "section": null,
+        "text": "{{Belege fehlen}}: als unzureichend belegt markiert - Teilweise: Nur spärliche Einzelnachweise, die dann nur Pirmärquellen für Zitate angeben"
+      }
+    ],
     "infobox": null,
     "pageid": 11926686,
     "references": {
       "external_urls": [],
+      "linked_urls": [
+        "https://www.kilchberg.ch/fileadmin/user_upload/gemeinde/Neujahrsblatt_Nr_058_2017_optimiert.pdf",
+        "https://www.sanatorium-kilchberg.ch/"
+      ],
       "newest_year": 2017,
       "oldest_year": 1901,
-      "total": 46,
+      "total": 45,
       "with_year": 39
     },
     "sections": [
@@ -56,10 +87,63 @@
   "compared_languages": [],
   "deltas": [],
   "edit_url": "https://de.wikipedia.org/w/index.php?title=Sanatorium_Kilchberg&action=edit",
-  "findings": [],
+  "findings": [
+    {
+      "as_of": 2026,
+      "cited_sources": [],
+      "claim_id": "belege_fehlen-314b7853",
+      "claim_text": "{{Belege fehlen}}: als unzureichend belegt markiert - Teilweise: Nur spärliche Einzelnachweise, die dann nur Pirmärquellen für Zitate angeben",
+      "confidence": 0.72,
+      "current_value": "Das Sanatorium Kilchberg ist eine der ältesten psychiatrischen Privatkliniken der Schweiz mit über 150-jähriger Geschichte; als Listenspital und Grundversorger steht es allen allgemeinversicherten Patientinnen und Patienten offen, der Premiumbereich umfasst drei Privatstationen. Ambulante Behandlungen erfolgen im Zentrum für Psychosomatik Zürich City und im Ambulanten Zentrum Kilchberg. Sitz: Alte Landstrasse 70, CH-8802 Kilchberg.",
+      "demoted": "nicht im Zitat belegt: 70,, 8802, 2026",
+      "from_reference": true,
+      "host": "www.sanatorium-kilchberg.ch",
+      "interwiki_lang": "",
+      "matches_wikidata": false,
+      "quote": "Das Sanatorium Kilchberg ist mit seiner über 150jährigen Geschichte eine der ältesten psychiatrischen Privatkliniken in der Schweiz.",
+      "quote_supports_value": false,
+      "standing": "nicht eingestuft",
+      "status": "confirms_current",
+      "url": "https://www.sanatorium-kilchberg.ch/"
+    }
+  ],
   "interwiki_checked": true,
+  "link_summary": {
+    "blocked": 0,
+    "budget_exhausted": false,
+    "checked": 2,
+    "dead": 0,
+    "reachable": 2,
+    "redirected": 0,
+    "total": 2,
+    "unreachable": 0
+  },
+  "links": [
+    {
+      "archived_in_article": false,
+      "cited": false,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.kilchberg.ch/fileadmin/user_upload/gemeinde/Neujahrsblatt_Nr_058_2017_optimiert.pdf",
+      "verdict": "erreichbar"
+    },
+    {
+      "archived_in_article": false,
+      "cited": false,
+      "detail": "",
+      "final_url": "",
+      "snapshot_date": "",
+      "snapshot_url": "",
+      "status": 200,
+      "url": "https://www.sanatorium-kilchberg.ch/",
+      "verdict": "erreichbar"
+    }
+  ],
   "pageid": 11926686,
-  "reference_date": "2026-08-29",
+  "reference_date": "2026-09-16",
   "reference_standing": [],
   "scope_label": "Recherche",
   "section_notes": [],
